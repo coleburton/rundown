@@ -88,37 +88,38 @@ const styles = StyleSheet.create({
   
   // Size styles
   sizeDefault: {
-    height: 36,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    height: 48,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
   } as ViewStyle,
   
   sizeSm: {
-    height: 32,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    height: 40,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
     borderRadius: 4,
   } as ViewStyle,
   
   sizeLg: {
-    height: 40,
-    paddingHorizontal: 24,
-    paddingVertical: 10,
+    height: 56,
+    paddingHorizontal: 32,
+    paddingVertical: 16,
     borderRadius: 8,
   } as ViewStyle,
   
   sizeIcon: {
-    width: 36,
-    height: 36,
+    width: 40,
+    height: 40,
     paddingHorizontal: 0,
     paddingVertical: 0,
   } as ViewStyle,
   
   // Text styles
   textBase: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
     textAlign: 'center',
+    lineHeight: 24,
   } as TextStyle,
   
   textDefault: {
@@ -147,11 +148,13 @@ const styles = StyleSheet.create({
   } as TextStyle,
   
   textSm: {
-    fontSize: 13,
+    fontSize: 14,
+    lineHeight: 20,
   } as TextStyle,
   
   textLg: {
-    fontSize: 16,
+    fontSize: 18,
+    lineHeight: 28,
   } as TextStyle,
   
   // Dark mode styles

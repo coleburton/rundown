@@ -182,7 +182,8 @@ const styles = StyleSheet.create({
   ctaButton: {
     marginBottom: 24,
     borderRadius: 16, // rounded-2xl
-    paddingVertical: 16,
+    height: 60,
+    paddingVertical: 0, // Override default padding since we're setting height
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
@@ -206,7 +207,7 @@ const styles = StyleSheet.create({
 });
 
 export function WelcomeScreen({ navigation }: Props) {
-  const { signIn, connectStrava } = useMockAuth();
+  const { signIn, connectStrava, updateUser } = useMockAuth();
   const { colorScheme, toggleColorScheme } = useColorScheme();
   const insets = useSafeAreaInsets();
   const isDarkMode = colorScheme === 'dark';
@@ -251,6 +252,10 @@ export function WelcomeScreen({ navigation }: Props) {
     try {
       const user = await signIn();
       const stravaUser = await connectStrava();
+      
+      // Mark onboarding as completed when user signs in
+      await updateUser({ onboardingCompleted: true });
+      
       navigation.navigate('GoalSetup');
     } catch (error) {
       console.error('Failed to sign in:', error);

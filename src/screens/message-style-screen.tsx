@@ -78,7 +78,8 @@ export function MessageStyleScreen({ navigation }: Props) {
       // For mock data, we'll use the updateUser function
       await updateUser({ message_style: selectedStyle });
       
-      navigation.navigate('Dashboard');
+      // Navigate to the success screen instead of dashboard
+      navigation.navigate('OnboardingSuccess');
     } catch (error) {
       console.error('Failed to save message style:', error);
     }

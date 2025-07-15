@@ -165,19 +165,21 @@ const styles = StyleSheet.create({
     padding: 6,
   },
   roleButton: {
-    backgroundColor: '#f3f4f6',
+    backgroundColor: '#f9fafb',
     borderRadius: 12,
-    padding: 12,
+    padding: 16,
     alignItems: 'center',
     borderWidth: 2,
     borderColor: 'transparent',
+    minHeight: 120,
+    justifyContent: 'center',
   },
   roleButtonSelected: {
     backgroundColor: '#fff',
     borderColor: '#f97316',
   },
   roleEmoji: {
-    fontSize: 28,
+    fontSize: 32,
     marginBottom: 8,
   },
   roleTitle: {

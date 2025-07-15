@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, ScrollView, KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useMockAuth } from '@/hooks/useMockAuth';
@@ -15,12 +15,12 @@ type RootStackParamList = {
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ContactSetup'>;
 
-interface Contact {
+type Contact = {
   id?: string;
   name: string;
   phone: string;
   role?: string;
-}
+};
 
 export function ContactSetupScreen({ navigation }: Props) {
   const { user } = useMockAuth();
@@ -28,6 +28,9 @@ export function ContactSetupScreen({ navigation }: Props) {
   const [newContact, setNewContact] = useState<Contact>({ name: '', phone: '', role: 'Coach' });
   const [error, setError] = useState<string | null>(null);
   const [formKey, setFormKey] = useState(0);
+
+  // Check if form is valid
+  const isValid = newContact.name.trim() && newContact.phone.trim().length >= 3;
 
   // Clear error when form inputs change
   useEffect(() => {
@@ -115,13 +118,13 @@ export function ContactSetupScreen({ navigation }: Props) {
       
       <ScrollView 
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 32, paddingBottom: 100 }}
+        contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 24, paddingBottom: 100 }}
       >
-        <View style={{ marginBottom: 32 }}>
-          <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#111827', marginBottom: 8 }}>
+        <View style={{ marginBottom: 24 }}>
+          <Text style={{ fontSize: 28, fontWeight: 'bold', color: '#111827', marginBottom: 8 }}>
             Add your accountability buddy
           </Text>
-          <Text style={{ color: '#6b7280' }}>
+          <Text style={{ fontSize: 16, color: '#6b7280' }}>
             Who should we text when you're slacking?
           </Text>
         </View>
@@ -131,46 +134,94 @@ export function ContactSetupScreen({ navigation }: Props) {
             <Text style={{ color: '#dc2626', fontSize: 14 }}>{error}</Text>
           </View>
         )}
-        
-        <View style={{ marginBottom: 24 }}>
+
+        {/* Input Fields */}
+        <View style={{ marginBottom: 16 }}>
           <Input
-            placeholder="Name"
+            placeholder="123"
             value={newContact.name}
-            onChangeText={(text) => setNewContact({...newContact, name: text})}
-            style={{ marginBottom: 12 }}
+            onChangeText={(text) => setNewContact({ ...newContact, name: text })}
+            style={{ 
+              marginBottom: 12, 
+              borderRadius: 12, 
+              height: 50, 
+              fontSize: 16,
+              borderColor: '#e5e7eb',
+              backgroundColor: '#ffffff',
+            }}
           />
-          
           <Input
-            placeholder="Phone number"
+            placeholder="23441"
             value={newContact.phone}
-            onChangeText={(text) => setNewContact({...newContact, phone: text})}
+            onChangeText={(text) => setNewContact({ ...newContact, phone: text })}
             keyboardType="phone-pad"
-            style={{ marginBottom: 12 }}
-          />
-          
-          {newContact.role ? (
-            <View style={{ marginBottom: 8, flexDirection: 'row', alignItems: 'center' }}>
-              <Text style={{ fontSize: 14, color: '#6b7280', marginRight: 8 }}>Selected role:</Text>
-              <Text style={{ fontSize: 14, fontWeight: '600', color: '#f97316' }}>{newContact.role}</Text>
-            </View>
-          ) : null}
-          
-          <ContactRolePicker
-            key={formKey}
-            onSelect={handleRoleSelect}
-            initialValue={newContact.role}
-            style={{ marginBottom: 12 }}
-          />
-          
-          <Button
-            onPress={handleAddContact}
-            title="Add Contact"
-            style={{ marginTop: 12 }}
+            style={{ 
+              marginBottom: 12, 
+              borderRadius: 12, 
+              height: 50, 
+              fontSize: 16,
+              borderColor: '#e5e7eb',
+              backgroundColor: '#ffffff',
+            }}
           />
         </View>
         
+        {/* Selected Role Display */}
+        <View style={{ marginBottom: 16 }}>
+          <Text style={{ fontSize: 16, fontWeight: '500', color: '#6b7280', marginBottom: 4 }}>
+            Selected role: <Text style={{ color: '#f97316', fontWeight: '600' }}>{newContact.role}</Text>
+          </Text>
+        </View>
+        
+        {/* Role Picker */}
+        <ContactRolePicker
+          onSelect={handleRoleSelect}
+          initialValue={newContact.role}
+          style={{ marginBottom: 24 }}
+        />
+        
+        {/* Action Buttons */}
+        <View style={{ flexDirection: 'column', gap: 16 }}>
+          {/* Add Contact Button - Main CTA */}
+          <Button
+            onPress={handleAddContact}
+            title="Add Contact"
+            disabled={!isValid}
+            style={{
+              width: '100%',
+              height: 56,
+              borderRadius: 16,
+              backgroundColor: isValid ? '#f97316' : '#e5e7eb',
+            }}
+            textStyle={{
+              fontSize: 18,
+              fontWeight: '600',
+            }}
+          />
+          
+          {/* Continue Button - Only visible when contacts exist */}
+          {contacts.length > 0 && (
+            <Button
+              onPress={handleNext}
+              title="Continue"
+              style={{
+                width: '100%',
+                height: 56,
+                borderRadius: 16,
+                backgroundColor: '#f3f4f6',
+              }}
+              textStyle={{
+                fontSize: 18,
+                fontWeight: '600',
+                color: '#111827',
+              }}
+            />
+          )}
+        </View>
+        
+        {/* Contact List */}
         {contacts.length > 0 && (
-          <View style={{ marginBottom: 24 }}>
+          <View style={{ marginTop: 32, marginBottom: 24 }}>
             <Text style={{ fontSize: 18, fontWeight: '600', color: '#111827', marginBottom: 12 }}>
               Your Contacts ({contacts.length})
             </Text>
@@ -198,31 +249,6 @@ export function ContactSetupScreen({ navigation }: Props) {
           </View>
         )}
       </ScrollView>
-      
-      {/* Fixed button at the bottom */}
-      <View style={{ 
-        position: 'absolute', 
-        bottom: 0, 
-        left: 0, 
-        right: 0, 
-        paddingHorizontal: 24, 
-        paddingVertical: 16, 
-        backgroundColor: '#ffffff',
-        borderTopWidth: 1,
-        borderTopColor: '#f3f4f6',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: -2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 3,
-        elevation: 3,
-        zIndex: 10
-      }}>
-        <Button
-          onPress={handleNext}
-          title="Continue"
-          style={{ width: '100%', paddingVertical: 16, borderRadius: 16 }}
-        />
-      </View>
     </KeyboardAvoidingView>
   );
 } 

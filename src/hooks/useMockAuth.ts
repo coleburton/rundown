@@ -96,6 +96,21 @@ export function useMockAuth() {
     }
   }, [setUser]);
 
+  const completeOnboarding = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const updatedUser = await auth.completeOnboarding();
+      setUser(updatedUser);
+      return updatedUser;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to complete onboarding');
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [setUser]);
+
   return {
     isAuthenticated: auth.isAuthenticated,
     user: state.user,
@@ -106,5 +121,6 @@ export function useMockAuth() {
     connectStrava,
     disconnectStrava,
     updateUser,
+    completeOnboarding,
   };
 } 
