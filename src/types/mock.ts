@@ -8,6 +8,7 @@ export interface User {
   messageStyle?: string;
   goal_per_week?: number;
   message_style?: string;
+  onboardingCompleted?: boolean;
 }
 
 export interface Contact {

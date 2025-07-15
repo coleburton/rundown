@@ -1,5 +1,6 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { storage } from './storage';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -54,4 +55,24 @@ export function getWeekDateRange(): string {
   } else {
     return `${startMonth} ${monday.getDate()} - ${endMonth} ${sunday.getDate()}`;
   }
+} 
+
+/**
+ * Utility function to reset the onboarding state
+ * This will force the app to show the onboarding flow on next start
+ */
+export async function resetOnboardingState(): Promise<void> {
+  await storage.resetOnboarding();
+  console.log('Onboarding state has been reset. App will show onboarding flow on next start.');
+}
+
+/**
+ * Format a date as a string in the format "MMM D, YYYY"
+ */
+export function formatDate(date: Date): string {
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
 } 

@@ -13,6 +13,7 @@ const MOCK_USER: User = {
   stravaId: undefined,
   goal_per_week: 3, // Set a default goal
   message_style: 'friendly', // Set a default message style
+  onboardingCompleted: false, // User hasn't completed onboarding yet
 };
 
 export class MockAuth {
@@ -105,6 +106,22 @@ export class MockAuth {
     this._user = {
       ...this._user,
       ...updates,
+    };
+
+    await storage.setUser(this._user);
+    return this._user;
+  }
+
+  async completeOnboarding(): Promise<User> {
+    await new Promise(resolve => setTimeout(resolve, MOCK_DELAY));
+    
+    if (!this._user) {
+      throw new Error('User must be signed in to complete onboarding');
+    }
+
+    this._user = {
+      ...this._user,
+      onboardingCompleted: true,
     };
 
     await storage.setUser(this._user);

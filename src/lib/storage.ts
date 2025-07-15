@@ -108,6 +108,22 @@ class Storage {
       console.error('Error clearing storage:', error);
     }
   }
+
+  // Reset onboarding state only
+  async resetOnboarding(): Promise<void> {
+    try {
+      const user = await this.getUser();
+      if (user) {
+        const updatedUser = {
+          ...user,
+          onboardingCompleted: false
+        };
+        await this.setUser(updatedUser);
+      }
+    } catch (error) {
+      console.error('Error resetting onboarding state:', error);
+    }
+  }
 }
 
 export const storage = Storage.getInstance(); 

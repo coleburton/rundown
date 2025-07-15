@@ -8,15 +8,19 @@ import { GoalSetupScreen } from './src/screens/goal-setup-screen';
 import { ContactSetupScreen } from './src/screens/contact-setup-screen';
 import { MessageStyleScreen } from './src/screens/message-style-screen';
 import { DashboardScreen } from './src/screens/dashboard-screen';
+import { OnboardingScreen } from './src/screens/onboarding-screen';
+import { OnboardingSuccessScreen } from './src/screens/onboarding-success-screen';
 import { MockDataProvider } from './src/lib/mock-data-context';
 import { useMockAuth } from './src/hooks/useMockAuth';
 import { AuthProvider } from './src/lib/auth-context';
 
 export type RootStackParamList = {
+  Onboarding: undefined;
   Welcome: undefined;
   GoalSetup: undefined;
   ContactSetup: undefined;
   MessageStyle: undefined;
+  OnboardingSuccess: undefined;
   Dashboard: undefined;
 };
 
@@ -32,27 +36,26 @@ function AppContent() {
     );
   }
 
-  // Determine initial route based on auth state
-  let initialRoute: keyof RootStackParamList = 'Welcome';
-  if (user) {
-    if (!user.goal_per_week || !user.message_style) {
-      initialRoute = 'GoalSetup';
-    } else {
-      initialRoute = 'Dashboard';
-    }
-  }
+  // Always start with the onboarding flow regardless of user state
+  const initialRoute: keyof RootStackParamList = 'Onboarding';
 
   return (
     <AuthProvider auth={{
       user: mockAuth.user,
       loading: mockAuth.isLoading,
-      signInWithStrava: mockAuth.connectStrava,
+      signInWithStrava: async () => {
+        const user = await mockAuth.connectStrava();
+        return;
+      },
       signOut: mockAuth.signOut
     }}>
       <Stack.Navigator 
         initialRouteName={initialRoute}
         screenOptions={{ headerShown: false }}
       >
+        {/* Onboarding screen */}
+        <Stack.Screen name="Onboarding" component={OnboardingScreen} />
+        
         {/* Auth screens */}
         <Stack.Screen name="Welcome" component={WelcomeScreen} />
         
@@ -60,6 +63,7 @@ function AppContent() {
         <Stack.Screen name="GoalSetup" component={GoalSetupScreen} />
         <Stack.Screen name="ContactSetup" component={ContactSetupScreen} />
         <Stack.Screen name="MessageStyle" component={MessageStyleScreen} />
+        <Stack.Screen name="OnboardingSuccess" component={OnboardingSuccessScreen} />
         
         {/* App screens */}
         <Stack.Screen name="Dashboard" component={DashboardScreen} />
