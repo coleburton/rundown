@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { View } from 'react-native';
 import * as React from 'react';
 import { registerRootComponent } from 'expo';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { WelcomeScreen } from './src/screens/welcome-screen';
 import { GoalSetupScreen } from './src/screens/goal-setup-screen';
 import { ContactSetupScreen } from './src/screens/contact-setup-screen';
@@ -13,6 +14,8 @@ import { OnboardingSuccessScreen } from './src/screens/onboarding-success-screen
 import { MockDataProvider } from './src/lib/mock-data-context';
 import { useMockAuth } from './src/hooks/useMockAuth';
 import { AuthProvider } from './src/lib/auth-context';
+import MixpanelProvider from './src/lib/MixpanelProvider';
+import MixpanelDebug from './src/lib/MixpanelDebug';
 
 export type RootStackParamList = {
   Onboarding: undefined;
@@ -74,11 +77,17 @@ function AppContent() {
 
 function App() {
   return (
-    <NavigationContainer>
-      <MockDataProvider>
-        <AppContent />
-      </MockDataProvider>
-    </NavigationContainer>
+    <SafeAreaProvider>
+      <NavigationContainer>
+        <MockDataProvider>
+          <MixpanelProvider>
+            <AppContent />
+            {/* Show debug overlay in development mode */}
+            {__DEV__ && <MixpanelDebug />}
+          </MixpanelProvider>
+        </MockDataProvider>
+      </NavigationContainer>
+    </SafeAreaProvider>
   );
 }
 

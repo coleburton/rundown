@@ -1,12 +1,6 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  interpolate,
-  withTiming,
-} from 'react-native-reanimated';
+import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import analytics, { ANALYTICS_EVENTS } from '../lib/analytics';
 
 interface GoalPickerProps {
   value: number;
@@ -40,45 +34,36 @@ const MOTIVATION_MESSAGES = {
 };
 
 export function GoalPicker({ value, onChange, style }: GoalPickerProps) {
-  const [isAnimating, setIsAnimating] = useState(false);
-  const animation = useSharedValue(0);
+  // Ensure value is a valid option, defaulting to 3 if not
+  const safeValue = GOAL_OPTIONS.includes(value) ? value : 3;
+  
+  // Get the motivation message safely with a default fallback
+  const motivationMessage = MOTIVATION_MESSAGES[safeValue as keyof typeof MOTIVATION_MESSAGES] || MOTIVATION_MESSAGES[3];
 
   const handleSelect = (goal: number) => {
-    if (goal === value || isAnimating) return;
-
-    setIsAnimating(true);
-    animation.value = withSpring(1, {}, (finished) => {
-      if (finished) {
-        animation.value = withTiming(0, { duration: 300 }, () => {
-          setIsAnimating(false);
-        });
-        onChange(goal);
-      }
-    });
+    if (goal === safeValue) return;
+    
+    try {
+      // Track goal selection in analytics
+      analytics.trackEvent(ANALYTICS_EVENTS.GOAL_CREATED, { 
+        goal_value: goal 
+      });
+      
+      // Update the parent component
+      onChange(goal);
+    } catch (error) {
+      console.error('Error selecting goal:', error);
+    }
   };
-
-  const motivationStyle = useAnimatedStyle(() => {
-    return {
-      transform: [
-        {
-          scale: interpolate(animation.value, [0, 0.5, 1], [1, 1.1, 1]),
-        },
-        {
-          translateY: interpolate(animation.value, [0, 0.5, 1], [0, -10, 0]),
-        },
-      ],
-      opacity: interpolate(animation.value, [0, 0.5, 1], [1, 0, 1]),
-    };
-  });
 
   return (
     <View style={[styles.container, style]}>
       <View style={styles.options}>
         {GOAL_OPTIONS.map((goal) => {
-          const isSelected = goal === value;
+          const isSelected = goal === safeValue;
 
           return (
-            <Pressable
+            <TouchableOpacity
               key={goal}
               onPress={() => handleSelect(goal)}
               style={[
@@ -100,22 +85,22 @@ export function GoalPicker({ value, onChange, style }: GoalPickerProps) {
                   runs
                 </Text>
               </View>
-            </Pressable>
+            </TouchableOpacity>
           );
         })}
       </View>
 
-      <Animated.View style={[styles.motivation, motivationStyle]}>
+      <View style={styles.motivation}>
         <Text style={styles.motivationEmoji}>
-          {MOTIVATION_MESSAGES[value as keyof typeof MOTIVATION_MESSAGES].emoji}
+          {motivationMessage.emoji}
         </Text>
         <Text style={styles.motivationTitle}>
-          {MOTIVATION_MESSAGES[value as keyof typeof MOTIVATION_MESSAGES].title}
+          {motivationMessage.title}
         </Text>
         <Text style={styles.motivationDescription}>
-          {MOTIVATION_MESSAGES[value as keyof typeof MOTIVATION_MESSAGES].description}
+          {motivationMessage.description}
         </Text>
-      </Animated.View>
+      </View>
     </View>
   );
 }

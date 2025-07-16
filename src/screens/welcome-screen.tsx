@@ -5,6 +5,8 @@ import { useMockAuth } from '@/hooks/useMockAuth';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import ScreenTracker from '@/lib/ScreenTracker';
+import analytics, { ANALYTICS_EVENTS } from '@/lib/analytics';
 
 type RootStackParamList = {
   Welcome: undefined;
@@ -250,15 +252,34 @@ export function WelcomeScreen({ navigation }: Props) {
 
   const handleSignIn = async () => {
     try {
+      // Track the sign-in button click
+      analytics.trackEvent(ANALYTICS_EVENTS.BUTTON_CLICK, {
+        button_name: 'sign_in',
+        screen: 'Welcome'
+      });
+      
       const user = await signIn();
       const stravaUser = await connectStrava();
       
       // Mark onboarding as completed when user signs in
       await updateUser({ onboardingCompleted: true });
       
+      // Track successful sign-in
+      analytics.trackEvent(ANALYTICS_EVENTS.USER_SIGN_IN, {
+        method: 'strava',
+        success: true
+      });
+      
       navigation.navigate('GoalSetup');
     } catch (error) {
       console.error('Failed to sign in:', error);
+      
+      // Track failed sign-in
+      analytics.trackEvent(ANALYTICS_EVENTS.USER_SIGN_IN, {
+        method: 'strava',
+        success: false,
+        error: error instanceof Error ? error.message : String(error)
+      });
     }
   };
 
@@ -270,12 +291,23 @@ export function WelcomeScreen({ navigation }: Props) {
         { paddingTop: insets.top }
       ]}
     >
+      {/* Track screen view */}
+      <ScreenTracker screenName="Welcome" />
+      
       {/* Dark mode toggle */}
       <View style={styles.headerContainer}>
         <Button
           variant="ghost"
           size="icon"
-          onPress={toggleColorScheme}
+          onPress={() => {
+            toggleColorScheme();
+            // Track theme toggle
+            analytics.trackEvent(ANALYTICS_EVENTS.BUTTON_CLICK, {
+              button_name: 'theme_toggle',
+              new_theme: isDarkMode ? 'light' : 'dark',
+              screen: 'Welcome'
+            });
+          }}
           style={[
             styles.darkModeToggle,
             isDarkMode && styles.darkModeToggleDark
