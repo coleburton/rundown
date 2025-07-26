@@ -2,6 +2,8 @@ import React, { useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Button } from '@/components/ui/button';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ONBOARDING_BUTTON_STYLE, ONBOARDING_CONTAINER_STYLE } from '@/constants/OnboardingStyles';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -53,6 +55,7 @@ const generateConfetti = (): Confetti[] => {
 };
 
 export function OnboardingSuccessScreen({ navigation }: Props) {
+  const insets = useSafeAreaInsets();
   const animation = useSharedValue(0);
   const confettiAnimation = useSharedValue(0);
   const confetti = generateConfetti();
@@ -129,19 +132,15 @@ export function OnboardingSuccessScreen({ navigation }: Props) {
         </Text>
       </View>
 
-      <Button
-        onPress={handleContinue}
-        size="lg"
-        title="Let's Start Running"
-        style={{ 
-          width: '100%',
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.1,
-          shadowRadius: 8,
-          elevation: 4
-        }}
-      />
+      {/* Fixed Button at bottom */}
+      <View style={[ONBOARDING_CONTAINER_STYLE, { paddingBottom: Math.max(16, insets.bottom) }]}>
+        <Button
+          onPress={handleContinue}
+          size="lg"
+          title="Let's Start Running"
+          style={ONBOARDING_BUTTON_STYLE}
+        />
+      </View>
     </View>
   );
 }
@@ -152,7 +151,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 24,
     overflow: 'hidden',
   },
   confetti: {
@@ -168,7 +166,7 @@ const styles = StyleSheet.create({
   },
   content: {
     alignItems: 'center',
-    marginBottom: 48,
+    marginBottom: 24,
   },
   title: {
     fontSize: 32,

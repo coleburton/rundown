@@ -31,7 +31,7 @@ export function OnboardingScreen({ navigation }: Props) {
     ]}>
       <OnboardingCarousel style={styles.carousel} />
       
-      <View style={styles.footer}>
+      <View style={[ONBOARDING_CONTAINER_STYLE, { paddingBottom: Math.max(16, insets.bottom) }]}>
         <Button
           onPress={handleContinue}
           variant="default"
@@ -57,8 +57,5 @@ const styles = StyleSheet.create({
   },
   carousel: {
     flex: 1,
-  },
-  footer: {
-    padding: 24,
   },
 }); 

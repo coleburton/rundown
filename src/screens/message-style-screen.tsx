@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { Button } from '@/components/ui/button';
 import { useMockAuth } from '@/hooks/useMockAuth';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { OnboardingStepper } from '@/components/OnboardingStepper';
 import { ONBOARDING_BUTTON_STYLE, ONBOARDING_CONTAINER_STYLE } from '@/constants/OnboardingStyles';
 
@@ -47,6 +48,7 @@ const STYLE_OPTIONS: StyleOption[] = [
 
 export function MessageStyleScreen({ navigation }: Props) {
   const { user, updateUser } = useMockAuth();
+  const insets = useSafeAreaInsets();
   const [selectedStyle, setSelectedStyle] = useState<MessageStyle>('supportive');
 
   const handleFinish = async () => {
@@ -222,7 +224,7 @@ export function MessageStyleScreen({ navigation }: Props) {
       </ScrollView>
 
       {/* Fixed Button at bottom */}
-      <View style={ONBOARDING_CONTAINER_STYLE}>
+      <View style={[ONBOARDING_CONTAINER_STYLE, { paddingBottom: Math.max(16, insets.bottom) }]}>
         <Button
           onPress={handleFinish}
           size="lg"

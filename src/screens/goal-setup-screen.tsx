@@ -3,6 +3,7 @@ import { View, Text, ScrollView } from 'react-native';
 import { Button } from '@/components/ui/button';
 import { useMockAuth } from '@/hooks/useMockAuth';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { OnboardingStepper } from '@/components/OnboardingStepper';
 import { EnhancedGoalPicker, Goal } from '@/components/EnhancedGoalPicker';
 import { ONBOARDING_BUTTON_STYLE, ONBOARDING_CONTAINER_STYLE } from '@/constants/OnboardingStyles';
@@ -22,6 +23,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'GoalSetup'>;
 
 export function GoalSetupScreen({ navigation }: Props) {
   const { user, updateUser } = useMockAuth();
+  const insets = useSafeAreaInsets();
   const [selectedGoal, setSelectedGoal] = useState<Goal>({ 
     type: 'runs', 
     value: 3 
@@ -112,7 +114,7 @@ export function GoalSetupScreen({ navigation }: Props) {
       </ScrollView>
 
       {/* Fixed Button at bottom */}
-      <View style={ONBOARDING_CONTAINER_STYLE}>
+      <View style={[ONBOARDING_CONTAINER_STYLE, { paddingBottom: Math.max(16, insets.bottom) }]}>
         <Button
           onPress={handleNext}
           size="lg"

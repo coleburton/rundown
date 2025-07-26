@@ -4,10 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useMockAuth } from '@/hooks/useMockAuth';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { OnboardingStepper } from '@/components/OnboardingStepper';
 import { ContactRolePicker } from '@/components/ContactRolePicker';
 import { ONBOARDING_BUTTON_STYLE, ONBOARDING_CONTAINER_STYLE } from '@/constants/OnboardingStyles';
-import { formatPhoneNumber } from '@/lib/utils';
+import { formatPhoneNumber, isValidPhoneNumber } from '@/lib/utils';
 
 type RootStackParamList = {
   GoalSetup: undefined;
@@ -26,13 +27,14 @@ type Contact = {
 
 export function ContactSetupScreen({ navigation }: Props) {
   const { user } = useMockAuth();
+  const insets = useSafeAreaInsets();
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [newContact, setNewContact] = useState<Contact>({ name: '', phone: '', role: 'Coach' });
   const [error, setError] = useState<string | null>(null);
   const [formKey, setFormKey] = useState(0);
 
   // Check if form is valid
-  const isValid = newContact.name.trim() && newContact.phone.trim().length >= 3;
+  const isValid = newContact.name.trim() && isValidPhoneNumber(newContact.phone);
 
   // Clear error when form inputs change
   useEffect(() => {
@@ -52,9 +54,8 @@ export function ContactSetupScreen({ navigation }: Props) {
         return;
       }
       
-      const cleaned = newContact.phone.replace(/\D/g, '');
-      if (!cleaned || cleaned.length < 3) {
-        setError('Please enter a valid phone number (at least 3 digits)');
+      if (!isValidPhoneNumber(newContact.phone)) {
+        setError('Please enter a valid 10-digit phone number');
         return;
       }
       
@@ -65,6 +66,19 @@ export function ContactSetupScreen({ navigation }: Props) {
         phone: formatPhoneNumber(newContact.phone),
         role: newContact.role || 'Coach'
       };
+      
+      // Check if we already have 5 contacts
+      if (contacts.length >= 5) {
+        setError('You can only add up to 5 contacts');
+        return;
+      }
+      
+      // Check for duplicate phone numbers
+      const phoneDigits = newContact.phone.replace(/\D/g, '');
+      if (contacts.some(c => c.phone.replace(/\D/g, '') === phoneDigits)) {
+        setError('This phone number has already been added');
+        return;
+      }
       
       // Add to contacts array
       const updatedContacts = [...contacts, contact];
@@ -110,7 +124,7 @@ export function ContactSetupScreen({ navigation }: Props) {
       
       <ScrollView 
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 24, paddingBottom: 100 }}
+        contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 24, paddingBottom: 24 }}
       >
         <View style={{ marginBottom: 32 }}>
           <Text style={{ fontSize: 32, fontWeight: 'bold', color: '#111827', marginBottom: 8 }}>
@@ -177,39 +191,98 @@ export function ContactSetupScreen({ navigation }: Props) {
           style={{ marginBottom: 24 }}
         />
         
-        {/* Action Buttons */}
-        <View style={{ marginTop: 32 }}>
-          {/* Continue Button - Only visible when contacts exist */}
-          {contacts.length > 0 ? (
+        {/* Added Contacts List */}
+        {contacts.length > 0 && (
+          <View style={{ marginTop: 24 }}>
+            <Text style={{ fontSize: 18, fontWeight: '600', color: '#111827', marginBottom: 16 }}>
+              Added Contacts ({contacts.length}/5)
+            </Text>
+            {contacts.map((contact, index) => (
+              <View key={contact.id} style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: 16,
+                backgroundColor: '#f9fafb',
+                borderRadius: 12,
+                marginBottom: 8,
+                borderLeftWidth: 4,
+                borderLeftColor: '#f97316'
+              }}>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 16, fontWeight: '600', color: '#111827', marginBottom: 2 }}>
+                    {contact.name}
+                  </Text>
+                  <Text style={{ fontSize: 14, color: '#6b7280', marginBottom: 2 }}>
+                    {contact.phone}
+                  </Text>
+                  <Text style={{ fontSize: 12, color: '#f97316', fontWeight: '500' }}>
+                    {contact.role}
+                  </Text>
+                </View>
+                <Button
+                  onPress={() => handleRemoveContact(contact.id!)}
+                  size="sm"
+                  title="Remove"
+                  style={{
+                    backgroundColor: '#ef4444',
+                    paddingHorizontal: 12,
+                    paddingVertical: 6,
+                    borderRadius: 6
+                  }}
+                />
+              </View>
+            ))}
+            
+            {contacts.length < 5 && (
+              <View style={{ padding: 16, backgroundColor: '#f0f9ff', borderRadius: 12, marginTop: 8 }}>
+                <Text style={{ fontSize: 14, color: '#0369a1', textAlign: 'center' }}>
+                  Add {5 - contacts.length} more contact{5 - contacts.length !== 1 ? 's' : ''} (optional)
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
+      </ScrollView>
+      
+      {/* Fixed Button at bottom */}
+      <View style={[ONBOARDING_CONTAINER_STYLE, { paddingBottom: Math.max(16, insets.bottom) }]}>
+        {/* Continue Button - Only visible when contacts exist */}
+        {contacts.length > 0 ? (
+          <View style={{ gap: 12 }}>
+            {contacts.length < 5 && (
+              <Button
+                onPress={handleAddContact}
+                size="lg"
+                title="Add Another Contact"
+                disabled={!isValid}
+                style={{
+                  backgroundColor: isValid ? '#f97316' : '#e5e7eb',
+                  borderRadius: 12,
+                  paddingVertical: 16,
+                }}
+              />
+            )}
             <Button
               onPress={handleNext}
               size="lg"
               title="Continue →"
               style={ONBOARDING_BUTTON_STYLE}
             />
-          ) : (
-            <Button
-              onPress={handleAddContact}
-              size="lg"
-              title="Add Contact"
-              disabled={!isValid}
-              style={{
-                ...ONBOARDING_BUTTON_STYLE,
-                backgroundColor: isValid ? '#f97316' : '#e5e7eb',
-              }}
-            />
-          )}
-        </View>
-        
-        {/* Contact List - Hidden for cleaner design */}
-        {contacts.length > 0 && (
-          <View style={{ marginTop: 24, padding: 16, backgroundColor: '#f9fafb', borderRadius: 12 }}>
-            <Text style={{ fontSize: 14, color: '#6b7280', textAlign: 'center' }}>
-              ✓ Contact added successfully
-            </Text>
           </View>
+        ) : (
+          <Button
+            onPress={handleAddContact}
+            size="lg"
+            title="Add Contact"
+            disabled={!isValid}
+            style={{
+              ...ONBOARDING_BUTTON_STYLE,
+              backgroundColor: isValid ? '#f97316' : '#e5e7eb',
+            }}
+          />
         )}
-      </ScrollView>
+      </View>
     </KeyboardAvoidingView>
   );
 } 
