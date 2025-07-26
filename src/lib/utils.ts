@@ -75,4 +75,23 @@ export function formatDate(date: Date): string {
     day: 'numeric',
     year: 'numeric',
   });
+}
+
+/**
+ * Format a phone number string with proper US formatting
+ * @param value - The input phone number string
+ * @returns Formatted phone number: (123) 456-7890
+ */
+export function formatPhoneNumber(value: string): string {
+  // Remove all non-digit characters
+  const digits = value.replace(/\D/g, '');
+  
+  // Apply formatting based on length
+  if (digits.length <= 3) {
+    return digits;
+  } else if (digits.length <= 6) {
+    return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+  } else {
+    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
+  }
 } 

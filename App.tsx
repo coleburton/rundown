@@ -5,6 +5,7 @@ import * as React from 'react';
 import { registerRootComponent } from 'expo';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { WelcomeScreen } from './src/screens/welcome-screen';
+import { WhyAccountabilityScreen } from './src/screens/why-accountability-screen';
 import { GoalSetupScreen } from './src/screens/goal-setup-screen';
 import { ContactSetupScreen } from './src/screens/contact-setup-screen';
 import { MessageStyleScreen } from './src/screens/message-style-screen';
@@ -20,6 +21,7 @@ import MixpanelDebug from './src/lib/MixpanelDebug';
 export type RootStackParamList = {
   Onboarding: undefined;
   Welcome: undefined;
+  WhyAccountability: undefined;
   GoalSetup: undefined;
   ContactSetup: undefined;
   MessageStyle: undefined;
@@ -63,6 +65,7 @@ function AppContent() {
         <Stack.Screen name="Welcome" component={WelcomeScreen} />
         
         {/* Onboarding screens */}
+        <Stack.Screen name="WhyAccountability" component={WhyAccountabilityScreen} />
         <Stack.Screen name="GoalSetup" component={GoalSetupScreen} />
         <Stack.Screen name="ContactSetup" component={ContactSetupScreen} />
         <Stack.Screen name="MessageStyle" component={MessageStyleScreen} />

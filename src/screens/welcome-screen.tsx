@@ -11,6 +11,7 @@ import analytics, { ANALYTICS_EVENTS } from '@/lib/analytics';
 type RootStackParamList = {
   Welcome: undefined;
   Dashboard: undefined;
+  WhyAccountability: undefined;
   GoalSetup: undefined;
 };
 
@@ -270,7 +271,7 @@ export function WelcomeScreen({ navigation }: Props) {
         success: true
       });
       
-      navigation.navigate('GoalSetup');
+      navigation.navigate('WhyAccountability');
     } catch (error) {
       console.error('Failed to sign in:', error);
       
