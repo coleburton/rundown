@@ -94,4 +94,17 @@ export function formatPhoneNumber(value: string): string {
   } else {
     return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
   }
+}
+
+/**
+ * Validate if a phone number is valid (US format)
+ * @param phoneNumber - The phone number string to validate
+ * @returns True if valid, false otherwise
+ */
+export function isValidPhoneNumber(phoneNumber: string): boolean {
+  // Remove all non-digit characters
+  const digits = phoneNumber.replace(/\D/g, '');
+  
+  // US phone numbers should be exactly 10 digits
+  return digits.length === 10;
 } 

@@ -7,6 +7,7 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ScreenTracker from '@/lib/ScreenTracker';
 import analytics, { ANALYTICS_EVENTS } from '@/lib/analytics';
+import { ONBOARDING_BUTTON_STYLE, ONBOARDING_CONTAINER_STYLE } from '@/constants/OnboardingStyles';
 
 type RootStackParamList = {
   Welcome: undefined;
@@ -177,22 +178,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#14b8a6', // teal-500
   } as ViewStyle,
   
-  // Bottom section
-  bottomContainer: {
-    paddingBottom: 40,
-  } as ViewStyle,
-  
-  ctaButton: {
-    marginBottom: 24,
-    borderRadius: 16, // rounded-2xl
-    height: 60,
-    paddingVertical: 0, // Override default padding since we're setting height
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 8,
-  } as ViewStyle,
   
   footerText: {
     fontSize: 14,
@@ -392,12 +377,12 @@ export function WelcomeScreen({ navigation }: Props) {
       </View>
 
       {/* Bottom CTA */}
-      <View style={styles.bottomContainer}>
+      <View style={[ONBOARDING_CONTAINER_STYLE, { paddingBottom: Math.max(16, insets.bottom) }]}>
         <Button
           onPress={handleSignIn}
           variant="default"
           size="lg"
-          style={styles.ctaButton}
+          style={ONBOARDING_BUTTON_STYLE}
           title="Fine, Let's Do This"
           darkMode={isDarkMode}
         />
