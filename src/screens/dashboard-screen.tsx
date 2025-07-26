@@ -1,22 +1,31 @@
 import React from 'react';
-import { View, Text, ScrollView } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { Button } from '@/components/ui/button';
 import { useAuthContext } from '@/lib/auth-context';
 import { useMockActivities } from '@/hooks/useMockActivities';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { formatActivityDate, getWeekDateRange, isValidDate } from '@/lib/utils';
+import { calculateGoalProgress, getGoalDisplayText, getMotivationalMessage } from '@/lib/goalUtils';
 import Svg, { Circle, Rect } from 'react-native-svg';
 
 type RootStackParamList = {
   Welcome: undefined;
   Dashboard: undefined;
+  Settings: undefined;
 };
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Dashboard'>;
 
 // SVG-based progress ring component
-const ProgressRing = ({ progress, goal, isOnTrack, isBehind }: { progress: number; goal: number; isOnTrack: boolean; isBehind: boolean }) => {
+const ProgressRing = ({ progress, goal, isOnTrack, isBehind, goalType, goalDisplay }: { 
+  progress: number; 
+  goal: number; 
+  isOnTrack: boolean; 
+  isBehind: boolean; 
+  goalType: string;
+  goalDisplay: { unit: string; emoji: string; name: string };
+}) => {
   // Cap the progress percentage at 100% when progress exceeds goal
   const progressPercentage = Math.min((progress / goal) * 100, 100);
   const size = 192;
@@ -66,10 +75,10 @@ const ProgressRing = ({ progress, goal, isOnTrack, isBehind }: { progress: numbe
           alignItems: 'center'
         }}>
           <Text style={{ fontSize: 48, fontWeight: 'bold', color: '#111827' }}>
-            {progress}
+            {goalType.includes('miles') ? progress.toFixed(1) : progress}
           </Text>
           <Text style={{ fontSize: 14, color: '#6b7280' }}>
-            of {goal} runs
+            of {goalType.includes('miles') ? goal.toFixed(1) : goal} {goalDisplay.unit}
           </Text>
           {isOnTrack && (
             <Text style={{ fontSize: 32, marginTop: 4 }}>🔥</Text>
@@ -228,29 +237,24 @@ export function DashboardScreen({ navigation }: Props) {
     user: user?.id
   });
 
-  // Calculate weekly progress
+  // Calculate weekly progress using the new goal system
   const getWeeklyProgress = () => {
-    if (!user) return { progress: 0, goal: 3 };
-
     const now = new Date();
     const monday = new Date(now);
     monday.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1));
     monday.setHours(0, 0, 0, 0);
 
-    const weeklyRuns = activities.filter(
-      (activity) => new Date(activity.date) >= monday
-    );
+    const { progress, goal, goalType } = calculateGoalProgress(user, activities, monday);
 
     console.log('Weekly progress calculation:', {
       totalActivities: activities.length,
-      weeklyRuns: weeklyRuns.length,
+      progress,
+      goal,
+      goalType,
       monday: monday.toISOString()
     });
 
-    return {
-      progress: weeklyRuns.length,
-      goal: user.goal_per_week || 3,
-    };
+    return { progress, goal, goalType };
   };
 
   const getDaysLeft = () => {
@@ -262,8 +266,9 @@ export function DashboardScreen({ navigation }: Props) {
     return Math.ceil((sunday.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
   };
 
-  const { progress, goal } = getWeeklyProgress();
+  const { progress, goal, goalType } = getWeeklyProgress();
   const daysLeft = getDaysLeft();
+  const goalDisplay = getGoalDisplayText(goalType);
 
   const isOnTrack = progress >= goal;
   const isBehind = daysLeft <= 2 && progress < goal;
@@ -321,12 +326,19 @@ export function DashboardScreen({ navigation }: Props) {
               Week of {getWeekDateRange()}
             </Text>
           </View>
-          <Button
-            onPress={handleSignOut}
-            variant="ghost"
-            style={{ borderRadius: 20, width: 40, height: 40 }}
-            title="⚙️"
-          />
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Settings')}
+            style={{ 
+              backgroundColor: '#f3f4f6',
+              borderRadius: 20, 
+              width: 40, 
+              height: 40,
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            <Text style={{ fontSize: 18 }}>⚙️</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Progress Ring */}
@@ -335,6 +347,8 @@ export function DashboardScreen({ navigation }: Props) {
           goal={goal} 
           isOnTrack={isOnTrack} 
           isBehind={isBehind} 
+          goalType={goalType}
+          goalDisplay={goalDisplay}
         />
 
         {/* Status Message */}
@@ -347,30 +361,29 @@ export function DashboardScreen({ navigation }: Props) {
           borderWidth: 1,
           borderColor: isOnTrack ? '#bbf7d0' : isBehind ? '#fed7aa' : '#a7f3d0',
         }}>
-          <Text style={{
-            fontSize: 18,
-            fontWeight: 'bold',
-            marginBottom: 8,
-            textAlign: 'center',
-            color: isOnTrack ? '#166534' : isBehind ? '#9a3412' : '#134e4a',
-          }}>
-            {isOnTrack
-              ? 'Look at you, running machine! 🏃‍♂️'
-              : isBehind
-              ? "Uhhh, Sunday's coming fast... ⏰"
-              : "You're doing great! Keep it up! 💪"}
-          </Text>
-          <Text style={{
-            fontSize: 14,
-            textAlign: 'center',
-            color: isOnTrack ? '#16a34a' : isBehind ? '#ea580c' : '#0f766e',
-          }}>
-            {isOnTrack
-              ? 'Goal crushed! Your accountability buddy is proud.'
-              : isBehind
-              ? `${goal - progress} more runs needed. Your mom is watching.`
-              : `${goal - progress} more run${goal - progress !== 1 ? 's' : ''} to go!`}
-          </Text>
+          {(() => {
+            const motivational = getMotivationalMessage(progress, goal, goalType, isOnTrack, isBehind);
+            return (
+              <>
+                <Text style={{
+                  fontSize: 18,
+                  fontWeight: 'bold',
+                  marginBottom: 8,
+                  textAlign: 'center',
+                  color: isOnTrack ? '#166534' : isBehind ? '#9a3412' : '#134e4a',
+                }}>
+                  {motivational.title}
+                </Text>
+                <Text style={{
+                  fontSize: 14,
+                  textAlign: 'center',
+                  color: isOnTrack ? '#16a34a' : isBehind ? '#ea580c' : '#0f766e',
+                }}>
+                  {motivational.message}
+                </Text>
+              </>
+            );
+          })()}
         </View>
 
         {/* Weekly Goal History - Add this new component */}

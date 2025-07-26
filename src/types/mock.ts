@@ -7,6 +7,8 @@ export interface User {
   weeklyGoal?: number;
   messageStyle?: string;
   goal_per_week?: number;
+  goal_type?: 'runs' | 'run_miles' | 'activities' | 'bike_rides' | 'bike_miles';
+  goal_value?: number;
   message_style?: string;
   onboardingCompleted?: boolean;
 }

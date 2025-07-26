@@ -6,6 +6,7 @@ import { useMockAuth } from '@/hooks/useMockAuth';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { OnboardingStepper } from '@/components/OnboardingStepper';
 import { ContactRolePicker } from '@/components/ContactRolePicker';
+import { ONBOARDING_BUTTON_STYLE, ONBOARDING_CONTAINER_STYLE } from '@/constants/OnboardingStyles';
 import { formatPhoneNumber } from '@/lib/utils';
 
 type RootStackParamList = {
@@ -184,14 +185,7 @@ export function ContactSetupScreen({ navigation }: Props) {
               onPress={handleNext}
               size="lg"
               title="Continue →"
-              style={{
-                width: '100%',
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.1,
-                shadowRadius: 8,
-                elevation: 4
-              }}
+              style={ONBOARDING_BUTTON_STYLE}
             />
           ) : (
             <Button
@@ -200,13 +194,8 @@ export function ContactSetupScreen({ navigation }: Props) {
               title="Add Contact"
               disabled={!isValid}
               style={{
-                width: '100%',
+                ...ONBOARDING_BUTTON_STYLE,
                 backgroundColor: isValid ? '#f97316' : '#e5e7eb',
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.1,
-                shadowRadius: 8,
-                elevation: 4
               }}
             />
           )}

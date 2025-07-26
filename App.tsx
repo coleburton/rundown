@@ -12,6 +12,7 @@ import { MessageStyleScreen } from './src/screens/message-style-screen';
 import { DashboardScreen } from './src/screens/dashboard-screen';
 import { OnboardingScreen } from './src/screens/onboarding-screen';
 import { OnboardingSuccessScreen } from './src/screens/onboarding-success-screen';
+import { SettingsScreen } from './src/screens/settings-screen';
 import { MockDataProvider } from './src/lib/mock-data-context';
 import { useMockAuth } from './src/hooks/useMockAuth';
 import { AuthProvider } from './src/lib/auth-context';
@@ -27,6 +28,7 @@ export type RootStackParamList = {
   MessageStyle: undefined;
   OnboardingSuccess: undefined;
   Dashboard: undefined;
+  Settings: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -73,6 +75,7 @@ function AppContent() {
         
         {/* App screens */}
         <Stack.Screen name="Dashboard" component={DashboardScreen} />
+        <Stack.Screen name="Settings" component={SettingsScreen} />
       </Stack.Navigator>
     </AuthProvider>
   );
