@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { OnboardingCarousel } from '../components/OnboardingCarousel';
 import { Button } from '../components/ui/button';
 import { useColorScheme } from '../hooks/useColorScheme';
+import { ONBOARDING_BUTTON_STYLE, ONBOARDING_CONTAINER_STYLE } from '../constants/OnboardingStyles';
 
 type RootStackParamList = {
   Onboarding: undefined;
@@ -35,7 +36,7 @@ export function OnboardingScreen({ navigation }: Props) {
           onPress={handleContinue}
           variant="default"
           size="lg"
-          style={styles.continueButton}
+          style={ONBOARDING_BUTTON_STYLE}
           title="Get Started"
           darkMode={isDarkMode}
         />
@@ -59,14 +60,5 @@ const styles = StyleSheet.create({
   },
   footer: {
     padding: 24,
-  },
-  continueButton: {
-    borderRadius: 16,
-    paddingVertical: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 8,
   },
 }); 

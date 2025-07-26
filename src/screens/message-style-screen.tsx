@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { useMockAuth } from '@/hooks/useMockAuth';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { OnboardingStepper } from '@/components/OnboardingStepper';
+import { ONBOARDING_BUTTON_STYLE, ONBOARDING_CONTAINER_STYLE } from '@/constants/OnboardingStyles';
 
 type RootStackParamList = {
   ContactSetup: undefined;
@@ -221,24 +222,12 @@ export function MessageStyleScreen({ navigation }: Props) {
       </ScrollView>
 
       {/* Fixed Button at bottom */}
-      <View style={{ 
-        padding: 16, 
-        backgroundColor: '#f3f4f6',
-        borderTopWidth: 1,
-        borderTopColor: '#e5e7eb'
-      }}>
+      <View style={ONBOARDING_CONTAINER_STYLE}>
         <Button
           onPress={handleFinish}
           size="lg"
           title="Let's Get Running!"
-          style={{ 
-            width: '100%',
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.1,
-            shadowRadius: 8,
-            elevation: 4
-          }}
+          style={ONBOARDING_BUTTON_STYLE}
         />
       </View>
     </View>

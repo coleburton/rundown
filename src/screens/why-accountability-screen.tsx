@@ -2,7 +2,9 @@ import React from 'react';
 import { View, Text, ScrollView } from 'react-native';
 import { Button } from '@/components/ui/button';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { OnboardingStepper } from '@/components/OnboardingStepper';
+import { ONBOARDING_BUTTON_STYLE, ONBOARDING_CONTAINER_STYLE } from '@/constants/OnboardingStyles';
 
 type RootStackParamList = {
   Onboarding: undefined;
@@ -47,6 +49,8 @@ const benefits: Benefit[] = [
 ];
 
 export function WhyAccountabilityScreen({ navigation }: Props) {
+  const insets = useSafeAreaInsets();
+  
   const handleContinue = () => {
     navigation.navigate('GoalSetup');
   };
@@ -131,24 +135,12 @@ export function WhyAccountabilityScreen({ navigation }: Props) {
       </ScrollView>
 
       {/* Fixed Button at bottom */}
-      <View style={{ 
-        padding: 16, 
-        backgroundColor: '#ffffff',
-        borderTopWidth: 1,
-        borderTopColor: '#f3f4f6'
-      }}>
+      <View style={[ONBOARDING_CONTAINER_STYLE, { paddingBottom: Math.max(16, insets.bottom) }]}>
         <Button
           onPress={handleContinue}
           size="lg"
           title="I'm convinced! →"
-          style={{ 
-            width: '100%',
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.1,
-            shadowRadius: 8,
-            elevation: 4
-          }}
+          style={ONBOARDING_BUTTON_STYLE}
         />
       </View>
     </View>

@@ -17,6 +17,8 @@ export interface Database {
           strava_id: string | null
           access_token: string | null
           goal_per_week: number
+          goal_type: 'runs' | 'run_miles' | 'activities' | 'bike_rides' | 'bike_miles'
+          goal_value: number
           streak_count: number
           message_style: 'supportive' | 'snarky' | 'chaotic'
           send_day: string
@@ -30,6 +32,8 @@ export interface Database {
           strava_id?: string | null
           access_token?: string | null
           goal_per_week?: number
+          goal_type?: 'runs' | 'run_miles' | 'activities' | 'bike_rides' | 'bike_miles'
+          goal_value?: number
           streak_count?: number
           message_style?: 'supportive' | 'snarky' | 'chaotic'
           send_day?: string
@@ -43,6 +47,8 @@ export interface Database {
           strava_id?: string | null
           access_token?: string | null
           goal_per_week?: number
+          goal_type?: 'runs' | 'run_miles' | 'activities' | 'bike_rides' | 'bike_miles'
+          goal_value?: number
           streak_count?: number
           message_style?: 'supportive' | 'snarky' | 'chaotic'
           send_day?: string
