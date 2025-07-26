@@ -6,6 +6,7 @@ import { useMockAuth } from '@/hooks/useMockAuth';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { OnboardingStepper } from '@/components/OnboardingStepper';
 import { ContactRolePicker } from '@/components/ContactRolePicker';
+import { formatPhoneNumber } from '@/lib/utils';
 
 type RootStackParamList = {
   GoalSetup: undefined;
@@ -39,16 +40,6 @@ export function ContactSetupScreen({ navigation }: Props) {
     }
   }, [newContact.name, newContact.phone, newContact.role]);
 
-  const formatPhoneNumber = (phone: string) => {
-    const cleaned = phone.replace(/\D/g, '');
-    // If it's a full 10-digit number, format it
-    const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
-    if (match) {
-      return `(${match[1]}) ${match[2]}-${match[3]}`;
-    }
-    // Otherwise, just return the cleaned version
-    return cleaned;
-  };
 
   const handleAddContact = () => {
     console.log('Add Contact button pressed');
@@ -114,17 +105,17 @@ export function ContactSetupScreen({ navigation }: Props) {
       style={{ flex: 1, backgroundColor: '#ffffff' }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <OnboardingStepper currentStep={1} />
+      <OnboardingStepper currentStep={3} />
       
       <ScrollView 
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 24, paddingBottom: 100 }}
       >
-        <View style={{ marginBottom: 24 }}>
-          <Text style={{ fontSize: 28, fontWeight: 'bold', color: '#111827', marginBottom: 8 }}>
+        <View style={{ marginBottom: 32 }}>
+          <Text style={{ fontSize: 32, fontWeight: 'bold', color: '#111827', marginBottom: 8 }}>
             Add your accountability buddy
           </Text>
-          <Text style={{ fontSize: 16, color: '#6b7280' }}>
+          <Text style={{ fontSize: 18, color: '#6b7280' }}>
             Who should we text when you're slacking?
           </Text>
         </View>
@@ -136,39 +127,44 @@ export function ContactSetupScreen({ navigation }: Props) {
         )}
 
         {/* Input Fields */}
-        <View style={{ marginBottom: 16 }}>
+        <View style={{ marginBottom: 20 }}>
           <Input
-            placeholder="123"
+            placeholder="Name"
             value={newContact.name}
             onChangeText={(text) => setNewContact({ ...newContact, name: text })}
             style={{ 
-              marginBottom: 12, 
+              marginBottom: 16, 
               borderRadius: 12, 
-              height: 50, 
-              fontSize: 16,
+              height: 56, 
+              fontSize: 18,
               borderColor: '#e5e7eb',
               backgroundColor: '#ffffff',
+              paddingHorizontal: 16,
             }}
           />
           <Input
-            placeholder="23441"
+            placeholder="Phone number"
             value={newContact.phone}
-            onChangeText={(text) => setNewContact({ ...newContact, phone: text })}
+            onChangeText={(text) => {
+              const formatted = formatPhoneNumber(text);
+              setNewContact({ ...newContact, phone: formatted });
+            }}
             keyboardType="phone-pad"
             style={{ 
-              marginBottom: 12, 
+              marginBottom: 16, 
               borderRadius: 12, 
-              height: 50, 
-              fontSize: 16,
+              height: 56, 
+              fontSize: 18,
               borderColor: '#e5e7eb',
               backgroundColor: '#ffffff',
+              paddingHorizontal: 16,
             }}
           />
         </View>
         
         {/* Selected Role Display */}
-        <View style={{ marginBottom: 16 }}>
-          <Text style={{ fontSize: 16, fontWeight: '500', color: '#6b7280', marginBottom: 4 }}>
+        <View style={{ marginBottom: 24 }}>
+          <Text style={{ fontSize: 16, fontWeight: '500', color: '#6b7280' }}>
             Selected role: <Text style={{ color: '#f97316', fontWeight: '600' }}>{newContact.role}</Text>
           </Text>
         </View>
@@ -181,71 +177,47 @@ export function ContactSetupScreen({ navigation }: Props) {
         />
         
         {/* Action Buttons */}
-        <View style={{ flexDirection: 'column', gap: 16 }}>
-          {/* Add Contact Button - Main CTA */}
-          <Button
-            onPress={handleAddContact}
-            title="Add Contact"
-            disabled={!isValid}
-            style={{
-              width: '100%',
-              height: 56,
-              borderRadius: 16,
-              backgroundColor: isValid ? '#f97316' : '#e5e7eb',
-            }}
-            textStyle={{
-              fontSize: 18,
-              fontWeight: '600',
-            }}
-          />
-          
+        <View style={{ marginTop: 32 }}>
           {/* Continue Button - Only visible when contacts exist */}
-          {contacts.length > 0 && (
+          {contacts.length > 0 ? (
             <Button
               onPress={handleNext}
-              title="Continue"
+              size="lg"
+              title="Continue →"
               style={{
                 width: '100%',
-                height: 56,
-                borderRadius: 16,
-                backgroundColor: '#f3f4f6',
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.1,
+                shadowRadius: 8,
+                elevation: 4
               }}
-              textStyle={{
-                fontSize: 18,
-                fontWeight: '600',
-                color: '#111827',
+            />
+          ) : (
+            <Button
+              onPress={handleAddContact}
+              size="lg"
+              title="Add Contact"
+              disabled={!isValid}
+              style={{
+                width: '100%',
+                backgroundColor: isValid ? '#f97316' : '#e5e7eb',
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.1,
+                shadowRadius: 8,
+                elevation: 4
               }}
             />
           )}
         </View>
         
-        {/* Contact List */}
+        {/* Contact List - Hidden for cleaner design */}
         {contacts.length > 0 && (
-          <View style={{ marginTop: 32, marginBottom: 24 }}>
-            <Text style={{ fontSize: 18, fontWeight: '600', color: '#111827', marginBottom: 12 }}>
-              Your Contacts ({contacts.length})
+          <View style={{ marginTop: 24, padding: 16, backgroundColor: '#f9fafb', borderRadius: 12 }}>
+            <Text style={{ fontSize: 14, color: '#6b7280', textAlign: 'center' }}>
+              ✓ Contact added successfully
             </Text>
-            {contacts.map((contact) => (
-              <View key={contact.id} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#f9fafb', borderRadius: 8, padding: 16, marginBottom: 8 }}>
-                <View style={{ flex: 1 }}>
-                  <Text style={{ fontWeight: '500', color: '#111827' }}>
-                    {contact.name}
-                  </Text>
-                  <Text style={{ fontSize: 14, color: '#6b7280' }}>
-                    {contact.phone}
-                  </Text>
-                  <Text style={{ fontSize: 14, color: '#f97316' }}>
-                    {contact.role}
-                  </Text>
-                </View>
-                <Button
-                  onPress={() => handleRemoveContact(contact.id!)}
-                  variant="ghost"
-                  title="Remove"
-                  style={{ paddingHorizontal: 8 }}
-                />
-              </View>
-            ))}
           </View>
         )}
       </ScrollView>
