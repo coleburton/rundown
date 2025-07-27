@@ -1,26 +1,22 @@
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import type { RootStackParamList } from '../../App';
 import { OnboardingCarousel } from '../components/OnboardingCarousel';
 import { Button } from '../components/ui/button';
-import { useColorScheme } from '../hooks/useColorScheme';
 import { ONBOARDING_BUTTON_STYLE, ONBOARDING_CONTAINER_STYLE } from '../constants/OnboardingStyles';
+import { useColorScheme } from '../hooks/useColorScheme';
 
-type RootStackParamList = {
-  Onboarding: undefined;
-  Welcome: undefined;
-};
-
-type Props = NativeStackScreenProps<RootStackParamList, 'Onboarding'>;
-
-export function OnboardingScreen({ navigation }: Props) {
+export function OnboardingScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const insets = useSafeAreaInsets();
   const { colorScheme } = useColorScheme();
   const isDarkMode = colorScheme === 'dark';
 
   const handleContinue = () => {
-    navigation.navigate('Welcome');
+    navigation.navigate('WhyAccountability');
   };
 
   return (

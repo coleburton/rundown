@@ -1,28 +1,29 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { View } from 'react-native';
-import * as React from 'react';
 import { registerRootComponent } from 'expo';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
-import { WelcomeScreen } from './src/screens/welcome-screen';
-import { FitnessAppConnectScreen } from './src/screens/fitness-app-connect-screen';
-import { WhyAccountabilityScreen } from './src/screens/why-accountability-screen';
-import { GoalSetupScreen } from './src/screens/goal-setup-screen';
-import { MotivationQuizScreen } from './src/screens/motivation-quiz-screen';
-import { SocialProofScreen } from './src/screens/social-proof-screen';
-import { ValuePreviewScreen } from './src/screens/value-preview-screen';
-import { ContactSetupScreen } from './src/screens/contact-setup-screen';
-import { MessageStyleScreen } from './src/screens/message-style-screen';
-import { DashboardScreen } from './src/screens/dashboard-screen';
-import { OnboardingScreen } from './src/screens/onboarding-screen';
-import { OnboardingSuccessScreen } from './src/screens/onboarding-success-screen';
-import { SettingsScreen } from './src/screens/settings-screen';
-import { MockDataProvider } from './src/lib/mock-data-context';
+import * as React from 'react';
+import { View } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useMockAuth } from './src/hooks/useMockAuth';
 import { AuthProvider } from './src/lib/auth-context';
-import MixpanelProvider from './src/lib/MixpanelProvider';
 import MixpanelDebug from './src/lib/MixpanelDebug';
+import MixpanelProvider from './src/lib/MixpanelProvider';
+import { MockDataProvider } from './src/lib/mock-data-context';
+import { ContactSetupScreen } from './src/screens/contact-setup-screen';
+import { DashboardScreen } from './src/screens/dashboard-screen';
+import { FitnessAppConnectScreen } from './src/screens/fitness-app-connect-screen';
+import { GoalSetupScreen } from './src/screens/goal-setup-screen';
+import { MessageStyleScreen } from './src/screens/message-style-screen';
+import { MotivationQuizScreen } from './src/screens/motivation-quiz-screen';
+import { OnboardingScreen } from './src/screens/onboarding-screen';
+import { OnboardingSuccessScreen } from './src/screens/onboarding-success-screen';
+import { PaywallScreen } from './src/screens/paywall-screen';
+import { SettingsScreen } from './src/screens/settings-screen';
+import { SocialProofScreen } from './src/screens/social-proof-screen';
+import { ValuePreviewScreen } from './src/screens/value-preview-screen';
+import { WelcomeScreen } from './src/screens/welcome-screen';
+import { WhyAccountabilityScreen } from './src/screens/why-accountability-screen';
 
 export type RootStackParamList = {
   Onboarding: undefined;
@@ -38,6 +39,7 @@ export type RootStackParamList = {
   OnboardingSuccess: undefined;
   Dashboard: undefined;
   Settings: undefined;
+  Paywall: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -84,6 +86,7 @@ function AppContent() {
         <Stack.Screen name="FitnessAppConnect" component={FitnessAppConnectScreen} />
         <Stack.Screen name="ContactSetup" component={ContactSetupScreen} />
         <Stack.Screen name="MessageStyle" component={MessageStyleScreen} />
+        <Stack.Screen name="Paywall" component={PaywallScreen} />
         <Stack.Screen name="OnboardingSuccess" component={OnboardingSuccessScreen} />
         
         {/* App screens */}
