@@ -51,7 +51,7 @@ const MockProgressRing = ({ progress, goal }: { progress: number; goal: number }
             fill="transparent"
           />
           
-          <Animated.Circle
+          <Circle
             cx={size / 2}
             cy={size / 2}
             r={radius}
