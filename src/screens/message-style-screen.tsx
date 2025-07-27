@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { OnboardingStepper } from '@/components/OnboardingStepper';
 import { Button } from '@/components/ui/button';
+import { ONBOARDING_BUTTON_STYLE, ONBOARDING_CONTAINER_STYLE } from '@/constants/OnboardingStyles';
 import { useMockAuth } from '@/hooks/useMockAuth';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import React, { useEffect, useState } from 'react';
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { OnboardingStepper } from '@/components/OnboardingStepper';
-import { ONBOARDING_BUTTON_STYLE, ONBOARDING_CONTAINER_STYLE } from '@/constants/OnboardingStyles';
 
 type RootStackParamList = {
   MotivationQuiz: undefined;
@@ -13,6 +13,7 @@ type RootStackParamList = {
   MessageStyle: undefined;
   OnboardingSuccess: undefined;
   Dashboard: undefined;
+  Paywall: undefined;
 };
 
 type Props = NativeStackScreenProps<RootStackParamList, 'MessageStyle'>;
@@ -104,7 +105,7 @@ export function MessageStyleScreen({ navigation }: Props) {
       await updateUser({ 
         message_style: selectedStyle
       });
-      navigation.navigate('OnboardingSuccess');
+      navigation.navigate('Paywall');
     } catch (error) {
       console.error('Failed to save message style:', error);
     }
