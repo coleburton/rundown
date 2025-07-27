@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { Button } from '@/components/ui/button';
 import { useMockAuth } from '@/hooks/useMockAuth';
@@ -17,13 +17,14 @@ type RootStackParamList = {
 
 type Props = NativeStackScreenProps<RootStackParamList, 'MessageStyle'>;
 
-type MessageStyle = 'supportive' | 'snarky' | 'chaotic';
+type MessageStyle = 'supportive' | 'snarky' | 'chaotic' | 'competitive' | 'achievement';
 
 interface StyleOption {
   id: MessageStyle;
   title: string;
   description: string;
   example: string;
+  emoji: string;
 }
 
 const STYLE_OPTIONS: StyleOption[] = [
@@ -31,27 +32,67 @@ const STYLE_OPTIONS: StyleOption[] = [
     id: 'supportive',
     title: 'Supportive Friend',
     description: 'Gentle nudges and encouragement',
-    example: 'Hey! Sarah was supposed to run today but skipped it. Maybe send some encouragement? 💪',
+    example: 'Hey! Looks like Alex missed their run today. Maybe send them some encouragement? 💪',
+    emoji: '🤗',
   },
   {
     id: 'snarky',
     title: 'Snarky Buddy',  
     description: 'Playful sass and teasing',
-    example: 'Your buddy Sarah is making excuses again instead of running. Time for some tough love! 😏',
+    example: 'Your running buddy Alex is making excuses again. Time for some tough love! 😏',
+    emoji: '😏',
+  },
+  {
+    id: 'competitive',
+    title: 'Competitive Coach',
+    description: 'Challenge them to step up',
+    example: 'Alex skipped their run today. Think they can handle a challenge to get back on track? ⚡',
+    emoji: '⚡',
+  },
+  {
+    id: 'achievement',
+    title: 'Goal Tracker',
+    description: 'Focus on milestones and progress',
+    example: 'Alex missed their run today and is 1 day behind their weekly goal. Help them get back on track? 🎯',
+    emoji: '🎯',
   },
   {
     id: 'chaotic',
     title: 'Chaotic Energy',
     description: 'Unpredictable and hilarious', 
-    example: 'EMERGENCY! 🚨 Sarah\'s running shoes are getting dusty! Intervention needed ASAP!',
+    example: 'EMERGENCY! 🚨 Alex\'s running shoes are getting dusty! Intervention needed ASAP!',
+    emoji: '🤪',
   },
 ];
+
+const getRecommendedStyle = (motivationType: string | null): MessageStyle => {
+  switch (motivationType) {
+    case 'friendly_competition':
+      return 'competitive';
+    case 'proving_yourself':
+      return 'snarky';
+    case 'reaching_milestones':
+      return 'achievement';
+    case 'avoiding_guilt':
+    case 'building_habits':
+    default:
+      return 'supportive';
+  }
+};
 
 export function MessageStyleScreen({ navigation }: Props) {
   const { user, updateUser } = useMockAuth();
   const insets = useSafeAreaInsets();
   const [selectedStyle, setSelectedStyle] = useState<MessageStyle>('supportive');
-  const [buddyChooses, setBuddyChooses] = useState(false);
+  const [recommendedStyle, setRecommendedStyle] = useState<MessageStyle>('supportive');
+
+  useEffect(() => {
+    if (user?.motivation_type) {
+      const recommended = getRecommendedStyle(user.motivation_type);
+      setRecommendedStyle(recommended);
+      setSelectedStyle(recommended);
+    }
+  }, [user?.motivation_type]);
 
   const handleFinish = async () => {
     try {
@@ -61,8 +102,7 @@ export function MessageStyleScreen({ navigation }: Props) {
       }
 
       await updateUser({ 
-        message_style: buddyChooses ? 'buddy_choice' : selectedStyle,
-        buddy_chooses_style: buddyChooses 
+        message_style: selectedStyle
       });
       navigation.navigate('OnboardingSuccess');
     } catch (error) {
@@ -77,7 +117,7 @@ export function MessageStyleScreen({ navigation }: Props) {
   const selectedOption = STYLE_OPTIONS.find(style => style.id === selectedStyle);
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#f3f4f6' }}>
+    <View style={{ flex: 1, backgroundColor: '#ffffff' }}>
       <OnboardingStepper currentStep={8} />
       
       {/* Back Button */}
@@ -96,222 +136,175 @@ export function MessageStyleScreen({ navigation }: Props) {
         </TouchableOpacity>
       </View>
       
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 16 }}>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 4 }}>
         {/* Header */}
-        <View style={{ alignItems: 'center', marginBottom: 20 }}>
-          <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#111827', marginBottom: 4 }}>
-            Choose your shame style
+        <View style={{ alignItems: 'center', marginBottom: 12 }}>
+          <Text style={{ 
+            fontSize: 26, 
+            fontWeight: 'bold', 
+            color: '#111827', 
+            textAlign: 'center',
+            marginBottom: 6
+          }}>
+            Choose your motivation style
           </Text>
-          <Text style={{ fontSize: 14, color: '#6b7280' }}>
-            Pick message tone
+          <Text style={{ 
+            fontSize: 15, 
+            color: '#6b7280',
+            textAlign: 'center',
+            lineHeight: 20
+          }}>
+            How should your buddy motivate you when you skip a run?
           </Text>
         </View>
 
         {/* Message Preview */}
         <View style={{ 
-          backgroundColor: '#e5e7eb', 
-          borderRadius: 16, 
-          padding: 12, 
-          marginBottom: 20,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 1 },
-          shadowOpacity: 0.05,
-          shadowRadius: 2,
-          elevation: 1
-        }}>
-          {/* Header with avatar and name bar */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
-            <View style={{ 
-              width: 32, 
-              height: 32, 
-              backgroundColor: '#000', 
-              borderRadius: 16, 
-              marginRight: 10 
-            }} />
-            <View style={{ 
-              flex: 1, 
-              height: 10, 
-              backgroundColor: '#000', 
-              borderRadius: 5,
-              maxWidth: 120
-            }} />
-          </View>
-
-          {/* Messages */}
-          <View style={{ gap: 6 }}>
-            {/* Incoming message */}
-            <View style={{ alignSelf: 'flex-start', maxWidth: '75%' }}>
-              <View style={{
-                backgroundColor: '#ffffff',
-                borderRadius: 16,
-                borderBottomLeftRadius: 4,
-                padding: 10,
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 1 },
-                shadowOpacity: 0.05,
-                shadowRadius: 1,
-                elevation: 1
-              }}>
-                <Text style={{ fontSize: 12, color: '#111827' }}>
-                  {selectedOption?.example}
-                </Text>
-              </View>
-            </View>
-
-            {/* Outgoing message */}
-            <View style={{ alignSelf: 'flex-end', maxWidth: '75%' }}>
-              <View style={{
-                backgroundColor: '#f97316',
-                borderRadius: 16,
-                borderBottomRightRadius: 4,
-                padding: 10,
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 1 },
-                shadowOpacity: 0.1,
-                shadowRadius: 2,
-                elevation: 2
-              }}>
-                <Text style={{ fontSize: 12, color: '#ffffff' }}>
-                  Noticed you missed your run today
-                </Text>
-              </View>
-            </View>
-          </View>
-        </View>
-
-        {/* Buddy Control Toggle */}
-        <View style={{
-          backgroundColor: '#ffffff',
-          borderRadius: 12,
-          padding: 16,
-          marginBottom: 20,
+          backgroundColor: '#f9fafb', 
+          borderRadius: 12, 
+          padding: 10, 
+          marginBottom: 12,
           borderWidth: 1,
           borderColor: '#e5e7eb'
         }}>
-          <TouchableOpacity
-            onPress={() => setBuddyChooses(!buddyChooses)}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between'
-            }}
-          >
-            <View style={{ flex: 1 }}>
-              <Text style={{
-                fontSize: 16,
-                fontWeight: '600',
-                color: '#111827',
-                marginBottom: 4
-              }}>
-                Let my buddy choose the message tone
-              </Text>
-              <Text style={{
-                fontSize: 14,
-                color: '#6b7280',
-                lineHeight: 20
-              }}>
-                Your buddy will receive a text like: "Looks like Alex bailed on their run. Time to bring the heat."
-              </Text>
-            </View>
-            <View style={{
-              width: 20,
-              height: 20,
-              borderRadius: 10,
-              borderWidth: 2,
-              borderColor: buddyChooses ? '#f97316' : '#9ca3af',
-              backgroundColor: buddyChooses ? '#f97316' : 'transparent',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginLeft: 12
+          <Text style={{
+            fontSize: 11,
+            color: '#6b7280',
+            fontWeight: '600',
+            marginBottom: 6,
+            textAlign: 'center'
+          }}>
+            Your buddy will receive this text:
+          </Text>
+          
+          <View style={{
+            backgroundColor: '#ffffff',
+            borderRadius: 8,
+            padding: 8,
+            borderWidth: 1,
+            borderColor: '#d1d5db'
+          }}>
+            <Text style={{ 
+              fontSize: 13, 
+              color: '#111827',
+              lineHeight: 17
             }}>
-              {buddyChooses && (
-                <View style={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: 4,
-                  backgroundColor: '#ffffff'
-                }} />
-              )}
-            </View>
-          </TouchableOpacity>
+              {selectedOption?.example}
+            </Text>
+          </View>
         </View>
 
+
+        {/* Recommendation Note */}
+        {recommendedStyle && (
+          <View style={{
+            backgroundColor: '#f0fdf4',
+            borderRadius: 8,
+            padding: 8,
+            borderLeftWidth: 3,
+            borderLeftColor: '#22c55e',
+            marginBottom: 10
+          }}>
+            <Text style={{
+              fontSize: 11,
+              color: '#15803d',
+              textAlign: 'center',
+              fontWeight: '500'
+            }}>
+              🧠 Based on your motivation style, we suggest {STYLE_OPTIONS.find(s => s.id === recommendedStyle)?.title}
+            </Text>
+          </View>
+        )}
+
         {/* Style Options */}
-        <View style={{ gap: 10, marginBottom: 20, opacity: buddyChooses ? 0.5 : 1 }}>
+        <View style={{ marginBottom: 8 }}>
           <Text style={{
-            fontSize: 14,
+            fontSize: 13,
             fontWeight: '600',
             color: '#6b7280',
-            marginBottom: 8
+            marginBottom: 5
           }}>
-            {buddyChooses ? 'Your buddy will choose from these options:' : 'Or choose your preferred style:'}
+            Choose your preferred style:
           </Text>
           {STYLE_OPTIONS.map((style) => (
             <TouchableOpacity
               key={style.id}
-              onPress={() => !buddyChooses && setSelectedStyle(style.id)}
-              disabled={buddyChooses}
+              onPress={() => setSelectedStyle(style.id)}
               style={{
-                backgroundColor: selectedStyle === style.id ? '#fef3e2' : '#ffffff',
-                borderWidth: 1,
+                backgroundColor: selectedStyle === style.id ? '#fef3e2' : '#f9fafb',
+                borderWidth: 2,
                 borderColor: selectedStyle === style.id ? '#f97316' : '#e5e7eb',
                 borderRadius: 12,
-                padding: 12,
+                padding: 10,
+                marginBottom: 4,
                 flexDirection: 'row',
-                alignItems: 'flex-start',
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 1 },
-                shadowOpacity: 0.05,
-                shadowRadius: 2,
-                elevation: 1
+                alignItems: 'center'
               }}
             >
-              {/* Radio button */}
               <View style={{
-                width: 16,
-                height: 16,
-                borderRadius: 8,
-                borderWidth: 2,
-                borderColor: selectedStyle === style.id ? '#f97316' : '#9ca3af',
-                backgroundColor: selectedStyle === style.id ? '#f97316' : 'transparent',
-                marginRight: 10,
-                marginTop: 2,
+                width: 32,
+                height: 32,
+                borderRadius: 16,
+                backgroundColor: selectedStyle === style.id ? '#f97316' : '#e5e7eb',
                 alignItems: 'center',
-                justifyContent: 'center'
+                justifyContent: 'center',
+                marginRight: 8
               }}>
-                {selectedStyle === style.id && (
-                  <View style={{
-                    width: 6,
-                    height: 6,
-                    borderRadius: 3,
-                    backgroundColor: '#ffffff'
-                  }} />
-                )}
+                <Text style={{ fontSize: 13 }}>{style.emoji}</Text>
               </View>
-
-              {/* Content */}
+              
               <View style={{ flex: 1 }}>
-                <Text style={{ 
-                  fontSize: 14, 
-                  fontWeight: '600', 
-                  color: '#111827',
-                  marginBottom: 2
-                }}>
-                  {style.title}
-                </Text>
-                <Text style={{ 
-                  fontSize: 12, 
-                  color: '#6b7280'
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 2 }}>
+                  <Text style={{
+                    fontSize: 14,
+                    fontWeight: '600',
+                    color: '#111827'
+                  }}>
+                    {style.title}
+                  </Text>
+                  {style.id === recommendedStyle && (
+                    <View style={{
+                      backgroundColor: '#22c55e',
+                      borderRadius: 8,
+                      paddingHorizontal: 6,
+                      paddingVertical: 2,
+                      marginLeft: 8
+                    }}>
+                      <Text style={{
+                        fontSize: 8,
+                        color: '#ffffff',
+                        fontWeight: '600'
+                      }}>
+                        SUGGESTED
+                      </Text>
+                    </View>
+                  )}
+                </View>
+                <Text style={{
+                  fontSize: 12,
+                  color: '#6b7280',
+                  lineHeight: 14
                 }}>
                   {style.description}
                 </Text>
               </View>
+              
+              {selectedStyle === style.id && (
+                <View style={{
+                  width: 16,
+                  height: 16,
+                  borderRadius: 8,
+                  backgroundColor: '#f97316',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <Text style={{ color: '#ffffff', fontSize: 9, fontWeight: 'bold' }}>✓</Text>
+                </View>
+              )}
             </TouchableOpacity>
           ))}
         </View>
 
-        {/* Bottom spacing for button */}
-        <View style={{ height: 20 }} />
       </ScrollView>
 
       {/* Fixed Button at bottom */}
