@@ -12,6 +12,7 @@ import { EnhancedGoalPicker, Goal } from '../components/EnhancedGoalPicker';
 import { supabase } from '../lib/supabase';
 import { Database } from '../types/supabase';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { TYPOGRAPHY_STYLES } from '../constants/Typography';
 
 type Contact = Database['public']['Tables']['contacts']['Row'];
 
@@ -186,32 +187,99 @@ export function SettingsScreen({ navigation }: Props) {
           >
             <Text style={{ fontSize: 18 }}>←</Text>
           </TouchableOpacity>
-          <ThemedText style={{ fontSize: 24, fontWeight: 'bold' }}>
+          <ThemedText style={[TYPOGRAPHY_STYLES.h3, { fontWeight: '600' }]}>
             Settings
           </ThemedText>
         </View>
 
         {/* Fitness Providers Section */}
         <View style={{ marginBottom: 20 }}>
-          <ThemedText style={{ fontSize: 18, fontWeight: '600', marginBottom: 10 }}>
+          <ThemedText style={[TYPOGRAPHY_STYLES.h5, { marginBottom: 10 }]}>
             Fitness Providers
           </ThemedText>
           
           {renderSectionCard(
-            <View>
-              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <Text style={{ fontSize: 20, marginRight: 8 }}>🚴</Text>
-                  <ThemedText style={{ fontSize: 16, fontWeight: '500' }}>Strava</ThemedText>
+            <View style={{ gap: 12 }}>
+              {/* Strava */}
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                  <Text style={{ fontSize: 18, marginRight: 10 }}>🏃‍♂️</Text>
+                  <View style={{ flex: 1 }}>
+                    <ThemedText style={[TYPOGRAPHY_STYLES.body1Medium]}>Strava</ThemedText>
+                    <ThemedText style={[TYPOGRAPHY_STYLES.caption1, { color: isDarkMode ? '#9ca3af' : '#6b7280' }]}>Running & cycling platform</ThemedText>
+                  </View>
                 </View>
                 <View style={{ 
                   backgroundColor: user?.strava_id ? '#10b981' : '#ef4444', 
-                  paddingHorizontal: 8, 
-                  paddingVertical: 4, 
-                  borderRadius: 12 
+                  paddingHorizontal: 6, 
+                  paddingVertical: 2, 
+                  borderRadius: 8 
                 }}>
-                  <Text style={{ color: 'white', fontSize: 12, fontWeight: '500' }}>
+                  <Text style={{ color: 'white', fontSize: 10, fontWeight: '500' }}>
                     {user?.strava_id ? 'Connected' : 'Disconnected'}
+                  </Text>
+                </View>
+              </View>
+              
+              {/* Garmin Connect */}
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                  <Text style={{ fontSize: 18, marginRight: 10 }}>⌚</Text>
+                  <View style={{ flex: 1 }}>
+                    <ThemedText style={[TYPOGRAPHY_STYLES.body1Medium]}>Garmin Connect</ThemedText>
+                    <ThemedText style={[TYPOGRAPHY_STYLES.caption1, { color: isDarkMode ? '#9ca3af' : '#6b7280' }]}>Garmin device integration</ThemedText>
+                  </View>
+                </View>
+                <View style={{ 
+                  backgroundColor: '#94a3b8', 
+                  paddingHorizontal: 6, 
+                  paddingVertical: 2, 
+                  borderRadius: 8 
+                }}>
+                  <Text style={{ color: 'white', fontSize: 10, fontWeight: '500' }}>
+                    Coming Soon
+                  </Text>
+                </View>
+              </View>
+              
+              {/* Fitbit */}
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                  <Text style={{ fontSize: 18, marginRight: 10 }}>📱</Text>
+                  <View style={{ flex: 1 }}>
+                    <ThemedText style={[TYPOGRAPHY_STYLES.body1Medium]}>Fitbit</ThemedText>
+                    <ThemedText style={[TYPOGRAPHY_STYLES.caption1, { color: isDarkMode ? '#9ca3af' : '#6b7280' }]}>Activity tracking platform</ThemedText>
+                  </View>
+                </View>
+                <View style={{ 
+                  backgroundColor: '#94a3b8', 
+                  paddingHorizontal: 6, 
+                  paddingVertical: 2, 
+                  borderRadius: 8 
+                }}>
+                  <Text style={{ color: 'white', fontSize: 10, fontWeight: '500' }}>
+                    Coming Soon
+                  </Text>
+                </View>
+              </View>
+              
+              {/* Apple Health */}
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                  <Text style={{ fontSize: 18, marginRight: 10 }}>🍎</Text>
+                  <View style={{ flex: 1 }}>
+                    <ThemedText style={[TYPOGRAPHY_STYLES.body1Medium]}>Apple Health</ThemedText>
+                    <ThemedText style={[TYPOGRAPHY_STYLES.caption1, { color: isDarkMode ? '#9ca3af' : '#6b7280' }]}>iOS health integration</ThemedText>
+                  </View>
+                </View>
+                <View style={{ 
+                  backgroundColor: '#94a3b8', 
+                  paddingHorizontal: 6, 
+                  paddingVertical: 2, 
+                  borderRadius: 8 
+                }}>
+                  <Text style={{ color: 'white', fontSize: 10, fontWeight: '500' }}>
+                    Coming Soon
                   </Text>
                 </View>
               </View>
@@ -221,11 +289,16 @@ export function SettingsScreen({ navigation }: Props) {
                   variant="outline"
                   title="Disconnect Strava"
                   onPress={handleDisconnectStrava}
+                  style={{ marginTop: 4 }}
                 />
               ) : (
                 <Button
                   title="Connect Strava"
                   onPress={handleConnectStrava}
+                  style={{ 
+                    backgroundColor: '#f97316',
+                    marginTop: 4
+                  }}
                 />
               )}
             </View>

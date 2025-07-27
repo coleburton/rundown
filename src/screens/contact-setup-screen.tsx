@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, KeyboardAvoidingView, Platform, StyleSheet, TouchableOpacity } from 'react-native';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useMockAuth } from '@/hooks/useMockAuth';
@@ -12,6 +12,7 @@ import { formatPhoneNumber, isValidPhoneNumber } from '@/lib/utils';
 
 type RootStackParamList = {
   GoalSetup: undefined;
+  MotivationQuiz: undefined;
   ContactSetup: undefined;
   MessageStyle: undefined;
 };
@@ -115,24 +116,62 @@ export function ContactSetupScreen({ navigation }: Props) {
     navigation.navigate('MessageStyle');
   };
 
+  const handleBack = () => {
+    navigation.goBack();
+  };
+
   return (
     <KeyboardAvoidingView 
       style={{ flex: 1, backgroundColor: '#ffffff' }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <OnboardingStepper currentStep={3} />
+      <OnboardingStepper currentStep={7} />
+      
+      {/* Back Button */}
+      <View style={{ paddingHorizontal: 24, paddingTop: 8, paddingBottom: 4 }}>
+        <TouchableOpacity 
+          onPress={handleBack}
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingVertical: 8,
+            paddingHorizontal: 4
+          }}
+        >
+          <Text style={{ fontSize: 16, color: '#6b7280', marginRight: 8 }}>←</Text>
+          <Text style={{ fontSize: 14, color: '#6b7280', fontWeight: '500' }}>Back</Text>
+        </TouchableOpacity>
+      </View>
       
       <ScrollView 
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 24, paddingBottom: 24 }}
+        contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 16, paddingBottom: 24 }}
       >
-        <View style={{ marginBottom: 32 }}>
-          <Text style={{ fontSize: 32, fontWeight: 'bold', color: '#111827', marginBottom: 8 }}>
+        <View style={{ marginBottom: 20 }}>
+          <Text style={{ fontSize: 28, fontWeight: 'bold', color: '#111827', marginBottom: 6 }}>
             Add your accountability buddy
           </Text>
-          <Text style={{ fontSize: 18, color: '#6b7280' }}>
+          <Text style={{ fontSize: 16, color: '#6b7280', marginBottom: 12 }}>
             Who should we text when you're slacking?
           </Text>
+          
+          {/* Timing Information - Compact */}
+          <View style={{
+            backgroundColor: '#f0fdf4',
+            borderRadius: 8,
+            padding: 12,
+            borderLeftWidth: 3,
+            borderLeftColor: '#22c55e'
+          }}>
+            <Text style={{
+              fontSize: 13,
+              color: '#15803d',
+              fontWeight: '600',
+              textAlign: 'center'
+            }}>
+              📅 Messages sent Sunday at 9PM if you miss your weekly goal
+            </Text>
+          </View>
         </View>
         
         {error && (
@@ -142,16 +181,16 @@ export function ContactSetupScreen({ navigation }: Props) {
         )}
 
         {/* Input Fields */}
-        <View style={{ marginBottom: 20 }}>
+        <View style={{ marginBottom: 16 }}>
           <Input
             placeholder="Name"
             value={newContact.name}
             onChangeText={(text) => setNewContact({ ...newContact, name: text })}
             style={{ 
-              marginBottom: 16, 
+              marginBottom: 12, 
               borderRadius: 12, 
-              height: 56, 
-              fontSize: 18,
+              height: 52, 
+              fontSize: 16,
               borderColor: '#e5e7eb',
               backgroundColor: '#ffffff',
               paddingHorizontal: 16,
@@ -166,10 +205,10 @@ export function ContactSetupScreen({ navigation }: Props) {
             }}
             keyboardType="phone-pad"
             style={{ 
-              marginBottom: 16, 
+              marginBottom: 12, 
               borderRadius: 12, 
-              height: 56, 
-              fontSize: 18,
+              height: 52, 
+              fontSize: 16,
               borderColor: '#e5e7eb',
               backgroundColor: '#ffffff',
               paddingHorizontal: 16,
@@ -177,18 +216,36 @@ export function ContactSetupScreen({ navigation }: Props) {
           />
         </View>
         
-        {/* Selected Role Display */}
-        <View style={{ marginBottom: 24 }}>
-          <Text style={{ fontSize: 16, fontWeight: '500', color: '#6b7280' }}>
+        {/* Selected Role Display - Compact */}
+        <View style={{ marginBottom: 16 }}>
+          <Text style={{ fontSize: 15, fontWeight: '500', color: '#6b7280', marginBottom: 6 }}>
             Selected role: <Text style={{ color: '#f97316', fontWeight: '600' }}>{newContact.role}</Text>
           </Text>
+          
+          {/* Message Preview - Compact */}
+          <View style={{
+            backgroundColor: '#fef3e2',
+            borderRadius: 8,
+            padding: 10,
+            borderLeftWidth: 3,
+            borderLeftColor: '#f97316'
+          }}>
+            <Text style={{
+              fontSize: 11,
+              color: '#ea580c',
+              fontWeight: '600',
+              marginBottom: 3
+            }}>
+              💬 Example: "Hey! {newContact.name || 'Your buddy'} missed their goal. Time for motivation!"
+            </Text>
+          </View>
         </View>
         
         {/* Role Picker */}
         <ContactRolePicker
           onSelect={handleRoleSelect}
           initialValue={newContact.role}
-          style={{ marginBottom: 24 }}
+          style={{ marginBottom: 16 }}
         />
         
         {/* Added Contacts List */}

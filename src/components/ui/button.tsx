@@ -1,6 +1,7 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
 import { cva, type VariantProps } from "class-variance-authority";
+import { TYPOGRAPHY_STYLES } from '../../constants/Typography';
 
 // Define button variants using CVA like shadcn
 const buttonVariants = cva(
@@ -116,10 +117,8 @@ const styles = StyleSheet.create({
   
   // Text styles
   textBase: {
-    fontSize: 16,
-    fontWeight: '500',
+    ...TYPOGRAPHY_STYLES.buttonMedium,
     textAlign: 'center',
-    lineHeight: 24,
   } as TextStyle,
   
   textDefault: {
@@ -148,13 +147,11 @@ const styles = StyleSheet.create({
   } as TextStyle,
   
   textSm: {
-    fontSize: 14,
-    lineHeight: 20,
+    ...TYPOGRAPHY_STYLES.buttonSmall,
   } as TextStyle,
   
   textLg: {
-    fontSize: 18,
-    lineHeight: 28,
+    ...TYPOGRAPHY_STYLES.buttonLarge,
   } as TextStyle,
   
   // Dark mode styles

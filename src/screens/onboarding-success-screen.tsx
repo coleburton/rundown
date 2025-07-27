@@ -128,8 +128,32 @@ export function OnboardingSuccessScreen({ navigation }: Props) {
       <View style={styles.content}>
         <Text style={styles.title}>You're all set!</Text>
         <Text style={styles.description}>
-          Time to turn those excuses into achievements. We'll be watching! 👀
+          We'll check your Strava every Sunday at 9PM. If you missed your goal, we'll send your chosen message.
         </Text>
+        
+        {/* Next Steps */}
+        <View style={styles.nextSteps}>
+          <Text style={styles.nextStepsTitle}>What happens next:</Text>
+          <View style={styles.stepItem}>
+            <Text style={styles.stepEmoji}>📱</Text>
+            <Text style={styles.stepText}>Keep running and track your activities</Text>
+          </View>
+          <View style={styles.stepItem}>
+            <Text style={styles.stepEmoji}>📊</Text>
+            <Text style={styles.stepText}>We'll monitor your progress automatically</Text>
+          </View>
+          <View style={styles.stepItem}>
+            <Text style={styles.stepEmoji}>💬</Text>
+            <Text style={styles.stepText}>Your buddy gets notified if you miss goals</Text>
+          </View>
+        </View>
+        
+        {/* Optional Midweek Reminder */}
+        <View style={styles.reminderOption}>
+          <Text style={styles.reminderText}>
+            💡 Want a midweek check-in? You can enable reminders in settings later.
+          </Text>
+        </View>
       </View>
 
       {/* Fixed Button at bottom */}
@@ -167,6 +191,7 @@ const styles = StyleSheet.create({
   content: {
     alignItems: 'center',
     marginBottom: 24,
+    paddingHorizontal: 24,
   },
   title: {
     fontSize: 32,
@@ -179,6 +204,48 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#6b7280',
     textAlign: 'center',
-    maxWidth: 300,
+    maxWidth: 320,
+    marginBottom: 24,
+  },
+  nextSteps: {
+    backgroundColor: '#f8fafc',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    alignSelf: 'stretch',
+  },
+  nextStepsTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  stepItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  stepEmoji: {
+    fontSize: 16,
+    marginRight: 12,
+    width: 20,
+  },
+  stepText: {
+    fontSize: 14,
+    color: '#4b5563',
+    flex: 1,
+  },
+  reminderOption: {
+    backgroundColor: '#fef3e2',
+    borderRadius: 12,
+    padding: 12,
+    alignSelf: 'stretch',
+  },
+  reminderText: {
+    fontSize: 12,
+    color: '#ea580c',
+    textAlign: 'center',
+    fontWeight: '500',
   },
 }); 
