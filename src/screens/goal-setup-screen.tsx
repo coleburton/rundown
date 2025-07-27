@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { Button } from '@/components/ui/button';
 import { useMockAuth } from '@/hooks/useMockAuth';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -13,6 +13,7 @@ type RootStackParamList = {
   Welcome: undefined;
   WhyAccountability: undefined;
   GoalSetup: undefined;
+  MotivationQuiz: undefined;
   ContactSetup: undefined;
   MessageStyle: undefined;
   OnboardingSuccess: undefined;
@@ -72,7 +73,7 @@ export function GoalSetupScreen({ navigation }: Props) {
         goal_type: selectedGoal.type,
         goal_value: selectedGoal.value
       });
-      navigation.navigate('ContactSetup');
+      navigation.navigate('ValuePreview');
     } catch (error) {
       console.error('Failed to save goal:', error);
     } finally {
@@ -80,13 +81,33 @@ export function GoalSetupScreen({ navigation }: Props) {
     }
   };
 
+  const handleBack = () => {
+    navigation.goBack();
+  };
+
   return (
     <View style={{ flex: 1, backgroundColor: '#ffffff' }}>
-      <OnboardingStepper currentStep={2} />
+      <OnboardingStepper currentStep={4} />
+      
+      {/* Back Button */}
+      <View style={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 4 }}>
+        <TouchableOpacity 
+          onPress={handleBack}
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingVertical: 8,
+            paddingHorizontal: 4
+          }}
+        >
+          <Text style={{ fontSize: 16, color: '#6b7280', marginRight: 8 }}>←</Text>
+          <Text style={{ fontSize: 14, color: '#6b7280', fontWeight: '500' }}>Back</Text>
+        </TouchableOpacity>
+      </View>
       
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 16 }}>
         {/* Header */}
-        <View style={{ alignItems: 'center', marginBottom: 32, marginTop: 20 }}>
+        <View style={{ alignItems: 'center', marginBottom: 20, marginTop: 16 }}>
           <Text style={{ 
             fontSize: 28, 
             fontWeight: 'bold', 
@@ -101,7 +122,7 @@ export function GoalSetupScreen({ navigation }: Props) {
             color: '#6b7280',
             textAlign: 'center'
           }}>
-            Choose your activity type and weekly target
+            Choose how many sessions, not distance. We'll handle the tracking.
           </Text>
         </View>
 
@@ -109,7 +130,7 @@ export function GoalSetupScreen({ navigation }: Props) {
         <EnhancedGoalPicker 
           value={selectedGoal}
           onChange={handleGoalChange}
-          style={{ marginBottom: 40 }}
+          style={{ marginBottom: 20 }}
         />
       </ScrollView>
 

@@ -1,16 +1,21 @@
 import React from 'react';
-import { View, Text, ScrollView } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { Button } from '@/components/ui/button';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { OnboardingStepper } from '@/components/OnboardingStepper';
 import { ONBOARDING_BUTTON_STYLE, ONBOARDING_CONTAINER_STYLE } from '@/constants/OnboardingStyles';
+import { TYPOGRAPHY_STYLES } from '@/constants/Typography';
 
 type RootStackParamList = {
   Onboarding: undefined;
   Welcome: undefined;
+  FitnessAppConnect: undefined;
   WhyAccountability: undefined;
+  SocialProof: undefined;
+  MotivationQuiz: undefined;
   GoalSetup: undefined;
+  ValuePreview: undefined;
   ContactSetup: undefined;
   MessageStyle: undefined;
   OnboardingSuccess: undefined;
@@ -52,43 +57,60 @@ export function WhyAccountabilityScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   
   const handleContinue = () => {
-    navigation.navigate('GoalSetup');
+    navigation.navigate('SocialProof');
+  };
+
+  const handleBack = () => {
+    navigation.goBack();
   };
 
   return (
     <View style={{ flex: 1, backgroundColor: '#ffffff' }}>
       <OnboardingStepper currentStep={1} />
       
+      {/* Back Button */}
+      <View style={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 4 }}>
+        <TouchableOpacity 
+          onPress={handleBack}
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingVertical: 8,
+            paddingHorizontal: 4
+          }}
+        >
+          <Text style={{ fontSize: 16, color: '#6b7280', marginRight: 8 }}>←</Text>
+          <Text style={{ fontSize: 14, color: '#6b7280', fontWeight: '500' }}>Back</Text>
+        </TouchableOpacity>
+      </View>
+      
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 16 }}>
         {/* Header */}
-        <View style={{ alignItems: 'center', marginBottom: 32, marginTop: 20 }}>
-          <Text style={{ 
-            fontSize: 28, 
-            fontWeight: 'bold', 
+        <View style={{ alignItems: 'center', marginBottom: 20, marginTop: 16 }}>
+          <Text style={[TYPOGRAPHY_STYLES.h2, { 
             color: '#111827', 
             textAlign: 'center',
             marginBottom: 8
-          }}>
+          }]}>
             Why accountability <Text style={{ color: '#f97316' }}>works</Text>
           </Text>
-          <Text style={{ 
-            fontSize: 16, 
+          <Text style={[TYPOGRAPHY_STYLES.body1, { 
             color: '#6b7280',
             textAlign: 'center'
-          }}>
+          }]}>
             Science-backed benefits of having a fitness buddy
           </Text>
         </View>
 
         {/* Benefits */}
-        <View style={{ gap: 16, marginBottom: 40 }}>
+        <View style={{ gap: 12, marginBottom: 20 }}>
           {benefits.map((benefit, index) => (
             <View key={index} style={{
               backgroundColor: '#ffffff',
               borderWidth: 1,
               borderColor: '#e5e7eb',
               borderRadius: 16,
-              padding: 20,
+              padding: 16,
               flexDirection: 'row',
               alignItems: 'flex-start',
               shadowColor: '#000',
@@ -113,19 +135,15 @@ export function WhyAccountabilityScreen({ navigation }: Props) {
 
               {/* Content */}
               <View style={{ flex: 1 }}>
-                <Text style={{ 
-                  fontSize: 18, 
-                  fontWeight: '600', 
+                <Text style={[TYPOGRAPHY_STYLES.h5, { 
                   color: '#111827',
                   marginBottom: 4
-                }}>
+                }]}>
                   {benefit.title}
                 </Text>
-                <Text style={{ 
-                  fontSize: 15, 
-                  color: '#6b7280',
-                  lineHeight: 22
-                }}>
+                <Text style={[TYPOGRAPHY_STYLES.body2, { 
+                  color: '#6b7280'
+                }]}>
                   {benefit.description}
                 </Text>
               </View>

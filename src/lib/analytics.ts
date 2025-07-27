@@ -101,6 +101,7 @@ export const ANALYTICS_EVENTS = {
   USER_SIGN_IN: 'User Sign In',
   USER_SIGN_UP: 'User Sign Up',
   USER_SIGN_OUT: 'User Sign Out',
+  USER_PREFERENCE_SET: 'User Preference Set',
   GOAL_CREATED: 'Goal Created',
   ACTIVITY_TRACKED: 'Activity Tracked',
   MESSAGE_SENT: 'Message Sent',

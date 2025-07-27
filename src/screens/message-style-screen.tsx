@@ -8,6 +8,7 @@ import { OnboardingStepper } from '@/components/OnboardingStepper';
 import { ONBOARDING_BUTTON_STYLE, ONBOARDING_CONTAINER_STYLE } from '@/constants/OnboardingStyles';
 
 type RootStackParamList = {
+  MotivationQuiz: undefined;
   ContactSetup: undefined;
   MessageStyle: undefined;
   OnboardingSuccess: undefined;
@@ -30,18 +31,18 @@ const STYLE_OPTIONS: StyleOption[] = [
     id: 'supportive',
     title: 'Supportive Friend',
     description: 'Gentle nudges and encouragement',
-    example: 'Hey! Sarah was supposed to run today but skipped it. Maybe send some encouragement?',
+    example: 'Hey! Sarah was supposed to run today but skipped it. Maybe send some encouragement? 💪',
   },
   {
     id: 'snarky',
-    title: 'Snarky Buddy',
+    title: 'Snarky Buddy',  
     description: 'Playful sass and teasing',
-    example: 'Your buddy Sarah is making excuses again instead of running. Time for some tough love!',
+    example: 'Your buddy Sarah is making excuses again instead of running. Time for some tough love! 😏',
   },
   {
     id: 'chaotic',
     title: 'Chaotic Energy',
-    description: 'Unpredictable and hilarious',
+    description: 'Unpredictable and hilarious', 
     example: 'EMERGENCY! 🚨 Sarah\'s running shoes are getting dusty! Intervention needed ASAP!',
   },
 ];
@@ -50,6 +51,7 @@ export function MessageStyleScreen({ navigation }: Props) {
   const { user, updateUser } = useMockAuth();
   const insets = useSafeAreaInsets();
   const [selectedStyle, setSelectedStyle] = useState<MessageStyle>('supportive');
+  const [buddyChooses, setBuddyChooses] = useState(false);
 
   const handleFinish = async () => {
     try {
@@ -58,18 +60,41 @@ export function MessageStyleScreen({ navigation }: Props) {
         return;
       }
 
-      await updateUser({ message_style: selectedStyle });
+      await updateUser({ 
+        message_style: buddyChooses ? 'buddy_choice' : selectedStyle,
+        buddy_chooses_style: buddyChooses 
+      });
       navigation.navigate('OnboardingSuccess');
     } catch (error) {
       console.error('Failed to save message style:', error);
     }
   };
 
+  const handleBack = () => {
+    navigation.goBack();
+  };
+
   const selectedOption = STYLE_OPTIONS.find(style => style.id === selectedStyle);
 
   return (
     <View style={{ flex: 1, backgroundColor: '#f3f4f6' }}>
-      <OnboardingStepper currentStep={4} />
+      <OnboardingStepper currentStep={8} />
+      
+      {/* Back Button */}
+      <View style={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 4 }}>
+        <TouchableOpacity 
+          onPress={handleBack}
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingVertical: 8,
+            paddingHorizontal: 4
+          }}
+        >
+          <Text style={{ fontSize: 16, color: '#6b7280', marginRight: 8 }}>←</Text>
+          <Text style={{ fontSize: 14, color: '#6b7280', fontWeight: '500' }}>Back</Text>
+        </TouchableOpacity>
+      </View>
       
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 16 }}>
         {/* Header */}
@@ -154,12 +179,78 @@ export function MessageStyleScreen({ navigation }: Props) {
           </View>
         </View>
 
+        {/* Buddy Control Toggle */}
+        <View style={{
+          backgroundColor: '#ffffff',
+          borderRadius: 12,
+          padding: 16,
+          marginBottom: 20,
+          borderWidth: 1,
+          borderColor: '#e5e7eb'
+        }}>
+          <TouchableOpacity
+            onPress={() => setBuddyChooses(!buddyChooses)}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}
+          >
+            <View style={{ flex: 1 }}>
+              <Text style={{
+                fontSize: 16,
+                fontWeight: '600',
+                color: '#111827',
+                marginBottom: 4
+              }}>
+                Let my buddy choose the message tone
+              </Text>
+              <Text style={{
+                fontSize: 14,
+                color: '#6b7280',
+                lineHeight: 20
+              }}>
+                Your buddy will receive a text like: "Looks like Alex bailed on their run. Time to bring the heat."
+              </Text>
+            </View>
+            <View style={{
+              width: 20,
+              height: 20,
+              borderRadius: 10,
+              borderWidth: 2,
+              borderColor: buddyChooses ? '#f97316' : '#9ca3af',
+              backgroundColor: buddyChooses ? '#f97316' : 'transparent',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginLeft: 12
+            }}>
+              {buddyChooses && (
+                <View style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: 4,
+                  backgroundColor: '#ffffff'
+                }} />
+              )}
+            </View>
+          </TouchableOpacity>
+        </View>
+
         {/* Style Options */}
-        <View style={{ gap: 10, marginBottom: 20 }}>
+        <View style={{ gap: 10, marginBottom: 20, opacity: buddyChooses ? 0.5 : 1 }}>
+          <Text style={{
+            fontSize: 14,
+            fontWeight: '600',
+            color: '#6b7280',
+            marginBottom: 8
+          }}>
+            {buddyChooses ? 'Your buddy will choose from these options:' : 'Or choose your preferred style:'}
+          </Text>
           {STYLE_OPTIONS.map((style) => (
             <TouchableOpacity
               key={style.id}
-              onPress={() => setSelectedStyle(style.id)}
+              onPress={() => !buddyChooses && setSelectedStyle(style.id)}
+              disabled={buddyChooses}
               style={{
                 backgroundColor: selectedStyle === style.id ? '#fef3e2' : '#ffffff',
                 borderWidth: 1,

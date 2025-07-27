@@ -12,6 +12,7 @@ import { ONBOARDING_BUTTON_STYLE, ONBOARDING_CONTAINER_STYLE } from '@/constants
 type RootStackParamList = {
   Welcome: undefined;
   Dashboard: undefined;
+  FitnessAppConnect: undefined;
   WhyAccountability: undefined;
   GoalSetup: undefined;
 };
@@ -245,7 +246,6 @@ export function WelcomeScreen({ navigation }: Props) {
       });
       
       const user = await signIn();
-      const stravaUser = await connectStrava();
       
       // Mark onboarding as completed when user signs in
       await updateUser({ onboardingCompleted: true });
@@ -326,6 +326,19 @@ export function WelcomeScreen({ navigation }: Props) {
           />
         </View>
 
+        {/* App Name Lockup */}
+        <Text style={[
+          {
+            fontSize: 24,
+            fontWeight: 'bold',
+            marginBottom: 8,
+            textAlign: 'center',
+          },
+          isDarkMode ? { color: '#ffffff' } : { color: '#111827' }
+        ]}>
+          Rundown
+        </Text>
+
         {/* Main Text */}
         <View style={styles.textContainer}>
           <Text style={[
@@ -339,14 +352,14 @@ export function WelcomeScreen({ navigation }: Props) {
             styles.subHeadline,
             isDarkMode ? styles.subHeadlineDark : styles.subHeadlineLight
           ]}>
-            Or we'll text your mom.
+            Built for runners who mean it.
           </Text>
           
           <Text style={[
             styles.description,
             isDarkMode ? styles.descriptionDark : styles.descriptionLight
           ]}>
-            Connect your Strava, pick your accountability buddy, and let us handle the rest. No more broken promises to yourself.
+            Connect your Strava, choose a buddy, and hit your goals with zero excuses. We'll keep you honest — so you can stay proud.
           </Text>
         </View>
 

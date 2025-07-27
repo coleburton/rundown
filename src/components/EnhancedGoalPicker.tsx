@@ -317,7 +317,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   typeSection: {
-    marginBottom: 24,
+    marginBottom: 16,
   },
   sectionTitle: {
     fontSize: 16,
@@ -361,7 +361,7 @@ const styles = StyleSheet.create({
     color: '#ffffff',
   },
   valueSection: {
-    marginBottom: 24,
+    marginBottom: 16,
   },
   valueOptions: {
     flexDirection: 'row',
@@ -413,7 +413,7 @@ const styles = StyleSheet.create({
   },
   motivation: {
     alignItems: 'center',
-    paddingVertical: 20,
+    paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 16,
   },
