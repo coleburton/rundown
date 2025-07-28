@@ -6,7 +6,14 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { OnboardingStepper } from '@/components/OnboardingStepper';
 import { ONBOARDING_BUTTON_STYLE, ONBOARDING_CONTAINER_STYLE } from '@/constants/OnboardingStyles';
-import analytics, { ANALYTICS_EVENTS } from '../lib/analytics';
+import analytics, { 
+  ANALYTICS_EVENTS, 
+  ONBOARDING_SCREENS, 
+  trackOnboardingScreenView, 
+  trackOnboardingScreenCompleted,
+  trackOnboardingError,
+  trackFunnelStep
+} from '../lib/analytics';
 import Svg, { Circle } from 'react-native-svg';
 
 type RootStackParamList = {
@@ -95,6 +102,24 @@ export function ValuePreviewScreen({ navigation }: Props) {
   const { user } = useMockAuth();
   const insets = useSafeAreaInsets();
   const [currentPreview, setCurrentPreview] = useState(0);
+  const [screenStartTime] = useState(Date.now());
+
+  // Track screen view on mount
+  useEffect(() => {
+    try {
+      trackOnboardingScreenView(ONBOARDING_SCREENS.VALUE_PREVIEW, {
+        step_number: 5,
+        total_steps: 9
+      });
+      
+      analytics.trackEvent(ANALYTICS_EVENTS.VALUE_PREVIEW_VIEWED);
+    } catch (error) {
+      trackOnboardingError(error as Error, {
+        screen: ONBOARDING_SCREENS.VALUE_PREVIEW,
+        action: 'screen_view_tracking'
+      });
+    }
+  }, []);
   
   // Get user's goal for personalization
   const userGoal = user?.goal_value || user?.goal_per_week || 3;
@@ -299,15 +324,69 @@ export function ValuePreviewScreen({ navigation }: Props) {
   }, []);
 
   const handleNext = () => {
-    analytics.trackEvent(ANALYTICS_EVENTS.BUTTON_CLICK, {
-      button_name: 'continue_from_value_preview',
-      screen: 'value_preview'
-    });
-    navigation.navigate('FitnessAppConnect');
+    try {
+      const timeSpent = Date.now() - screenStartTime;
+      
+      // Track screen completion
+      trackOnboardingScreenCompleted(ONBOARDING_SCREENS.VALUE_PREVIEW, {
+        time_spent_ms: timeSpent,
+        time_spent_seconds: Math.round(timeSpent / 1000),
+        step_number: 5,
+        total_steps: 9,
+        preview_index: currentPreview
+      });
+      
+      // Track funnel progression
+      trackFunnelStep(ONBOARDING_SCREENS.VALUE_PREVIEW, 5, 9, {
+        time_spent_ms: timeSpent,
+        preview_index: currentPreview
+      });
+
+      analytics.trackEvent(ANALYTICS_EVENTS.BUTTON_CLICK, {
+        button_name: 'continue_from_value_preview',
+        screen: ONBOARDING_SCREENS.VALUE_PREVIEW,
+        time_spent_ms: timeSpent,
+        preview_index: currentPreview
+      });
+      
+      navigation.navigate('FitnessAppConnect');
+    } catch (error) {
+      trackOnboardingError(error as Error, {
+        screen: ONBOARDING_SCREENS.VALUE_PREVIEW,
+        action: 'continue_button_click'
+      });
+      navigation.navigate('FitnessAppConnect');
+    }
   };
 
   const handleBack = () => {
-    navigation.goBack();
+    try {
+      const timeSpent = Date.now() - screenStartTime;
+      
+      analytics.trackEvent(ANALYTICS_EVENTS.BUTTON_CLICK, {
+        button_name: 'back_value_preview',
+        screen: ONBOARDING_SCREENS.VALUE_PREVIEW,
+        time_spent_ms: timeSpent,
+        preview_index: currentPreview
+      });
+      
+      analytics.trackEvent(ANALYTICS_EVENTS.ONBOARDING_STEP_ABANDONED, {
+        screen: ONBOARDING_SCREENS.VALUE_PREVIEW,
+        step_number: 5,
+        total_steps: 9,
+        time_spent_ms: timeSpent,
+        abandonment_reason: 'back_button',
+        preview_index: currentPreview
+      });
+      
+      navigation.goBack();
+    } catch (error) {
+      trackOnboardingError(error as Error, {
+        screen: ONBOARDING_SCREENS.VALUE_PREVIEW,
+        action: 'back_button_click'
+      });
+      navigation.goBack();
+    }
   };
 
   return (

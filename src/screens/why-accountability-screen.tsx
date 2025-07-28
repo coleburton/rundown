@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { Button } from '@/components/ui/button';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -6,6 +6,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { OnboardingStepper } from '@/components/OnboardingStepper';
 import { ONBOARDING_BUTTON_STYLE, ONBOARDING_CONTAINER_STYLE } from '@/constants/OnboardingStyles';
 import { TYPOGRAPHY_STYLES } from '@/constants/Typography';
+import analytics, { 
+  ANALYTICS_EVENTS, 
+  ONBOARDING_SCREENS, 
+  trackOnboardingScreenView, 
+  trackOnboardingScreenCompleted,
+  trackOnboardingError,
+  trackFunnelStep
+} from '@/lib/analytics';
 
 type RootStackParamList = {
   Onboarding: undefined;
@@ -55,13 +63,86 @@ const benefits: Benefit[] = [
 
 export function WhyAccountabilityScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
+  const [screenStartTime] = useState(Date.now());
   
+  // Track screen view on mount
+  useEffect(() => {
+    try {
+      trackOnboardingScreenView(ONBOARDING_SCREENS.WHY_ACCOUNTABILITY, {
+        step_number: 1,
+        total_steps: 9
+      });
+      
+      analytics.trackEvent(ANALYTICS_EVENTS.WHY_ACCOUNTABILITY_VIEWED);
+    } catch (error) {
+      trackOnboardingError(error as Error, {
+        screen: ONBOARDING_SCREENS.WHY_ACCOUNTABILITY,
+        action: 'screen_view_tracking'
+      });
+    }
+  }, []);
+
   const handleContinue = () => {
-    navigation.navigate('SocialProof');
+    try {
+      const timeSpent = Date.now() - screenStartTime;
+      
+      // Track screen completion
+      trackOnboardingScreenCompleted(ONBOARDING_SCREENS.WHY_ACCOUNTABILITY, {
+        time_spent_ms: timeSpent,
+        time_spent_seconds: Math.round(timeSpent / 1000),
+        step_number: 1,
+        total_steps: 9
+      });
+      
+      // Track funnel progression
+      trackFunnelStep(ONBOARDING_SCREENS.WHY_ACCOUNTABILITY, 1, 9, {
+        time_spent_ms: timeSpent
+      });
+      
+      // Track button click
+      analytics.trackEvent(ANALYTICS_EVENTS.BUTTON_CLICK, {
+        button_name: 'continue_why_accountability',
+        screen: ONBOARDING_SCREENS.WHY_ACCOUNTABILITY,
+        button_text: "I'm convinced! →"
+      });
+      
+      navigation.navigate('SocialProof');
+    } catch (error) {
+      trackOnboardingError(error as Error, {
+        screen: ONBOARDING_SCREENS.WHY_ACCOUNTABILITY,
+        action: 'continue_button_click'
+      });
+      // Still navigate even if tracking fails
+      navigation.navigate('SocialProof');
+    }
   };
 
   const handleBack = () => {
-    navigation.goBack();
+    try {
+      const timeSpent = Date.now() - screenStartTime;
+      
+      analytics.trackEvent(ANALYTICS_EVENTS.BUTTON_CLICK, {
+        button_name: 'back_why_accountability',
+        screen: ONBOARDING_SCREENS.WHY_ACCOUNTABILITY,
+        time_spent_ms: timeSpent
+      });
+      
+      analytics.trackEvent(ANALYTICS_EVENTS.ONBOARDING_STEP_ABANDONED, {
+        screen: ONBOARDING_SCREENS.WHY_ACCOUNTABILITY,
+        step_number: 1,
+        total_steps: 9,
+        time_spent_ms: timeSpent,
+        abandonment_reason: 'back_button'
+      });
+      
+      navigation.goBack();
+    } catch (error) {
+      trackOnboardingError(error as Error, {
+        screen: ONBOARDING_SCREENS.WHY_ACCOUNTABILITY,
+        action: 'back_button_click'
+      });
+      navigation.goBack();
+    }
   };
 
   return (

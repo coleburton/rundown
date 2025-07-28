@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Linking } from 'react-native';
 import { Button } from '@/components/ui/button';
 import { useMockAuth } from '@/hooks/useMockAuth';
@@ -7,6 +7,16 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { OnboardingStepper } from '@/components/OnboardingStepper';
 import { ONBOARDING_BUTTON_STYLE, ONBOARDING_CONTAINER_STYLE } from '@/constants/OnboardingStyles';
 import { TYPOGRAPHY_STYLES } from '@/constants/Typography';
+import analytics, { 
+  ANALYTICS_EVENTS, 
+  ONBOARDING_SCREENS, 
+  USER_PROPERTIES,
+  trackOnboardingScreenView, 
+  trackOnboardingScreenCompleted,
+  trackOnboardingError,
+  trackFunnelStep,
+  setUserProperties
+} from '../lib/analytics';
 
 type RootStackParamList = {
   ValuePreview: undefined;
@@ -61,19 +71,72 @@ export function FitnessAppConnectScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const [selectedApp, setSelectedApp] = useState<string>('strava');
   const [isConnecting, setIsConnecting] = useState(false);
+  const [screenStartTime] = useState(Date.now());
+
+  // Track screen view on mount
+  useEffect(() => {
+    try {
+      trackOnboardingScreenView(ONBOARDING_SCREENS.FITNESS_APP_CONNECT, {
+        step_number: 6,
+        total_steps: 9
+      });
+      
+      analytics.trackEvent(ANALYTICS_EVENTS.FITNESS_APP_CONNECT_STARTED);
+    } catch (error) {
+      trackOnboardingError(error as Error, {
+        screen: ONBOARDING_SCREENS.FITNESS_APP_CONNECT,
+        action: 'screen_view_tracking'
+      });
+    }
+  }, []);
 
   const handleConnect = async () => {
     if (isConnecting) return;
     
     try {
       setIsConnecting(true);
+      const timeSpent = Date.now() - screenStartTime;
+      
+      // Track connection attempt
+      analytics.trackEvent(ANALYTICS_EVENTS.FITNESS_APP_CONNECTED, {
+        app_name: selectedApp,
+        screen: ONBOARDING_SCREENS.FITNESS_APP_CONNECT,
+        time_to_connect_ms: timeSpent
+      });
       
       if (selectedApp === 'strava') {
         await connectStrava();
       }
       
+      // Track successful connection and screen completion
+      trackOnboardingScreenCompleted(ONBOARDING_SCREENS.FITNESS_APP_CONNECT, {
+        time_spent_ms: timeSpent,
+        time_spent_seconds: Math.round(timeSpent / 1000),
+        step_number: 6,
+        total_steps: 9,
+        fitness_app: selectedApp,
+        completion_type: 'connected'
+      });
+      
+      // Track funnel progression
+      trackFunnelStep(ONBOARDING_SCREENS.FITNESS_APP_CONNECT, 6, 9, {
+        time_spent_ms: timeSpent,
+        fitness_app: selectedApp
+      });
+      
+      // Set user properties for segmentation
+      setUserProperties({
+        [USER_PROPERTIES.FITNESS_APP_CONNECTED]: true,
+        [USER_PROPERTIES.ONBOARDING_STEP]: 'contact_setup'
+      });
+      
       navigation.navigate('ContactSetup');
     } catch (error) {
+      trackOnboardingError(error as Error, {
+        screen: ONBOARDING_SCREENS.FITNESS_APP_CONNECT,
+        action: 'connect_fitness_app',
+        fitness_app: selectedApp
+      });
       console.error('Failed to connect fitness app:', error);
     } finally {
       setIsConnecting(false);
@@ -84,8 +147,69 @@ export function FitnessAppConnectScreen({ navigation }: Props) {
     Linking.openURL('https://rundown.app/privacy');
   };
 
+  const handleSkip = async () => {
+    try {
+      const timeSpent = Date.now() - screenStartTime;
+      
+      // Track skip action
+      analytics.trackEvent(ANALYTICS_EVENTS.FITNESS_APP_SKIPPED, {
+        screen: ONBOARDING_SCREENS.FITNESS_APP_CONNECT,
+        time_spent_ms: timeSpent
+      });
+      
+      // Track screen completion (even though skipped)
+      trackOnboardingScreenCompleted(ONBOARDING_SCREENS.FITNESS_APP_CONNECT, {
+        time_spent_ms: timeSpent,
+        time_spent_seconds: Math.round(timeSpent / 1000),
+        step_number: 6,
+        total_steps: 9,
+        completion_type: 'skipped'
+      });
+      
+      // Set user properties for segmentation
+      setUserProperties({
+        [USER_PROPERTIES.FITNESS_APP_CONNECTED]: false,
+        [USER_PROPERTIES.ONBOARDING_STEP]: 'contact_setup'
+      });
+      
+      navigation.navigate('ContactSetup');
+    } catch (error) {
+      trackOnboardingError(error as Error, {
+        screen: ONBOARDING_SCREENS.FITNESS_APP_CONNECT,
+        action: 'skip'
+      });
+      navigation.navigate('ContactSetup');
+    }
+  };
+
   const handleBack = () => {
-    navigation.goBack();
+    try {
+      const timeSpent = Date.now() - screenStartTime;
+      
+      analytics.trackEvent(ANALYTICS_EVENTS.BUTTON_CLICK, {
+        button_name: 'back_fitness_app_connect',
+        screen: ONBOARDING_SCREENS.FITNESS_APP_CONNECT,
+        time_spent_ms: timeSpent,
+        selected_app: selectedApp
+      });
+      
+      analytics.trackEvent(ANALYTICS_EVENTS.ONBOARDING_STEP_ABANDONED, {
+        screen: ONBOARDING_SCREENS.FITNESS_APP_CONNECT,
+        step_number: 6,
+        total_steps: 9,
+        time_spent_ms: timeSpent,
+        abandonment_reason: 'back_button',
+        selected_app: selectedApp
+      });
+      
+      navigation.goBack();
+    } catch (error) {
+      trackOnboardingError(error as Error, {
+        screen: ONBOARDING_SCREENS.FITNESS_APP_CONNECT,
+        action: 'back_button_click'
+      });
+      navigation.goBack();
+    }
   };
 
   return (

@@ -11,6 +11,14 @@ import Animated, {
     withSpring,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import analytics, { 
+  ANALYTICS_EVENTS, 
+  ONBOARDING_SCREENS, 
+  USER_PROPERTIES,
+  trackOnboardingScreenView, 
+  trackOnboardingError,
+  setUserProperties
+} from '../lib/analytics';
 
 type RootStackParamList = {
   OnboardingSuccess: undefined;
@@ -42,7 +50,7 @@ const generateConfetti = (): Confetti[] => {
     
     return {
       x: 50, // Start from center
-      y: 40, // Start from emoji position
+      y: 60, // Start from emoji position (moved further down to avoid cutoff)
       delay: index * 30 + Math.random() * 200, // Staggered timing
       color: COLORS[Math.floor(Math.random() * COLORS.length)],
       rotate: Math.random() * 360,
@@ -61,6 +69,31 @@ export function OnboardingSuccessScreen({ navigation }: Props) {
   const confetti = generateConfetti();
 
   useEffect(() => {
+    // Track onboarding completion
+    try {
+      trackOnboardingScreenView(ONBOARDING_SCREENS.SUCCESS, {
+        step_number: 9,
+        total_steps: 9
+      });
+      
+      analytics.trackEvent(ANALYTICS_EVENTS.ONBOARDING_COMPLETED, {
+        screen: ONBOARDING_SCREENS.SUCCESS,
+        completion_time: Date.now()
+      });
+      
+      // Set final user properties
+      setUserProperties({
+        [USER_PROPERTIES.ONBOARDING_COMPLETED]: true,
+        [USER_PROPERTIES.ONBOARDING_COMPLETION_DATE]: new Date().toISOString(),
+        [USER_PROPERTIES.ONBOARDING_STEP]: 'completed'
+      });
+    } catch (error) {
+      trackOnboardingError(error as Error, {
+        screen: ONBOARDING_SCREENS.SUCCESS,
+        action: 'completion_tracking'
+      });
+    }
+
     // Animate the main icon
     animation.value = withSequence(
       withSpring(1),
@@ -79,7 +112,21 @@ export function OnboardingSuccessScreen({ navigation }: Props) {
   }));
 
   const handleContinue = () => {
-    navigation.navigate('Dashboard');
+    try {
+      analytics.trackEvent(ANALYTICS_EVENTS.BUTTON_CLICK, {
+        button_name: 'lets_get_started',
+        screen: ONBOARDING_SCREENS.SUCCESS,
+        action: 'navigate_to_dashboard'
+      });
+      
+      navigation.navigate('Dashboard');
+    } catch (error) {
+      trackOnboardingError(error as Error, {
+        screen: ONBOARDING_SCREENS.SUCCESS,
+        action: 'continue_button_click'
+      });
+      navigation.navigate('Dashboard');
+    }
   };
 
   return (
@@ -128,7 +175,7 @@ export function OnboardingSuccessScreen({ navigation }: Props) {
       <View style={styles.content}>
         <Text style={styles.title}>You're all set!</Text>
         <Text style={styles.description}>
-          We'll check your Strava every Sunday at 9PM. If you missed your goal, we'll send your chosen message.
+          We'll check your fitness progress every Sunday evening. If you missed your goal, we'll send your chosen message.
         </Text>
         
         {/* Next Steps */}
@@ -136,7 +183,7 @@ export function OnboardingSuccessScreen({ navigation }: Props) {
           <Text style={styles.nextStepsTitle}>What happens next:</Text>
           <View style={styles.stepItem}>
             <Text style={styles.stepEmoji}>📱</Text>
-            <Text style={styles.stepText}>Keep running and track your activities</Text>
+            <Text style={styles.stepText}>Stay active and track your fitness activities</Text>
           </View>
           <View style={styles.stepItem}>
             <Text style={styles.stepEmoji}>📊</Text>
@@ -161,8 +208,8 @@ export function OnboardingSuccessScreen({ navigation }: Props) {
         <Button
           onPress={handleContinue}
           size="lg"
-          title="Let's Start Running"
-          style={ONBOARDING_BUTTON_STYLE}
+          title="Let's Get Started"
+          style={[ONBOARDING_BUTTON_STYLE, { alignItems: 'center', justifyContent: 'center' }]}
         />
       </View>
     </View>
@@ -173,8 +220,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
     overflow: 'hidden',
   },
   confetti: {
@@ -184,14 +229,17 @@ const styles = StyleSheet.create({
   },
   iconContainer: {
     marginBottom: 32,
+    marginTop: 20,
   },
   icon: {
     fontSize: 64,
   },
   content: {
     alignItems: 'center',
-    marginBottom: 24,
+    flex: 1,
     paddingHorizontal: 24,
+    paddingTop: 60,
+    justifyContent: 'center',
   },
   title: {
     fontSize: 32,
