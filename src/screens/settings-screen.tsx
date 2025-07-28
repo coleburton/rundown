@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '../components/ui/button';
 import { useAuth } from '../hooks/useAuth';
@@ -35,6 +35,27 @@ export function SettingsScreen({ navigation }: Props) {
     type: user?.goal_type || 'runs',
     value: user?.goal_value || user?.goal_per_week || 3
   });
+  
+  const [messageTiming, setMessageTiming] = useState({
+    day: user?.message_day || 'Sunday',
+    timePeriod: user?.message_time_period || 'evening'
+  });
+  
+  const [pendingTiming, setPendingTiming] = useState<{
+    field: 'day' | 'timePeriod';
+    value: string;
+  } | null>(null);
+
+  const DAYS_OF_WEEK = [
+    'Monday', 'Tuesday', 'Wednesday', 'Thursday', 
+    'Friday', 'Saturday', 'Sunday'
+  ];
+
+  const TIME_PERIODS = [
+    { value: 'morning', label: 'Morning' },
+    { value: 'afternoon', label: 'Afternoon' },
+    { value: 'evening', label: 'Evening' }
+  ];
 
   useEffect(() => {
     if (user) {
@@ -42,6 +63,10 @@ export function SettingsScreen({ navigation }: Props) {
       setUserGoal({
         type: user.goal_type || 'runs',
         value: user.goal_value || user.goal_per_week || 3
+      });
+      setMessageTiming({
+        day: user.message_day || 'Sunday',
+        timePeriod: user.message_time_period || 'evening'
       });
     }
   }, [user, fetchContacts]);
@@ -66,24 +91,46 @@ export function SettingsScreen({ navigation }: Props) {
   }, [user]);
 
   const handleSignOut = () => {
-    // Simple confirmation without using Alert API
-    if (confirm('Are you sure you want to sign out?')) {
-      signOut();
-    }
+    Alert.alert(
+      'Sign Out',
+      'Are you sure you want to sign out?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Sign Out', style: 'destructive', onPress: signOut }
+      ]
+    );
   };
 
   const handleResetOnboarding = async () => {
-    // Simple confirmation without using Alert API
-    if (confirm('This will reset the onboarding flow. You will see the onboarding screens next time you open the app.')) {
-      await resetOnboardingState();
-      alert('Onboarding has been reset. You will see the onboarding flow next time you open the app.');
-    }
+    Alert.alert(
+      'Reset Onboarding',
+      'This will reset the onboarding flow. You will see the onboarding screens next time you open the app.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Reset',
+          style: 'destructive',
+          onPress: async () => {
+            await resetOnboardingState();
+            Alert.alert('Success', 'Onboarding has been reset. You will see the onboarding flow next time you open the app.');
+          }
+        }
+      ]
+    );
   };
 
   const handleDisconnectStrava = async () => {
     if (!user) return;
     
-    if (confirm('Are you sure you want to disconnect Strava? This will remove access to your activities.')) {
+    Alert.alert(
+      'Disconnect Strava',
+      'Are you sure you want to disconnect Strava? This will remove access to your activities.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Disconnect',
+          style: 'destructive',
+          onPress: async () => {
       try {
         const { error } = await supabase
           .from('users')
@@ -95,23 +142,26 @@ export function SettingsScreen({ navigation }: Props) {
 
         if (error) throw error;
         
-        alert('Strava has been disconnected successfully.');
+        Alert.alert('Success', 'Strava has been disconnected successfully.');
         // Refresh user data
         window.location.reload();
       } catch (error) {
         console.error('Error disconnecting Strava:', error);
-        alert('Failed to disconnect Strava. Please try again.');
+        Alert.alert('Error', 'Failed to disconnect Strava. Please try again.');
       }
-    }
+          }
+        }
+      ]
+    );
   };
 
   const handleConnectStrava = async () => {
     try {
       await signInWithStrava();
-      alert('Strava connected successfully!');
+      Alert.alert('Success', 'Strava connected successfully!');
     } catch (error) {
       console.error('Error connecting Strava:', error);
-      alert('Failed to connect Strava. Please try again.');
+      Alert.alert('Error', 'Failed to connect Strava. Please try again.');
     }
   };
 
@@ -133,12 +183,69 @@ export function SettingsScreen({ navigation }: Props) {
       setUserGoal(newGoal);
     } catch (error) {
       console.error('Error updating goal:', error);
-      alert('Failed to update goal. Please try again.');
+      Alert.alert('Error', 'Failed to update goal. Please try again.');
+    }
+  };
+
+  const handleTimingChange = (field: 'day' | 'timePeriod', value: string) => {
+    setPendingTiming({ field, value });
+    
+    const fieldName = field === 'day' ? 'day of week' : 'time of day';
+    const confirmMessage = `Change message ${fieldName} to ${value}?`;
+    
+    Alert.alert(
+      'Update Message Timing',
+      confirmMessage,
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+          onPress: () => setPendingTiming(null)
+        },
+        {
+          text: 'Update',
+          onPress: () => confirmTimingChange(field, value)
+        }
+      ]
+    );
+  };
+
+  const confirmTimingChange = async (field: 'day' | 'timePeriod', value: string) => {
+    if (!user) return;
+    
+    const newTiming = { ...messageTiming, [field]: value };
+    
+    try {
+      const { error } = await supabase
+        .from('users')
+        .update({ 
+          message_day: newTiming.day,
+          message_time_period: newTiming.timePeriod
+        })
+        .eq('id', user.id);
+
+      if (error) throw error;
+      
+      setMessageTiming(newTiming);
+      setPendingTiming(null);
+      Alert.alert('Success', 'Message timing updated successfully!');
+    } catch (error) {
+      console.error('Error updating message timing:', error);
+      Alert.alert('Error', 'Failed to update message timing. Please try again.');
+      setPendingTiming(null);
     }
   };
 
   const handleDeleteContact = async (contactId: string) => {
-    if (confirm('Are you sure you want to remove this contact?')) {
+    Alert.alert(
+      'Remove Contact',
+      'Are you sure you want to remove this contact?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Remove',
+          style: 'destructive',
+          onPress: async () => {
       try {
         const { error } = await supabase
           .from('contacts')
@@ -150,9 +257,12 @@ export function SettingsScreen({ navigation }: Props) {
         setContacts(contacts.filter(c => c.id !== contactId));
       } catch (error) {
         console.error('Error deleting contact:', error);
-        alert('Failed to remove contact. Please try again.');
+        Alert.alert('Error', 'Failed to remove contact. Please try again.');
       }
-    }
+          }
+        }
+      ]
+    );
   };
 
   const renderSectionCard = (children: React.ReactNode) => (
@@ -324,6 +434,110 @@ export function SettingsScreen({ navigation }: Props) {
           )}
         </View>
 
+        {/* Message Timing Section */}
+        <View style={{ marginBottom: 20 }}>
+          <ThemedText style={{ fontSize: 18, fontWeight: '600', marginBottom: 10 }}>
+            Message Timing
+          </ThemedText>
+          
+          {renderSectionCard(
+            <View>
+              <ThemedText style={{ fontSize: 14, color: isDarkMode ? '#9ca3af' : '#6b7280', marginBottom: 16 }}>
+                Choose when you'd like to receive accountability messages if you miss your goal.
+              </ThemedText>
+              
+              {/* Day Selection */}
+              <View style={{ marginBottom: 16 }}>
+                <Text style={{ fontSize: 15, fontWeight: '500', color: isDarkMode ? '#f3f4f6' : '#374151', marginBottom: 8 }}>
+                  Day of Week
+                </Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -4 }}>
+                  {DAYS_OF_WEEK.map((day) => {
+                    const isSelected = day === messageTiming.day;
+                    return (
+                      <TouchableOpacity
+                        key={day}
+                        onPress={() => handleTimingChange('day', day)}
+                        style={{
+                          paddingHorizontal: 16,
+                          paddingVertical: 8,
+                          marginHorizontal: 4,
+                          borderRadius: 8,
+                          backgroundColor: isSelected ? '#f97316' : (isDarkMode ? '#374151' : '#f3f4f6'),
+                          borderWidth: 1,
+                          borderColor: isSelected ? '#f97316' : 'transparent',
+                        }}
+                      >
+                        <Text style={{
+                          fontSize: 14,
+                          fontWeight: '500',
+                          color: isSelected ? '#ffffff' : (isDarkMode ? '#f3f4f6' : '#374151'),
+                        }}>
+                          {day}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ScrollView>
+              </View>
+              
+              {/* Time Period Selection */}
+              <View>
+                <Text style={{ fontSize: 15, fontWeight: '500', color: isDarkMode ? '#f3f4f6' : '#374151', marginBottom: 8 }}>
+                  Time of Day
+                </Text>
+                <View style={{ flexDirection: 'row', gap: 8 }}>
+                  {TIME_PERIODS.map((period) => {
+                    const isSelected = period.value === messageTiming.timePeriod;
+                    return (
+                      <TouchableOpacity
+                        key={period.value}
+                        onPress={() => handleTimingChange('timePeriod', period.value)}
+                        style={{
+                          flex: 1,
+                          paddingVertical: 12,
+                          borderRadius: 8,
+                          backgroundColor: isSelected ? '#f97316' : (isDarkMode ? '#374151' : '#f3f4f6'),
+                          borderWidth: 1,
+                          borderColor: isSelected ? '#f97316' : 'transparent',
+                          alignItems: 'center',
+                        }}
+                      >
+                        <Text style={{
+                          fontSize: 14,
+                          fontWeight: '500',
+                          color: isSelected ? '#ffffff' : (isDarkMode ? '#f3f4f6' : '#374151'),
+                        }}>
+                          {period.label}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+              
+              {/* Preview Message */}
+              <View style={{
+                marginTop: 12,
+                padding: 12,
+                backgroundColor: isDarkMode ? '#1f2937' : '#f0fdf4',
+                borderRadius: 8,
+                borderLeftWidth: 3,
+                borderLeftColor: '#22c55e'
+              }}>
+                <Text style={{
+                  fontSize: 12,
+                  color: isDarkMode ? '#9ca3af' : '#15803d',
+                  textAlign: 'center',
+                  fontWeight: '500'
+                }}>
+                  📅 Messages will be sent {messageTiming.day} {messageTiming.timePeriod} if you miss your goal
+                </Text>
+              </View>
+            </View>
+          )}
+        </View>
+
         {/* Contacts Section */}
         <View style={{ marginBottom: 20 }}>
           <ThemedText style={{ fontSize: 18, fontWeight: '600', marginBottom: 10 }}>
@@ -344,7 +558,7 @@ export function SettingsScreen({ navigation }: Props) {
                   title="Add Contact"
                   onPress={() => {
                     // TODO: Navigate to contact setup screen
-                    alert('Contact setup screen coming soon!');
+                    Alert.alert('Info', 'Contact setup screen coming soon!');
                   }}
                 />
               </View>
@@ -383,7 +597,7 @@ export function SettingsScreen({ navigation }: Props) {
                 title="Add Another Contact"
                 onPress={() => {
                   // TODO: Navigate to contact setup screen
-                  alert('Contact setup screen coming soon!');
+                  Alert.alert('Info', 'Contact setup screen coming soon!');
                 }}
                 style={{ marginTop: 8 }}
               />

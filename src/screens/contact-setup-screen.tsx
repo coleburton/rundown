@@ -9,6 +9,16 @@ import { OnboardingStepper } from '@/components/OnboardingStepper';
 import { ContactRolePicker } from '@/components/ContactRolePicker';
 import { ONBOARDING_BUTTON_STYLE, ONBOARDING_CONTAINER_STYLE } from '@/constants/OnboardingStyles';
 import { formatPhoneNumber, isValidPhoneNumber } from '@/lib/utils';
+import analytics, { 
+  ANALYTICS_EVENTS, 
+  ONBOARDING_SCREENS, 
+  USER_PROPERTIES,
+  trackOnboardingScreenView, 
+  trackOnboardingScreenCompleted,
+  trackOnboardingError,
+  trackFunnelStep,
+  setUserProperties
+} from '../lib/analytics';
 
 type RootStackParamList = {
   GoalSetup: undefined;
@@ -33,6 +43,24 @@ export function ContactSetupScreen({ navigation }: Props) {
   const [newContact, setNewContact] = useState<Contact>({ name: '', phone: '', role: 'Coach' });
   const [error, setError] = useState<string | null>(null);
   const [formKey, setFormKey] = useState(0);
+  const [screenStartTime] = useState(Date.now());
+
+  // Track screen view on mount
+  useEffect(() => {
+    try {
+      trackOnboardingScreenView(ONBOARDING_SCREENS.CONTACT_SETUP, {
+        step_number: 7,
+        total_steps: 9
+      });
+      
+      analytics.trackEvent(ANALYTICS_EVENTS.CONTACT_SETUP_STARTED);
+    } catch (error) {
+      trackOnboardingError(error as Error, {
+        screen: ONBOARDING_SCREENS.CONTACT_SETUP,
+        action: 'screen_view_tracking'
+      });
+    }
+  }, []);
 
   // Check if form is valid
   const isValid = newContact.name.trim() && isValidPhoneNumber(newContact.phone);
@@ -169,7 +197,7 @@ export function ContactSetupScreen({ navigation }: Props) {
               fontWeight: '600',
               textAlign: 'center'
             }}>
-              📅 Messages sent Sunday at 9PM if you miss your weekly goal
+              📅 Messages sent Sunday evening if you miss your weekly goal
             </Text>
           </View>
         </View>

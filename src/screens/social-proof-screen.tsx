@@ -1,11 +1,18 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { Button } from '@/components/ui/button';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { OnboardingStepper } from '@/components/OnboardingStepper';
 import { ONBOARDING_BUTTON_STYLE, ONBOARDING_CONTAINER_STYLE } from '@/constants/OnboardingStyles';
-import analytics, { ANALYTICS_EVENTS } from '../lib/analytics';
+import analytics, { 
+  ANALYTICS_EVENTS, 
+  ONBOARDING_SCREENS, 
+  trackOnboardingScreenView, 
+  trackOnboardingScreenCompleted,
+  trackOnboardingError,
+  trackFunnelStep
+} from '../lib/analytics';
 
 type RootStackParamList = {
   WhyAccountability: undefined;
@@ -43,17 +50,85 @@ const TESTIMONIALS = [
 
 export function SocialProofScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
+  const [screenStartTime] = useState(Date.now());
+
+  // Track screen view on mount
+  useEffect(() => {
+    try {
+      trackOnboardingScreenView(ONBOARDING_SCREENS.SOCIAL_PROOF, {
+        step_number: 2,
+        total_steps: 9
+      });
+      
+      analytics.trackEvent(ANALYTICS_EVENTS.SOCIAL_PROOF_VIEWED);
+    } catch (error) {
+      trackOnboardingError(error as Error, {
+        screen: ONBOARDING_SCREENS.SOCIAL_PROOF,
+        action: 'screen_view_tracking'
+      });
+    }
+  }, []);
 
   const handleNext = () => {
-    analytics.trackEvent(ANALYTICS_EVENTS.BUTTON_CLICK, {
-      button_name: 'continue_from_social_proof',
-      screen: 'social_proof'
-    });
-    navigation.navigate('MotivationQuiz');
+    try {
+      const timeSpent = Date.now() - screenStartTime;
+      
+      // Track screen completion
+      trackOnboardingScreenCompleted(ONBOARDING_SCREENS.SOCIAL_PROOF, {
+        time_spent_ms: timeSpent,
+        time_spent_seconds: Math.round(timeSpent / 1000),
+        step_number: 2,
+        total_steps: 9
+      });
+      
+      // Track funnel progression
+      trackFunnelStep(ONBOARDING_SCREENS.SOCIAL_PROOF, 2, 9, {
+        time_spent_ms: timeSpent
+      });
+
+      analytics.trackEvent(ANALYTICS_EVENTS.BUTTON_CLICK, {
+        button_name: 'continue_from_social_proof',
+        screen: ONBOARDING_SCREENS.SOCIAL_PROOF,
+        button_text: "I'm ready for this →",
+        time_spent_ms: timeSpent
+      });
+      
+      navigation.navigate('MotivationQuiz');
+    } catch (error) {
+      trackOnboardingError(error as Error, {
+        screen: ONBOARDING_SCREENS.SOCIAL_PROOF,
+        action: 'continue_button_click'
+      });
+      navigation.navigate('MotivationQuiz');
+    }
   };
 
   const handleBack = () => {
-    navigation.goBack();
+    try {
+      const timeSpent = Date.now() - screenStartTime;
+      
+      analytics.trackEvent(ANALYTICS_EVENTS.BUTTON_CLICK, {
+        button_name: 'back_social_proof',
+        screen: ONBOARDING_SCREENS.SOCIAL_PROOF,
+        time_spent_ms: timeSpent
+      });
+      
+      analytics.trackEvent(ANALYTICS_EVENTS.ONBOARDING_STEP_ABANDONED, {
+        screen: ONBOARDING_SCREENS.SOCIAL_PROOF,
+        step_number: 2,
+        total_steps: 9,
+        time_spent_ms: timeSpent,
+        abandonment_reason: 'back_button'
+      });
+      
+      navigation.goBack();
+    } catch (error) {
+      trackOnboardingError(error as Error, {
+        screen: ONBOARDING_SCREENS.SOCIAL_PROOF,
+        action: 'back_button_click'
+      });
+      navigation.goBack();
+    }
   };
 
   return (

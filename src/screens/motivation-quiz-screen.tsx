@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { Button } from '@/components/ui/button';
 import { useMockAuth } from '@/hooks/useMockAuth';
@@ -6,7 +6,16 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { OnboardingStepper } from '@/components/OnboardingStepper';
 import { ONBOARDING_BUTTON_STYLE, ONBOARDING_CONTAINER_STYLE } from '@/constants/OnboardingStyles';
-import analytics, { ANALYTICS_EVENTS } from '../lib/analytics';
+import analytics, { 
+  ANALYTICS_EVENTS, 
+  ONBOARDING_SCREENS, 
+  USER_PROPERTIES,
+  trackOnboardingScreenView, 
+  trackOnboardingScreenCompleted,
+  trackOnboardingError,
+  trackFunnelStep,
+  setUserProperties
+} from '../lib/analytics';
 
 type RootStackParamList = {
   SocialProof: undefined;
@@ -68,16 +77,48 @@ export function MotivationQuizScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const [selectedMotivation, setSelectedMotivation] = useState<MotivationType | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [screenStartTime] = useState(Date.now());
+
+  // Track screen view on mount
+  useEffect(() => {
+    try {
+      trackOnboardingScreenView(ONBOARDING_SCREENS.MOTIVATION_QUIZ, {
+        step_number: 3,
+        total_steps: 9
+      });
+      
+      analytics.trackEvent(ANALYTICS_EVENTS.MOTIVATION_QUIZ_STARTED);
+    } catch (error) {
+      trackOnboardingError(error as Error, {
+        screen: ONBOARDING_SCREENS.MOTIVATION_QUIZ,
+        action: 'screen_view_tracking'
+      });
+    }
+  }, []);
 
   const handleMotivationSelect = (motivation: MotivationType) => {
-    setSelectedMotivation(motivation);
-    
-    // Track motivation selection
-    analytics.trackEvent(ANALYTICS_EVENTS.BUTTON_CLICK, {
-      button_name: 'motivation_select',
-      motivation_type: motivation,
-      screen: 'motivation_quiz'
-    });
+    try {
+      setSelectedMotivation(motivation);
+      
+      // Track motivation selection
+      analytics.trackEvent(ANALYTICS_EVENTS.MOTIVATION_SELECTED, {
+        motivation_type: motivation,
+        screen: ONBOARDING_SCREENS.MOTIVATION_QUIZ,
+        time_to_select_ms: Date.now() - screenStartTime
+      });
+      
+      analytics.trackEvent(ANALYTICS_EVENTS.BUTTON_CLICK, {
+        button_name: 'motivation_select',
+        motivation_type: motivation,
+        screen: ONBOARDING_SCREENS.MOTIVATION_QUIZ
+      });
+    } catch (error) {
+      trackOnboardingError(error as Error, {
+        screen: ONBOARDING_SCREENS.MOTIVATION_QUIZ,
+        action: 'motivation_selection',
+        motivation_type: motivation
+      });
+    }
   };
 
   const handleNext = async () => {
@@ -85,12 +126,35 @@ export function MotivationQuizScreen({ navigation }: Props) {
     
     try {
       setIsSubmitting(true);
+      const timeSpent = Date.now() - screenStartTime;
+      
+      // Track screen completion
+      trackOnboardingScreenCompleted(ONBOARDING_SCREENS.MOTIVATION_QUIZ, {
+        time_spent_ms: timeSpent,
+        time_spent_seconds: Math.round(timeSpent / 1000),
+        step_number: 3,
+        total_steps: 9,
+        motivation_selected: selectedMotivation
+      });
+      
+      // Track funnel progression
+      trackFunnelStep(ONBOARDING_SCREENS.MOTIVATION_QUIZ, 3, 9, {
+        time_spent_ms: timeSpent,
+        motivation_type: selectedMotivation
+      });
       
       // Track motivation confirmation
       analytics.trackEvent(ANALYTICS_EVENTS.USER_PREFERENCE_SET, {
         preference_type: 'motivation',
         preference_value: selectedMotivation,
-        screen: 'motivation_quiz'
+        screen: ONBOARDING_SCREENS.MOTIVATION_QUIZ,
+        time_spent_ms: timeSpent
+      });
+      
+      // Set user properties for segmentation
+      setUserProperties({
+        [USER_PROPERTIES.MOTIVATION_TYPE]: selectedMotivation,
+        [USER_PROPERTIES.ONBOARDING_STEP]: 'goal_setup'
       });
       
       // Update user with the selected motivation
@@ -101,6 +165,11 @@ export function MotivationQuizScreen({ navigation }: Props) {
       
       navigation.navigate('GoalSetup');
     } catch (error) {
+      trackOnboardingError(error as Error, {
+        screen: ONBOARDING_SCREENS.MOTIVATION_QUIZ,
+        action: 'save_motivation',
+        motivation_type: selectedMotivation
+      });
       console.error('Failed to save motivation:', error);
     } finally {
       setIsSubmitting(false);
@@ -109,21 +178,65 @@ export function MotivationQuizScreen({ navigation }: Props) {
 
   const handleSkip = async () => {
     try {
+      const timeSpent = Date.now() - screenStartTime;
+      
       // Track skip action
       analytics.trackEvent(ANALYTICS_EVENTS.BUTTON_CLICK, {
         button_name: 'skip_motivation_quiz',
-        screen: 'motivation_quiz'
+        screen: ONBOARDING_SCREENS.MOTIVATION_QUIZ,
+        time_spent_ms: timeSpent
+      });
+      
+      // Track screen completion (even though skipped)
+      trackOnboardingScreenCompleted(ONBOARDING_SCREENS.MOTIVATION_QUIZ, {
+        time_spent_ms: timeSpent,
+        time_spent_seconds: Math.round(timeSpent / 1000),
+        step_number: 3,
+        total_steps: 9,
+        completion_type: 'skipped'
       });
       
       await updateUser({ onboarding_step: 'goal_setup' });
       navigation.navigate('GoalSetup');
     } catch (error) {
+      trackOnboardingError(error as Error, {
+        screen: ONBOARDING_SCREENS.MOTIVATION_QUIZ,
+        action: 'skip'
+      });
       console.error('Failed to skip motivation quiz:', error);
     }
   };
 
   const handleBack = () => {
-    navigation.goBack();
+    try {
+      const timeSpent = Date.now() - screenStartTime;
+      
+      analytics.trackEvent(ANALYTICS_EVENTS.BUTTON_CLICK, {
+        button_name: 'back_motivation_quiz',
+        screen: ONBOARDING_SCREENS.MOTIVATION_QUIZ,
+        time_spent_ms: timeSpent,
+        had_selection: !!selectedMotivation,
+        selection: selectedMotivation
+      });
+      
+      analytics.trackEvent(ANALYTICS_EVENTS.ONBOARDING_STEP_ABANDONED, {
+        screen: ONBOARDING_SCREENS.MOTIVATION_QUIZ,
+        step_number: 3,
+        total_steps: 9,
+        time_spent_ms: timeSpent,
+        abandonment_reason: 'back_button',
+        had_selection: !!selectedMotivation,
+        selection: selectedMotivation
+      });
+      
+      navigation.goBack();
+    } catch (error) {
+      trackOnboardingError(error as Error, {
+        screen: ONBOARDING_SCREENS.MOTIVATION_QUIZ,
+        action: 'back_button_click'
+      });
+      navigation.goBack();
+    }
   };
 
   return (

@@ -127,14 +127,7 @@ export function EnhancedGoalPicker({ value, onChange, style }: EnhancedGoalPicke
     const newGoal = { type, value: newValue };
     onChange(newGoal);
     
-    try {
-      analytics.trackEvent(ANALYTICS_EVENTS.GOAL_CREATED, { 
-        goal_type: type,
-        goal_value: newValue 
-      });
-    } catch (error) {
-      console.error('Error tracking goal type change:', error);
-    }
+    // Goal creation event will be tracked when user continues from goal setup screen
   };
 
   const handleValueChange = (newValue: number) => {
@@ -142,14 +135,7 @@ export function EnhancedGoalPicker({ value, onChange, style }: EnhancedGoalPicke
     const newGoal = { type: selectedType, value: newValue };
     onChange(newGoal);
     
-    try {
-      analytics.trackEvent(ANALYTICS_EVENTS.GOAL_CREATED, { 
-        goal_type: selectedType,
-        goal_value: newValue 
-      });
-    } catch (error) {
-      console.error('Error tracking goal value change:', error);
-    }
+    // Goal creation event will be tracked when user continues from goal setup screen
   };
 
   const handleCustomValueSubmit = () => {
@@ -160,15 +146,7 @@ export function EnhancedGoalPicker({ value, onChange, style }: EnhancedGoalPicke
       setShowCustomInput(false);
       setCustomValue('');
       
-      try {
-        analytics.trackEvent(ANALYTICS_EVENTS.GOAL_CREATED, { 
-          goal_type: selectedType,
-          goal_value: numValue,
-          custom: true
-        });
-      } catch (error) {
-        console.error('Error tracking custom goal value:', error);
-      }
+      // Goal creation event will be tracked when user continues from goal setup screen
     }
   };
 

@@ -6,6 +6,16 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React, { useEffect, useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import analytics, { 
+  ANALYTICS_EVENTS, 
+  ONBOARDING_SCREENS, 
+  USER_PROPERTIES,
+  trackOnboardingScreenView, 
+  trackOnboardingScreenCompleted,
+  trackOnboardingError,
+  trackFunnelStep,
+  setUserProperties
+} from '../lib/analytics';
 
 type RootStackParamList = {
   MotivationQuiz: undefined;
@@ -86,12 +96,43 @@ export function MessageStyleScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const [selectedStyle, setSelectedStyle] = useState<MessageStyle>('supportive');
   const [recommendedStyle, setRecommendedStyle] = useState<MessageStyle>('supportive');
+  const [screenStartTime] = useState(Date.now());
+
+  // Track screen view on mount
+  useEffect(() => {
+    try {
+      trackOnboardingScreenView(ONBOARDING_SCREENS.MESSAGE_STYLE, {
+        step_number: 8,
+        total_steps: 9
+      });
+      
+      analytics.trackEvent(ANALYTICS_EVENTS.MESSAGE_STYLE_STARTED);
+    } catch (error) {
+      trackOnboardingError(error as Error, {
+        screen: ONBOARDING_SCREENS.MESSAGE_STYLE,
+        action: 'screen_view_tracking'
+      });
+    }
+  }, []);
 
   useEffect(() => {
     if (user?.motivation_type) {
       const recommended = getRecommendedStyle(user.motivation_type);
       setRecommendedStyle(recommended);
       setSelectedStyle(recommended);
+      
+      try {
+        analytics.trackEvent(ANALYTICS_EVENTS.MESSAGE_STYLE_RECOMMENDED, {
+          motivation_type: user.motivation_type,
+          recommended_style: recommended,
+          screen: ONBOARDING_SCREENS.MESSAGE_STYLE
+        });
+      } catch (error) {
+        trackOnboardingError(error as Error, {
+          screen: ONBOARDING_SCREENS.MESSAGE_STYLE,
+          action: 'style_recommendation'
+        });
+      }
     }
   }, [user?.motivation_type]);
 
@@ -101,12 +142,52 @@ export function MessageStyleScreen({ navigation }: Props) {
         console.error('User is null');
         return;
       }
+      
+      const timeSpent = Date.now() - screenStartTime;
+      
+      // Track screen completion
+      trackOnboardingScreenCompleted(ONBOARDING_SCREENS.MESSAGE_STYLE, {
+        time_spent_ms: timeSpent,
+        time_spent_seconds: Math.round(timeSpent / 1000),
+        step_number: 8,
+        total_steps: 9,
+        selected_style: selectedStyle,
+        recommended_style: recommendedStyle,
+        changed_from_recommended: selectedStyle !== recommendedStyle
+      });
+      
+      // Track funnel progression
+      trackFunnelStep(ONBOARDING_SCREENS.MESSAGE_STYLE, 8, 9, {
+        time_spent_ms: timeSpent,
+        selected_style: selectedStyle,
+        recommended_style: recommendedStyle
+      });
+      
+      // Track message style selection
+      analytics.trackEvent(ANALYTICS_EVENTS.MESSAGE_STYLE_SELECTED, {
+        selected_style: selectedStyle,
+        recommended_style: recommendedStyle,
+        changed_from_recommended: selectedStyle !== recommendedStyle,
+        screen: ONBOARDING_SCREENS.MESSAGE_STYLE,
+        time_spent_ms: timeSpent
+      });
+      
+      // Set user properties for segmentation
+      setUserProperties({
+        [USER_PROPERTIES.MESSAGE_STYLE]: selectedStyle,
+        [USER_PROPERTIES.ONBOARDING_STEP]: 'paywall'
+      });
 
       await updateUser({ 
         message_style: selectedStyle
       });
       navigation.navigate('Paywall');
     } catch (error) {
+      trackOnboardingError(error as Error, {
+        screen: ONBOARDING_SCREENS.MESSAGE_STYLE,
+        action: 'finish_selection',
+        selected_style: selectedStyle
+      });
       console.error('Failed to save message style:', error);
     }
   };
