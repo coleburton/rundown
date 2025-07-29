@@ -35,7 +35,7 @@ export function GoalSetupScreen({ navigation }: Props) {
   const { user, updateUser } = useMockAuth();
   const insets = useSafeAreaInsets();
   const [selectedGoal, setSelectedGoal] = useState<Goal>({ 
-    type: 'runs', 
+    type: 'weekly_commitments', 
     value: 3 
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -62,7 +62,7 @@ export function GoalSetupScreen({ navigation }: Props) {
   useEffect(() => {
     if (user) {
       setSelectedGoal({
-        type: user.goal_type || 'runs',
+        type: user.goal_type || 'weekly_commitments',
         value: user.goal_value || user.goal_per_week || 3
       });
     }
@@ -131,7 +131,7 @@ export function GoalSetupScreen({ navigation }: Props) {
       
       // Update user with the selected goal using mock auth
       await updateUser({ 
-        goal_per_week: selectedGoal.type === 'runs' ? selectedGoal.value : 3, // Keep legacy field for backwards compatibility
+        goal_per_week: selectedGoal.value, // Keep legacy field for backwards compatibility
         goal_type: selectedGoal.type,
         goal_value: selectedGoal.value
       });
@@ -184,7 +184,7 @@ export function GoalSetupScreen({ navigation }: Props) {
 
   return (
     <View style={{ flex: 1, backgroundColor: '#ffffff' }}>
-      <OnboardingStepper currentStep={4} />
+      <OnboardingStepper currentStep={6} />
       
       {/* Back Button */}
       <View style={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 4 }}>
@@ -204,22 +204,22 @@ export function GoalSetupScreen({ navigation }: Props) {
       
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 16 }}>
         {/* Header */}
-        <View style={{ alignItems: 'center', marginBottom: 20, marginTop: 16 }}>
+        <View style={{ alignItems: 'center', marginBottom: 16, marginTop: 12 }}>
           <Text style={{ 
-            fontSize: 28, 
+            fontSize: 24, 
             fontWeight: 'bold', 
             color: '#111827', 
             textAlign: 'center',
-            marginBottom: 8
+            marginBottom: 6
           }}>
-            What's your <Text style={{ color: '#f97316' }}>goal?</Text>
+            How do you want to build <Text style={{ color: '#f97316' }}>consistency?</Text>
           </Text>
           <Text style={{ 
-            fontSize: 16, 
+            fontSize: 14, 
             color: '#6b7280',
             textAlign: 'center'
           }}>
-            Choose how many sessions, not distance. We'll handle the tracking.
+            Choose your accountability approach. We'll provide the support and positive reinforcement.
           </Text>
         </View>
 

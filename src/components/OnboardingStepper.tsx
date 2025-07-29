@@ -2,17 +2,19 @@ import React from 'react';
 import { View, StyleSheet, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-const TOTAL_STEPS = 8; // Total number of steps in onboarding
+const TOTAL_STEPS = 10; // Total number of steps in onboarding
 
 const STEP_ICONS = [
-  'information-circle-outline', // Why Accountability (step 1)
-  'star-outline',           // Social Proof (step 2)
-  'bulb-outline',           // Motivation Quiz (step 3)
-  'flag-outline',           // Goal Setup (step 4)
-  'eye-outline',            // Value Preview (step 5)
-  'fitness-outline',        // Strava Connect (step 6)
-  'people-outline',         // Contact Setup (step 7)
-  'chatbubble-outline',     // Message Style (step 8)
+  'person-outline',         // User Info (step 1)
+  'key-outline',            // Login (step 2)
+  'information-circle-outline', // Why Accountability (step 3)
+  'star-outline',           // Social Proof (step 4)
+  'bulb-outline',           // Motivation Quiz (step 5)
+  'flag-outline',           // Goal Setup (step 6)
+  'eye-outline',            // Value Preview (step 7)
+  'fitness-outline',        // Strava Connect (step 8)
+  'people-outline',         // Contact Setup (step 9)
+  'chatbubble-outline',     // Message Style (step 10)
 ] as const;
 
 interface StepperProps {

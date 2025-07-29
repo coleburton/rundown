@@ -280,23 +280,23 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    padding: 24,
-    paddingTop: 60,
+    padding: 20,
+    paddingTop: 40,
   },
   header: {
     alignItems: 'center',
-    marginBottom: 32,
+    marginBottom: 24,
   },
   emoji: {
-    marginBottom: 16,
+    marginBottom: 12,
   },
   title: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: '700',
     textAlign: 'center',
     color: '#1f2937',
-    marginBottom: 12,
-    lineHeight: 36,
+    marginBottom: 8,
+    lineHeight: 32,
   },
   subtitle: {
     fontSize: 16,
@@ -306,13 +306,13 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   socialProof: {
-    marginBottom: 32,
+    marginBottom: 20,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
     color: '#1f2937',
-    marginBottom: 16,
+    marginBottom: 12,
     textAlign: 'center',
   },
   proofItem: {
@@ -320,8 +320,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#f8fafc',
     borderRadius: 12,
-    padding: 16,
-    marginBottom: 8,
+    padding: 12,
+    marginBottom: 6,
   },
   darkProofItem: {
     backgroundColor: '#1f2937',
@@ -344,11 +344,11 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   pricing: {
-    marginBottom: 24,
+    marginBottom: 16,
   },
   planContainer: {
     position: 'relative',
-    marginBottom: 12,
+    marginBottom: 8,
   },
   popularBadge: {
     position: 'absolute',
@@ -371,7 +371,7 @@ const styles = StyleSheet.create({
   planCard: {
     backgroundColor: '#ffffff',
     borderRadius: 16,
-    padding: 20,
+    padding: 16,
     borderWidth: 2,
     borderColor: '#e5e7eb',
   },

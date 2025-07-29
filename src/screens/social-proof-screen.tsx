@@ -133,7 +133,7 @@ export function SocialProofScreen({ navigation }: Props) {
 
   return (
     <View style={{ flex: 1, backgroundColor: '#ffffff' }}>
-      <OnboardingStepper currentStep={2} />
+      <OnboardingStepper currentStep={4} />
       
       {/* Back Button */}
       <View style={{ paddingHorizontal: 24, paddingTop: 8, paddingBottom: 4 }}>

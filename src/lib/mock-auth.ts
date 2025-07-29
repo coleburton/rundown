@@ -62,16 +62,18 @@ export class MockAuth {
   }
 
   async connectStrava(): Promise<User> {
-    await new Promise(resolve => setTimeout(resolve, MOCK_DELAY));
-    
     if (!this._user) {
       throw new Error('User must be signed in to connect Strava');
     }
 
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, MOCK_DELAY));
+
+    // Mock successful Strava connection
     const updatedUser = {
       ...this._user,
       stravaConnected: true,
-      stravaId: '12345',
+      stravaId: 'mock_strava_123456',
     };
 
     this._user = updatedUser;
@@ -80,12 +82,14 @@ export class MockAuth {
   }
 
   async disconnectStrava(): Promise<User> {
-    await new Promise(resolve => setTimeout(resolve, MOCK_DELAY));
-    
     if (!this._user) {
       throw new Error('User must be signed in to disconnect Strava');
     }
 
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, MOCK_DELAY));
+
+    // Mock successful Strava disconnection
     this._user = {
       ...this._user,
       stravaConnected: false,

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Linking } from 'react-native';
 import { Button } from '@/components/ui/button';
+import { ServiceLogo } from '@/components/ServiceLogo';
 import { useMockAuth } from '@/hooks/useMockAuth';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -33,6 +34,7 @@ interface FitnessApp {
   icon: string;
   description: string;
   popular: boolean;
+  available: boolean;
 }
 
 const FITNESS_APPS: FitnessApp[] = [
@@ -41,28 +43,32 @@ const FITNESS_APPS: FitnessApp[] = [
     name: 'Strava',
     icon: '🏃‍♂️',
     description: 'Running & cycling platform',
-    popular: false
+    popular: false,
+    available: true
   },
   {
     id: 'garmin',
     name: 'Garmin Connect',
     icon: '⌚',
     description: 'Garmin device integration',
-    popular: false
+    popular: false,
+    available: false
   },
   {
     id: 'fitbit',
     name: 'Fitbit',
     icon: '📱',
     description: 'Activity tracking platform',
-    popular: false
+    popular: false,
+    available: false
   },
   {
     id: 'apple_health',
     name: 'Apple Health',
     icon: '🍎',
     description: 'iOS health integration',
-    popular: false
+    popular: false,
+    available: false
   }
 ];
 
@@ -214,7 +220,7 @@ export function FitnessAppConnectScreen({ navigation }: Props) {
 
   return (
     <View style={{ flex: 1, backgroundColor: '#ffffff' }}>
-      <OnboardingStepper currentStep={6} />
+      <OnboardingStepper currentStep={8} />
       
       {/* Back Button */}
       <View style={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 4 }}>
@@ -316,11 +322,12 @@ export function FitnessAppConnectScreen({ navigation }: Props) {
           {FITNESS_APPS.map((app) => (
             <TouchableOpacity
               key={app.id}
-              onPress={() => setSelectedApp(app.id)}
+              onPress={() => app.available && setSelectedApp(app.id)}
+              disabled={!app.available}
               style={{
-                backgroundColor: selectedApp === app.id ? '#fef7ed' : '#ffffff',
+                backgroundColor: !app.available ? '#f8f9fa' : (selectedApp === app.id ? '#fef7ed' : '#ffffff'),
                 borderWidth: 1,
-                borderColor: selectedApp === app.id ? '#f97316' : '#e5e7eb',
+                borderColor: !app.available ? '#e9ecef' : (selectedApp === app.id ? '#f97316' : '#e5e7eb'),
                 borderRadius: 6,
                 padding: 14,
                 marginBottom: 8,
@@ -328,9 +335,10 @@ export function FitnessAppConnectScreen({ navigation }: Props) {
                 alignItems: 'center',
                 shadowColor: '#000',
                 shadowOffset: { width: 0, height: 1 },
-                shadowOpacity: 0.05,
+                shadowOpacity: !app.available ? 0.02 : 0.05,
                 shadowRadius: 2,
-                elevation: 1
+                elevation: !app.available ? 0.5 : 1,
+                opacity: !app.available ? 0.6 : 1
               }}
             >
               {/* App Icon */}
@@ -338,27 +346,46 @@ export function FitnessAppConnectScreen({ navigation }: Props) {
                 width: 40,
                 height: 40,
                 borderRadius: 6,
-                backgroundColor: selectedApp === app.id ? '#f97316' : '#f1f5f9',
+                backgroundColor: !app.available ? '#e9ecef' : (selectedApp === app.id ? '#f97316' : '#f1f5f9'),
                 alignItems: 'center',
                 justifyContent: 'center',
-                marginRight: 12
+                marginRight: 12,
+                overflow: 'hidden'
               }}>
-                <Text style={{ fontSize: 20 }}>{app.icon}</Text>
+                <ServiceLogo service={app.id} size={32} />
               </View>
 
               {/* App Info */}
               <View style={{ flex: 1 }}>
-                <Text style={{
-                  fontSize: 15,
-                  fontWeight: '500',
-                  color: '#111827',
-                  marginBottom: 1
-                }}>
-                  {app.name}
-                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 1 }}>
+                  <Text style={{
+                    fontSize: 15,
+                    fontWeight: '500',
+                    color: !app.available ? '#9ca3af' : '#111827',
+                    marginRight: 8
+                  }}>
+                    {app.name}
+                  </Text>
+                  {!app.available && (
+                    <View style={{
+                      backgroundColor: '#e5e7eb',
+                      paddingHorizontal: 6,
+                      paddingVertical: 2,
+                      borderRadius: 4
+                    }}>
+                      <Text style={{
+                        fontSize: 10,
+                        fontWeight: '500',
+                        color: '#6b7280'
+                      }}>
+                        Coming Soon
+                      </Text>
+                    </View>
+                  )}
+                </View>
                 <Text style={{
                   fontSize: 13,
-                  color: '#64748b'
+                  color: !app.available ? '#9ca3af' : '#64748b'
                 }}>
                   {app.description}
                 </Text>
@@ -370,12 +397,12 @@ export function FitnessAppConnectScreen({ navigation }: Props) {
                 height: 18,
                 borderRadius: 9,
                 borderWidth: 2,
-                borderColor: selectedApp === app.id ? '#f97316' : '#94a3b8',
-                backgroundColor: selectedApp === app.id ? '#f97316' : 'transparent',
+                borderColor: !app.available ? '#d1d5db' : (selectedApp === app.id ? '#f97316' : '#94a3b8'),
+                backgroundColor: !app.available ? 'transparent' : (selectedApp === app.id ? '#f97316' : 'transparent'),
                 alignItems: 'center',
                 justifyContent: 'center'
               }}>
-                {selectedApp === app.id && (
+                {selectedApp === app.id && app.available && (
                   <View style={{
                     width: 6,
                     height: 6,
@@ -405,6 +432,35 @@ export function FitnessAppConnectScreen({ navigation }: Props) {
             You'll be redirected to {FITNESS_APPS.find(app => app.id === selectedApp)?.name || 'your fitness app'} for secure authorization. This provides read-only access to verify workout completion.
           </Text>
         </View>
+
+        {/* Connection Status */}
+        {isConnecting && (
+          <View style={{
+            backgroundColor: '#f0f9ff',
+            borderRadius: 6,
+            padding: 14,
+            marginBottom: 20,
+            borderWidth: 1,
+            borderColor: '#bfdbfe',
+            alignItems: 'center'
+          }}>
+            <Text style={{
+              fontSize: 14,
+              color: '#1e40af',
+              fontWeight: '500',
+              marginBottom: 4
+            }}>
+              Connecting to Strava...
+            </Text>
+            <Text style={{
+              fontSize: 12,
+              color: '#3b82f6',
+              textAlign: 'center'
+            }}>
+              Please complete the authorization in your browser
+            </Text>
+          </View>
+        )}
       </ScrollView>
 
       {/* Fixed Button at bottom */}

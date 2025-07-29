@@ -16,7 +16,7 @@ export function OnboardingScreen() {
   const isDarkMode = colorScheme === 'dark';
 
   const handleContinue = () => {
-    navigation.navigate('WhyAccountability');
+    navigation.navigate('UserInfo');
   };
 
   return (

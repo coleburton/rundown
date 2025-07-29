@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '../components/ui/button';
+import { ServiceLogo } from '../components/ServiceLogo';
 import { useAuth } from '../hooks/useAuth';
 import { ThemedView } from '../components/ThemedView';
 import { ThemedText } from '../components/ThemedText';
@@ -313,7 +314,9 @@ export function SettingsScreen({ navigation }: Props) {
               {/* Strava */}
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-                  <Text style={{ fontSize: 18, marginRight: 10 }}>🏃‍♂️</Text>
+                  <View style={{ marginRight: 10, width: 32, height: 32, borderRadius: 6, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' }}>
+                    <ServiceLogo service="strava" size={28} />
+                  </View>
                   <View style={{ flex: 1 }}>
                     <ThemedText style={[TYPOGRAPHY_STYLES.body1Medium]}>Strava</ThemedText>
                     <ThemedText style={[TYPOGRAPHY_STYLES.caption1, { color: isDarkMode ? '#9ca3af' : '#6b7280' }]}>Running & cycling platform</ThemedText>
@@ -334,7 +337,9 @@ export function SettingsScreen({ navigation }: Props) {
               {/* Garmin Connect */}
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-                  <Text style={{ fontSize: 18, marginRight: 10 }}>⌚</Text>
+                  <View style={{ marginRight: 10, width: 32, height: 32, borderRadius: 6, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' }}>
+                    <ServiceLogo service="garmin" size={28} />
+                  </View>
                   <View style={{ flex: 1 }}>
                     <ThemedText style={[TYPOGRAPHY_STYLES.body1Medium]}>Garmin Connect</ThemedText>
                     <ThemedText style={[TYPOGRAPHY_STYLES.caption1, { color: isDarkMode ? '#9ca3af' : '#6b7280' }]}>Garmin device integration</ThemedText>
@@ -355,7 +360,9 @@ export function SettingsScreen({ navigation }: Props) {
               {/* Fitbit */}
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-                  <Text style={{ fontSize: 18, marginRight: 10 }}>📱</Text>
+                  <View style={{ marginRight: 10, width: 32, height: 32, borderRadius: 6, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' }}>
+                    <ServiceLogo service="fitbit" size={28} />
+                  </View>
                   <View style={{ flex: 1 }}>
                     <ThemedText style={[TYPOGRAPHY_STYLES.body1Medium]}>Fitbit</ThemedText>
                     <ThemedText style={[TYPOGRAPHY_STYLES.caption1, { color: isDarkMode ? '#9ca3af' : '#6b7280' }]}>Activity tracking platform</ThemedText>
@@ -376,7 +383,9 @@ export function SettingsScreen({ navigation }: Props) {
               {/* Apple Health */}
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-                  <Text style={{ fontSize: 18, marginRight: 10 }}>🍎</Text>
+                  <View style={{ marginRight: 10, width: 32, height: 32, borderRadius: 6, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' }}>
+                    <ServiceLogo service="apple" size={28} />
+                  </View>
                   <View style={{ flex: 1 }}>
                     <ThemedText style={[TYPOGRAPHY_STYLES.body1Medium]}>Apple Health</ThemedText>
                     <ThemedText style={[TYPOGRAPHY_STYLES.caption1, { color: isDarkMode ? '#9ca3af' : '#6b7280' }]}>iOS health integration</ThemedText>

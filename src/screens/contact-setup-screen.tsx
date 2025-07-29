@@ -153,7 +153,7 @@ export function ContactSetupScreen({ navigation }: Props) {
       style={{ flex: 1, backgroundColor: '#ffffff' }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <OnboardingStepper currentStep={7} />
+      <OnboardingStepper currentStep={9} />
       
       {/* Back Button */}
       <View style={{ paddingHorizontal: 24, paddingTop: 8, paddingBottom: 4 }}>

@@ -14,6 +14,7 @@ import { ContactSetupScreen } from './src/screens/contact-setup-screen';
 import { DashboardScreen } from './src/screens/dashboard-screen';
 import { FitnessAppConnectScreen } from './src/screens/fitness-app-connect-screen';
 import { GoalSetupScreen } from './src/screens/goal-setup-screen';
+import { LoginScreen } from './src/screens/login-screen';
 import { MessageStyleScreen } from './src/screens/message-style-screen';
 import { MotivationQuizScreen } from './src/screens/motivation-quiz-screen';
 import { OnboardingScreen } from './src/screens/onboarding-screen';
@@ -21,6 +22,7 @@ import { OnboardingSuccessScreen } from './src/screens/onboarding-success-screen
 import { PaywallScreen } from './src/screens/paywall-screen';
 import { SettingsScreen } from './src/screens/settings-screen';
 import { SocialProofScreen } from './src/screens/social-proof-screen';
+import { UserInfoScreen } from './src/screens/user-info-screen';
 import { ValuePreviewScreen } from './src/screens/value-preview-screen';
 import { WelcomeScreen } from './src/screens/welcome-screen';
 import { WhyAccountabilityScreen } from './src/screens/why-accountability-screen';
@@ -28,6 +30,8 @@ import { WhyAccountabilityScreen } from './src/screens/why-accountability-screen
 export type RootStackParamList = {
   Onboarding: undefined;
   Welcome: undefined;
+  UserInfo: undefined;
+  Login: undefined;
   WhyAccountability: undefined;
   SocialProof: undefined;
   MotivationQuiz: undefined;
@@ -76,6 +80,8 @@ function AppContent() {
         
         {/* Auth screens */}
         <Stack.Screen name="Welcome" component={WelcomeScreen} />
+        <Stack.Screen name="UserInfo" component={UserInfoScreen} />
+        <Stack.Screen name="Login" component={LoginScreen} />
         
         {/* Onboarding screens */}
         <Stack.Screen name="WhyAccountability" component={WhyAccountabilityScreen} />

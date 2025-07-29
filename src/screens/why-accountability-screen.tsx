@@ -147,7 +147,7 @@ export function WhyAccountabilityScreen({ navigation }: Props) {
 
   return (
     <View style={{ flex: 1, backgroundColor: '#ffffff' }}>
-      <OnboardingStepper currentStep={1} />
+      <OnboardingStepper currentStep={3} />
       
       {/* Back Button */}
       <View style={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 4 }}>

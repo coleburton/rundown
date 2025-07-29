@@ -105,6 +105,7 @@ export const ANALYTICS_EVENTS = {
   USER_SIGN_UP: 'User Sign Up',
   USER_SIGN_OUT: 'User Sign Out',
   USER_PREFERENCE_SET: 'User Preference Set',
+  USER_PROFILE_UPDATE: 'User Profile Update',
   
   // Onboarding funnel events
   ONBOARDING_STARTED: 'Onboarding Started',
@@ -138,6 +139,10 @@ export const ANALYTICS_EVENTS = {
 
 // Onboarding screen names for consistent tracking
 export const ONBOARDING_SCREENS = {
+  ONBOARDING: 'onboarding',
+  USER_INFO: 'user_info',
+  LOGIN: 'login',
+  WELCOME: 'welcome',
   WHY_ACCOUNTABILITY: 'why_accountability',
   SOCIAL_PROOF: 'social_proof',
   MOTIVATION_QUIZ: 'motivation_quiz',
@@ -152,6 +157,12 @@ export const ONBOARDING_SCREENS = {
 // User properties for segmentation
 export const USER_PROPERTIES = {
   ONBOARDING_STEP: '$onboarding_step',
+  FIRST_NAME: '$first_name',
+  LAST_NAME: '$last_name',
+  DATE_OF_BIRTH: '$date_of_birth',
+  FITNESS_LEVEL: '$fitness_level',
+  PRIMARY_GOAL: '$primary_goal',
+  AUTH_METHOD: '$auth_method',
   MOTIVATION_TYPE: '$motivation_type',
   GOAL_TYPE: '$goal_type',
   GOAL_VALUE: '$goal_value',

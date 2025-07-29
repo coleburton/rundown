@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput } from 'react-native';
 import analytics, { ANALYTICS_EVENTS } from '../lib/analytics';
 
-export type GoalType = 'runs' | 'run_miles' | 'activities' | 'bike_rides' | 'bike_miles';
+export type GoalType = 'daily_checkins' | 'weekly_commitments' | 'habit_streaks' | 'consistency_challenges' | 'accountability_sessions';
 
 export interface Goal {
   type: GoalType;
@@ -18,92 +18,82 @@ interface EnhancedGoalPickerProps {
 
 const GOAL_TYPES = [
   {
-    type: 'runs' as GoalType,
-    name: 'Runs per Week',
-    emoji: '🏃‍♂️',
-    unit: 'runs',
-    description: 'Number of running sessions',
+    type: 'weekly_commitments' as GoalType,
+    name: 'Weekly Activities',
+    emoji: '🎯',
+    unit: 'activities',
+    description: 'Any fitness activities per week',
     options: [2, 3, 4, 5, 6],
     color: '#10b981'
   },
   {
-    type: 'run_miles' as GoalType,
-    name: 'Running Miles',
-    emoji: '📏',
-    unit: 'miles',
-    description: 'Total miles run per week',
-    options: [10, 15, 20, 25, 30],
+    type: 'consistency_challenges' as GoalType,
+    name: 'Consistency Days',
+    emoji: '📈',
+    unit: 'days per week',
+    description: 'Days active per week',
+    options: [3, 4, 5, 6, 7],
     color: '#3b82f6'
   },
   {
-    type: 'activities' as GoalType,
-    name: 'Any Activities',
-    emoji: '🏋️‍♀️',
-    unit: 'activities',
-    description: 'Any fitness activities per week',
-    options: [3, 4, 5, 6, 7],
+    type: 'daily_checkins' as GoalType,
+    name: 'Daily Check-ins',
+    emoji: '✅',
+    unit: 'check-ins',
+    description: 'Daily accountability check-ins',
+    options: [5, 6, 7],
+    color: '#f97316'
+  },
+  {
+    type: 'habit_streaks' as GoalType,
+    name: 'Streak Goals',
+    emoji: '🔥',
+    unit: 'day streak',
+    description: 'Target streak length',
+    options: [7, 14, 21, 30],
     color: '#8b5cf6'
   },
   {
-    type: 'bike_rides' as GoalType,
-    name: 'Bike Rides',
-    emoji: '🚴‍♂️',
-    unit: 'rides',
-    description: 'Number of bike rides per week',
-    options: [2, 3, 4, 5, 6],
-    color: '#f59e0b'
-  },
-  {
-    type: 'bike_miles' as GoalType,
-    name: 'Cycling Miles',
-    emoji: '🚵‍♀️',
-    unit: 'miles',
-    description: 'Total miles cycled per week',
-    options: [20, 30, 50, 75, 100],
+    type: 'accountability_sessions' as GoalType,
+    name: 'Support Sessions',
+    emoji: '🤝',
+    unit: 'sessions',
+    description: 'Weekly accountability meetings',
+    options: [1, 2, 3, 4],
     color: '#ef4444'
   }
 ];
 
 const MOTIVATION_MESSAGES = {
-  runs: {
-    2: { title: 'Starting strong!', description: 'Perfect for building consistency', emoji: '🌱' },
-    3: { title: 'Great balance!', description: 'Solid commitment with rest days', emoji: '⚖️' },
-    4: { title: 'Getting serious!', description: 'You\'re building a real habit', emoji: '💪' },
-    5: { title: 'Ambitious!', description: 'High achiever mode activated', emoji: '🚀' },
-    6: { title: 'Beast mode!', description: 'You\'re a running machine', emoji: '🔥' },
-    7: { title: 'Legendary!', description: 'Daily runner status unlocked', emoji: '👑' }
+  daily_checkins: {
+    5: { title: 'Consistency Builder!', description: 'Great start to daily habits', emoji: '🌱' },
+    6: { title: 'Almost There!', description: 'Building strong accountability', emoji: '⚖️' },
+    7: { title: 'Habit Master!', description: 'Daily consistency unlocked', emoji: '👑' }
   },
-  run_miles: {
-    10: { title: 'Steady pace!', description: 'Building endurance gradually', emoji: '🌱' },
-    15: { title: 'Nice mileage!', description: 'Good weekly volume', emoji: '⚖️' },
-    20: { title: 'Solid runner!', description: 'You\'re getting serious', emoji: '💪' },
-    25: { title: 'High mileage!', description: 'Impressive weekly volume', emoji: '🚀' },
-    30: { title: 'Elite level!', description: 'You\'re in the top tier', emoji: '🔥' },
-    35: { title: 'Ultra runner!', description: 'Extraordinary commitment', emoji: '👑' }
+  weekly_commitments: {
+    2: { title: 'Steady Progress!', description: 'Perfect for sustainable growth', emoji: '🌱' },
+    3: { title: 'Well Balanced!', description: 'Great commitment level', emoji: '⚖️' },
+    4: { title: 'Ambitious!', description: 'You\'re really dedicated', emoji: '💪' },
+    5: { title: 'Goal Crusher!', description: 'Maximum weekly commitment', emoji: '🚀' }
   },
-  activities: {
-    3: { title: 'Active lifestyle!', description: 'Great start to fitness', emoji: '🌱' },
-    4: { title: 'Well-rounded!', description: 'Nice variety in activities', emoji: '⚖️' },
-    5: { title: 'Fitness focused!', description: 'You\'re really committed', emoji: '💪' },
-    6: { title: 'Activity beast!', description: 'Impressive dedication', emoji: '🚀' },
-    7: { title: 'Fitness fanatic!', description: 'Maximum active lifestyle', emoji: '🔥' },
-    8: { title: 'Movement master!', description: 'You never stop moving', emoji: '👑' }
+  habit_streaks: {
+    7: { title: 'Week Warrior!', description: 'Building positive momentum', emoji: '🌱' },
+    14: { title: 'Two Week Hero!', description: 'Habits are forming', emoji: '💪' },
+    21: { title: 'Habit Formed!', description: 'Science says you\'ve got this', emoji: '🚀' },
+    30: { title: 'Streak Legend!', description: 'Unstoppable consistency', emoji: '👑' }
   },
-  bike_rides: {
-    2: { title: 'Cycling start!', description: 'Building bike habits', emoji: '🌱' },
-    3: { title: 'Regular rider!', description: 'Nice cycling routine', emoji: '⚖️' },
-    4: { title: 'Bike enthusiast!', description: 'You love those wheels', emoji: '💪' },
-    5: { title: 'Cycling machine!', description: 'Pedaling powerhouse', emoji: '🚀' },
-    6: { title: 'Bike warrior!', description: 'Two wheels, pure speed', emoji: '🔥' },
-    7: { title: 'Cycling legend!', description: 'Daily bike adventures', emoji: '👑' }
+  consistency_challenges: {
+    3: { title: 'Smart Start!', description: 'Building sustainable habits', emoji: '🌱' },
+    4: { title: 'Good Rhythm!', description: 'Finding your groove', emoji: '⚖️' },
+    5: { title: 'Consistency Pro!', description: 'You\'re building momentum', emoji: '💪' },
+    6: { title: 'Almost Daily!', description: 'Impressive dedication', emoji: '🚀' },
+    7: { title: 'Daily Champion!', description: 'Maximum consistency mode', emoji: '👑' }
   },
-  bike_miles: {
-    20: { title: 'Good distance!', description: 'Solid weekly mileage', emoji: '🌱' },
-    30: { title: 'Nice volume!', description: 'Building endurance', emoji: '⚖️' },
-    50: { title: 'Strong cyclist!', description: 'Impressive distances', emoji: '💪' },
-    75: { title: 'Cycling beast!', description: 'Serious bike commitment', emoji: '🚀' },
-    100: { title: 'Century club!', description: 'Elite cycling volume', emoji: '🔥' },
-    125: { title: 'Ultra cyclist!', description: 'Extraordinary distances', emoji: '👑' }
+  accountability_sessions: {
+    1: { title: 'Accountability Start!', description: 'Weekly support system', emoji: '🌱' },
+    2: { title: 'Support Strong!', description: 'Twice weekly check-ins', emoji: '⚖️' },
+    3: { title: 'Accountability Pro!', description: 'Regular support schedule', emoji: '💪' },
+    4: { title: 'Support Champion!', description: 'Maximum accountability', emoji: '🚀' }
   }
 };
 
@@ -112,7 +102,7 @@ export function EnhancedGoalPicker({ value, onChange, style }: EnhancedGoalPicke
   const [customValue, setCustomValue] = useState<string>('');
   const [showCustomInput, setShowCustomInput] = useState(false);
   
-  const currentGoalType = GOAL_TYPES.find(g => g.type === selectedType)!;
+  const currentGoalType = GOAL_TYPES.find(g => g.type === selectedType) || GOAL_TYPES[0];
   const safeValue = currentGoalType.options.includes(value.value) ? value.value : currentGoalType.options[1];
   
   const motivationMessages = MOTIVATION_MESSAGES[selectedType];
@@ -122,9 +112,9 @@ export function EnhancedGoalPicker({ value, onChange, style }: EnhancedGoalPicke
   const handleTypeChange = (type: GoalType) => {
     setSelectedType(type);
     const newGoalType = GOAL_TYPES.find(g => g.type === type)!;
-    const newValue = newGoalType.options[1]; // Default to second option
+    const defaultValue = newGoalType.options[1]; // Default to second option
     
-    const newGoal = { type, value: newValue };
+    const newGoal = { type, value: defaultValue };
     onChange(newGoal);
     
     // Goal creation event will be tracked when user continues from goal setup screen
