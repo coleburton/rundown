@@ -3,6 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, Linking } from 'react-native'
 import { Button } from '@/components/ui/button';
 import { ServiceLogo } from '@/components/ServiceLogo';
 import { useMockAuth } from '@/hooks/useMockAuth';
+import StravaAuthService from '@/services/strava-auth';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { OnboardingStepper } from '@/components/OnboardingStepper';
@@ -77,7 +78,9 @@ export function FitnessAppConnectScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const [selectedApp, setSelectedApp] = useState<string>('strava');
   const [isConnecting, setIsConnecting] = useState(false);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
   const [screenStartTime] = useState(Date.now());
+  const stravaAuth = StravaAuthService.getInstance();
 
   // Track screen view on mount
   useEffect(() => {
@@ -101,6 +104,7 @@ export function FitnessAppConnectScreen({ navigation }: Props) {
     
     try {
       setIsConnecting(true);
+      setConnectionError(null);
       const timeSpent = Date.now() - screenStartTime;
       
       // Track connection attempt
@@ -111,33 +115,56 @@ export function FitnessAppConnectScreen({ navigation }: Props) {
       });
       
       if (selectedApp === 'strava') {
+        // Use real Strava authentication
+        const result = await stravaAuth.authenticate();
+        
+        if (result.type === 'success' && result.tokens) {
+          // Send tokens to backend for storage
+          const backendSuccess = await stravaAuth.sendTokensToBackend(result.tokens);
+          
+          if (!backendSuccess) {
+            throw new Error('Failed to save authentication data');
+          }
+          
+          // Track successful connection and screen completion
+          trackOnboardingScreenCompleted(ONBOARDING_SCREENS.FITNESS_APP_CONNECT, {
+            time_spent_ms: timeSpent,
+            time_spent_seconds: Math.round(timeSpent / 1000),
+            step_number: 6,
+            total_steps: 9,
+            fitness_app: selectedApp,
+            completion_type: 'connected',
+            athlete_id: result.tokens.athlete?.id
+          });
+          
+          // Track funnel progression
+          trackFunnelStep(ONBOARDING_SCREENS.FITNESS_APP_CONNECT, 6, 9, {
+            time_spent_ms: timeSpent,
+            fitness_app: selectedApp,
+            athlete_id: result.tokens.athlete?.id
+          });
+          
+          // Set user properties for segmentation
+          setUserProperties({
+            [USER_PROPERTIES.FITNESS_APP_CONNECTED]: true,
+            [USER_PROPERTIES.ONBOARDING_STEP]: 'contact_setup'
+          });
+          
+          navigation.navigate('ContactSetup');
+        } else if (result.type === 'cancel') {
+          setConnectionError('Authentication was cancelled. Please try again.');
+        } else {
+          setConnectionError(result.error || 'Failed to connect to Strava. Please try again.');
+        }
+      } else {
+        // Fallback to mock for other apps
         await connectStrava();
+        navigation.navigate('ContactSetup');
       }
-      
-      // Track successful connection and screen completion
-      trackOnboardingScreenCompleted(ONBOARDING_SCREENS.FITNESS_APP_CONNECT, {
-        time_spent_ms: timeSpent,
-        time_spent_seconds: Math.round(timeSpent / 1000),
-        step_number: 6,
-        total_steps: 9,
-        fitness_app: selectedApp,
-        completion_type: 'connected'
-      });
-      
-      // Track funnel progression
-      trackFunnelStep(ONBOARDING_SCREENS.FITNESS_APP_CONNECT, 6, 9, {
-        time_spent_ms: timeSpent,
-        fitness_app: selectedApp
-      });
-      
-      // Set user properties for segmentation
-      setUserProperties({
-        [USER_PROPERTIES.FITNESS_APP_CONNECTED]: true,
-        [USER_PROPERTIES.ONBOARDING_STEP]: 'contact_setup'
-      });
-      
-      navigation.navigate('ContactSetup');
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      setConnectionError(errorMessage);
+      
       trackOnboardingError(error as Error, {
         screen: ONBOARDING_SCREENS.FITNESS_APP_CONNECT,
         action: 'connect_fitness_app',
@@ -450,7 +477,7 @@ export function FitnessAppConnectScreen({ navigation }: Props) {
               fontWeight: '500',
               marginBottom: 4
             }}>
-              Connecting to Strava...
+              Connecting to {FITNESS_APPS.find(app => app.id === selectedApp)?.name}...
             </Text>
             <Text style={{
               fontSize: 12,
@@ -459,6 +486,55 @@ export function FitnessAppConnectScreen({ navigation }: Props) {
             }}>
               Please complete the authorization in your browser
             </Text>
+          </View>
+        )}
+
+        {/* Error Message */}
+        {connectionError && (
+          <View style={{
+            backgroundColor: '#fef2f2',
+            borderRadius: 6,
+            padding: 14,
+            marginBottom: 20,
+            borderWidth: 1,
+            borderColor: '#fecaca',
+            alignItems: 'center'
+          }}>
+            <Text style={{
+              fontSize: 14,
+              color: '#dc2626',
+              fontWeight: '500',
+              marginBottom: 4,
+              textAlign: 'center'
+            }}>
+              Connection Failed
+            </Text>
+            <Text style={{
+              fontSize: 12,
+              color: '#ef4444',
+              textAlign: 'center',
+              lineHeight: 16,
+              marginBottom: 8
+            }}>
+              {connectionError}
+            </Text>
+            <TouchableOpacity
+              onPress={() => setConnectionError(null)}
+              style={{
+                backgroundColor: '#dc2626',
+                paddingHorizontal: 12,
+                paddingVertical: 6,
+                borderRadius: 4
+              }}
+            >
+              <Text style={{
+                fontSize: 12,
+                color: '#ffffff',
+                fontWeight: '500'
+              }}>
+                Try Again
+              </Text>
+            </TouchableOpacity>
           </View>
         )}
       </ScrollView>
