@@ -20,6 +20,7 @@ import { MotivationQuizScreen } from './src/screens/motivation-quiz-screen';
 import { OnboardingScreen } from './src/screens/onboarding-screen';
 import { OnboardingSuccessScreen } from './src/screens/onboarding-success-screen';
 import { PaywallScreen } from './src/screens/paywall-screen';
+import { PaywallFreeTrialScreen } from './src/screens/paywall-free-trial-screen';
 import { SettingsScreen } from './src/screens/settings-screen';
 import { SocialProofScreen } from './src/screens/social-proof-screen';
 import { UserInfoScreen } from './src/screens/user-info-screen';
@@ -44,6 +45,7 @@ export type RootStackParamList = {
   Dashboard: undefined;
   Settings: undefined;
   Paywall: undefined;
+  PaywallFreeTrial: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -93,6 +95,7 @@ function AppContent() {
         <Stack.Screen name="ContactSetup" component={ContactSetupScreen} />
         <Stack.Screen name="MessageStyle" component={MessageStyleScreen} />
         <Stack.Screen name="Paywall" component={PaywallScreen} />
+        <Stack.Screen name="PaywallFreeTrial" component={PaywallFreeTrialScreen} />
         <Stack.Screen name="OnboardingSuccess" component={OnboardingSuccessScreen} />
         
         {/* App screens */}
