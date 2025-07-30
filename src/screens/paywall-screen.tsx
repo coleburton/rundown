@@ -55,8 +55,14 @@ export function PaywallScreen() {
     try {
       const offerings = await revenueCat.getOfferings();
       setPlans(offerings);
-      if (offerings.length > 0 && offerings.find(p => p.isPopular)) {
-        setSelectedPlan(offerings.find(p => p.isPopular)?.id || offerings[0].id);
+      // Default to yearly if available, otherwise monthly
+      if (offerings.length > 0) {
+        const hasYearly = offerings.find(p => p.packageType === 'yearly' || p.id.includes('annual') || p.id.includes('yearly'));
+        if (hasYearly) {
+          setSelectedPlan('yearly');
+        } else {
+          setSelectedPlan('monthly');
+        }
       }
     } catch (error) {
       console.error('Failed to load offerings:', error);
@@ -79,7 +85,14 @@ export function PaywallScreen() {
   };
 
   const handlePurchase = async () => {
-    const selectedPlanData = plans.find(p => p.id === selectedPlan);
+    // Map our UI plan IDs to RevenueCat plans
+    let selectedPlanData;
+    if (selectedPlan === 'yearly') {
+      selectedPlanData = plans.find(p => p.packageType === 'yearly' || p.id.includes('annual') || p.id.includes('yearly'));
+    } else if (selectedPlan === 'monthly') {
+      selectedPlanData = plans.find(p => p.packageType === 'monthly' || p.id.includes('monthly'));
+    }
+    
     if (!selectedPlanData) {
       Alert.alert('Error', 'Please select a plan');
       return;
@@ -114,7 +127,16 @@ export function PaywallScreen() {
     }
   };
 
-  const selectedPlanData = plans.find(p => p.id === selectedPlan);
+  const getSelectedPlanData = () => {
+    if (selectedPlan === 'yearly') {
+      return plans.find(p => p.packageType === 'yearly' || p.id.includes('annual') || p.id.includes('yearly'));
+    } else if (selectedPlan === 'monthly') {
+      return plans.find(p => p.packageType === 'monthly' || p.id.includes('monthly'));
+    }
+    return null;
+  };
+  
+  const selectedPlanData = getSelectedPlanData();
 
   return (
     <View style={[
@@ -168,64 +190,91 @@ export function PaywallScreen() {
                 Loading plans...
               </Text>
             ) : (
-              plans.map((plan) => (
-              <View key={plan.id} style={styles.planContainer}>
-                {plan.isPopular && (
-                  <View style={styles.popularBadge}>
-                    <Text style={styles.popularText}>Most Popular</Text>
-                  </View>
-                )}
-                
-                <TouchableOpacity
-                  style={[
-                    styles.planCard,
-                    selectedPlan === plan.id && styles.selectedPlan,
-                    isDarkMode && styles.darkPlanCard,
-                    selectedPlan === plan.id && isDarkMode && styles.darkSelectedPlan
-                  ]}
-                  onPress={() => handlePlanSelect(plan.id)}
-                >
-                  <View style={styles.planHeader}>
-                    <Text style={[styles.planTitle, isDarkMode && styles.darkText]}>
-                      {plan.title}
-                    </Text>
-                    {plan.discount && (
-                      <Text style={styles.discountText}>{plan.discount}</Text>
-                    )}
-                  </View>
-                  
-                  <View style={styles.priceContainer}>
-                    <Text style={[styles.price, isDarkMode && styles.darkText]}>
-                      {plan.price}
-                    </Text>
-                    <Text style={[styles.period, isDarkMode && styles.darkSubtext]}>
-                      {plan.period}
-                    </Text>
-                  </View>
-                  
-                  <View style={styles.features}>
-                    {(PLAN_FEATURES[plan.packageType as keyof typeof PLAN_FEATURES] || []).map((feature, index) => (
-                      <View key={index} style={styles.featureItem}>
-                        <Text style={styles.checkmark}>✓</Text>
-                        <Text style={[styles.featureText, isDarkMode && styles.darkSubtext]}>
-                          {feature}
+              <View style={styles.plansContainer}>
+                {/* Annual Plan */}
+                <View style={styles.planOption}>
+                  <TouchableOpacity
+                    style={[
+                      styles.planRadio,
+                      selectedPlan === 'yearly' && styles.selectedRadio,
+                      isDarkMode && styles.darkPlanRadio,
+                      selectedPlan === 'yearly' && isDarkMode && styles.darkSelectedRadio
+                    ]}
+                    onPress={() => handlePlanSelect('yearly')}
+                  >
+                    <View style={styles.radioRow}>
+                      <View style={styles.radioContainer}>
+                        <View style={[
+                          styles.radioButton,
+                          selectedPlan === 'yearly' && styles.radioButtonSelected
+                        ]}>
+                          {selectedPlan === 'yearly' && (
+                            <View style={styles.radioButtonInner} />
+                          )}
+                        </View>
+                        <View style={styles.planInfo}>
+                          <Text style={[styles.planLabel, isDarkMode && styles.darkText]}>
+                            Annual
+                          </Text>
+                          <Text style={[styles.planBilling, isDarkMode && styles.darkSubtext]}>
+                            $12.99 • $155.88
+                          </Text>
+                        </View>
+                      </View>
+                      <View style={styles.priceSection}>
+                        <View style={styles.discountBadge}>
+                          <Text style={styles.discountBadgeText}>66% OFF</Text>
+                        </View>
+                        <Text style={[styles.planPrice, isDarkMode && styles.darkText]}>
+                          $1.67/mo
                         </Text>
                       </View>
-                    ))}
-                  </View>
-                </TouchableOpacity>
+                    </View>
+                  </TouchableOpacity>
+                </View>
+
+                {/* Monthly Plan */}
+                <View style={styles.planOption}>
+                  <TouchableOpacity
+                    style={[
+                      styles.planRadio,
+                      selectedPlan === 'monthly' && styles.selectedRadio,
+                      isDarkMode && styles.darkPlanRadio,
+                      selectedPlan === 'monthly' && isDarkMode && styles.darkSelectedRadio
+                    ]}
+                    onPress={() => handlePlanSelect('monthly')}
+                  >
+                    <View style={styles.radioRow}>
+                      <View style={styles.radioContainer}>
+                        <View style={[
+                          styles.radioButton,
+                          selectedPlan === 'monthly' && styles.radioButtonSelected
+                        ]}>
+                          {selectedPlan === 'monthly' && (
+                            <View style={styles.radioButtonInner} />
+                          )}
+                        </View>
+                        <View style={styles.planInfo}>
+                          <Text style={[styles.planLabel, isDarkMode && styles.darkText]}>
+                            Monthly
+                          </Text>
+                          <Text style={[styles.planBilling, isDarkMode && styles.darkSubtext]}>
+                            1 mo • $4.99
+                          </Text>
+                        </View>
+                      </View>
+                      <View style={styles.priceSection}>
+                        <Text style={[styles.planPrice, isDarkMode && styles.darkText]}>
+                          $2.99/mo
+                        </Text>
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                </View>
               </View>
-              ))
             )}
           </View>
 
-          {/* Urgency/Scarcity */}
-          <View style={[styles.urgencyBox, isDarkMode && styles.darkUrgencyBox]}>
-            <Text style={styles.urgencyEmoji}>⏰</Text>
-            <Text style={[styles.urgencyText, isDarkMode && styles.darkText]}>
-              Limited time: Start your accountability journey today
-            </Text>
-          </View>
         </Animated.View>
       </ScrollView>
 
@@ -238,8 +287,17 @@ export function PaywallScreen() {
         <Button
           onPress={handlePurchase}
           size="lg"
-          title={isLoading ? 'Processing...' : `Start ${selectedPlanData?.title || 'Selected'} Plan`}
+          title={isLoading ? 'Processing...' : 'Continue'}
           style={styles.purchaseButton}
+          disabled={isLoading || loadingPlans}
+          darkMode={isDarkMode}
+        />
+
+        <Button
+          onPress={() => navigation.navigate('PaywallFreeTrial')}
+          size="lg"
+          title="See Free Trial Option"
+          style={[styles.purchaseButton, { backgroundColor: isDarkMode ? '#6b7280' : '#6b7280' }]}
           disabled={isLoading || loadingPlans}
           darkMode={isDarkMode}
         />
@@ -281,7 +339,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 20,
-    paddingTop: 40,
+    paddingTop: 60,
   },
   header: {
     alignItems: 'center',
@@ -346,129 +404,92 @@ const styles = StyleSheet.create({
   pricing: {
     marginBottom: 16,
   },
-  planContainer: {
-    position: 'relative',
-    marginBottom: 8,
+  plansContainer: {
+    gap: 12,
   },
-  popularBadge: {
-    position: 'absolute',
-    top: -8,
-    left: 16,
-    right: 16,
-    zIndex: 1,
-    backgroundColor: '#f97316',
-    borderRadius: 16,
-    paddingVertical: 4,
-    paddingHorizontal: 12,
-    alignSelf: 'center',
+  planOption: {
+    marginBottom: 0,
   },
-  popularText: {
-    color: '#ffffff',
-    fontSize: 12,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  planCard: {
+  planRadio: {
     backgroundColor: '#ffffff',
-    borderRadius: 16,
+    borderRadius: 12,
     padding: 16,
-    borderWidth: 2,
+    borderWidth: 1,
     borderColor: '#e5e7eb',
   },
-  darkPlanCard: {
+  darkPlanRadio: {
     backgroundColor: '#1f2937',
     borderColor: '#374151',
   },
-  selectedPlan: {
-    borderColor: '#f97316',
-    backgroundColor: '#fff7ed',
+  selectedRadio: {
+    borderColor: '#84cc16',
+    backgroundColor: '#f0fdf4',
   },
-  darkSelectedPlan: {
-    borderColor: '#f97316',
-    backgroundColor: '#292524',
+  darkSelectedRadio: {
+    borderColor: '#84cc16',
+    backgroundColor: '#14532d',
   },
-  planHeader: {
+  radioRow: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
   },
-  planTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1f2937',
-  },
-  discountText: {
-    backgroundColor: '#dcfce7',
-    color: '#166534',
-    fontSize: 12,
-    fontWeight: '600',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  priceContainer: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    marginBottom: 16,
-  },
-  price: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#1f2937',
-  },
-  period: {
-    fontSize: 14,
-    color: '#6b7280',
-    marginLeft: 4,
-  },
-  originalPrice: {
-    fontSize: 14,
-    color: '#9ca3af',
-    textDecorationLine: 'line-through',
-    marginLeft: 8,
-  },
-  darkOriginalPrice: {
-    color: '#6b7280',
-  },
-  features: {
-    gap: 8,
-  },
-  featureItem: {
+  radioContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
   },
-  checkmark: {
-    color: '#10b981',
+  radioButton: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#d1d5db',
+    marginRight: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  radioButtonSelected: {
+    borderColor: '#84cc16',
+  },
+  radioButtonInner: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#84cc16',
+  },
+  planInfo: {
+    flex: 1,
+  },
+  planLabel: {
     fontSize: 16,
     fontWeight: '600',
-    marginRight: 8,
-    width: 16,
+    color: '#1f2937',
+    marginBottom: 2,
   },
-  featureText: {
+  planBilling: {
     fontSize: 14,
     color: '#6b7280',
-    flex: 1,
   },
-  urgencyBox: {
-    backgroundColor: '#fef3e2',
+  priceSection: {
+    alignItems: 'flex-end',
+  },
+  discountBadge: {
+    backgroundColor: '#84cc16',
     borderRadius: 12,
-    padding: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    marginBottom: 4,
   },
-  darkUrgencyBox: {
-    backgroundColor: '#292524',
+  discountBadgeText: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '700',
   },
-  urgencyEmoji: {
-    fontSize: 20,
-    marginRight: 12,
-  },
-  urgencyText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#ea580c',
-    flex: 1,
+  planPrice: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1f2937',
   },
   bottomSection: {
     backgroundColor: '#ffffff',

@@ -128,6 +128,8 @@ export const ANALYTICS_EVENTS = {
   FITNESS_APP_SKIPPED: 'Fitness App Skipped',
   CONTACT_SETUP_STARTED: 'Contact Setup Started',
   CONTACT_SELECTED: 'Contact Selected',
+  MESSAGE_STYLE_STARTED: 'Message Style Started',
+  MESSAGE_STYLE_RECOMMENDED: 'Message Style Recommended',
   MESSAGE_STYLE_SELECTED: 'Message Style Selected',
   
   // Legacy events (keeping for backward compatibility)
