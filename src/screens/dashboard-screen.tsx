@@ -13,6 +13,7 @@ type RootStackParamList = {
   Welcome: undefined;
   Dashboard: undefined;
   Settings: undefined;
+  ActivityDetail: { activityId: string };
 };
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Dashboard'>;
@@ -751,7 +752,7 @@ export function DashboardScreen({ navigation }: Props) {
           ) : (
             <View style={{ gap: 12 }}>
               {getActivitiesForSelectedWeek().map((activity, index) => (
-                <View
+                <TouchableOpacity
                   key={activity.id}
                   style={{
                     flexDirection: 'row',
@@ -762,6 +763,8 @@ export function DashboardScreen({ navigation }: Props) {
                     borderWidth: 1,
                     borderColor: activity.countsTowardGoal ? '#bbf7d0' : '#e5e7eb',
                   }}
+                  onPress={() => navigation.navigate('ActivityDetail', { activityId: activity.id })}
+                  activeOpacity={0.7}
                 >
                   <View style={{
                     width: 32,
@@ -818,7 +821,7 @@ export function DashboardScreen({ navigation }: Props) {
                   }}>
                     {activity.duration}m
                   </Text>
-                </View>
+                </TouchableOpacity>
               ))}
             </View>
           )}

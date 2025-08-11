@@ -9,6 +9,7 @@ import { Database } from '@/types/supabase';
 type RootStackParamList = {
   Dashboard: undefined;
   ActivityHistory: undefined;
+  ActivityDetail: { activityId: string };
 };
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ActivityHistory'>;
@@ -179,9 +180,11 @@ export function ActivityHistoryScreen({ navigation }: Props) {
                   </Text>
                 ) : (
                   week.runs.map((run) => (
-                    <View
+                    <TouchableOpacity
                       key={run.id}
                       className="flex-row items-center justify-between bg-gray-50 dark:bg-gray-800 rounded-xl p-4"
+                      onPress={() => navigation.navigate('ActivityDetail', { activityId: run.activity_id })}
+                      activeOpacity={0.7}
                     >
                       <View className="flex-row items-center space-x-3">
                         <View className="w-2 h-2 bg-lime-500 rounded-full" />
@@ -202,7 +205,7 @@ export function ActivityHistoryScreen({ navigation }: Props) {
                           </Text>
                         </View>
                       </View>
-                    </View>
+                    </TouchableOpacity>
                   ))
                 )}
               </View>
