@@ -149,9 +149,26 @@ const WeeklyGoalHistory = ({ activities, goal, selectedWeekOffset, onWeekSelect,
   
   // Auto-scroll to selected week
   useEffect(() => {
-    if (scrollViewRef.current && selectedWeekOffset > 4) {
+    if (scrollViewRef.current) {
       const blockWidth = 44; // 28px width + 16px margins
-      const scrollToX = Math.max(0, (selectedWeekOffset - 4) * blockWidth);
+      const totalWeeks = 12;
+      const selectedIndex = totalWeeks - 1 - selectedWeekOffset;
+      
+      // For current week (selectedWeekOffset = 0), scroll to show it on the right
+      // For older weeks, center them in view
+      let scrollToX = 0;
+      
+      if (selectedWeekOffset === 0) {
+        // Scroll to show current week (rightmost) - scroll to end
+        scrollToX = Math.max(0, (totalWeeks - 5) * blockWidth);
+      } else if (selectedWeekOffset > 4) {
+        // For older weeks, scroll to center them
+        scrollToX = Math.max(0, (selectedIndex - 4) * blockWidth);
+      } else {
+        // For recent weeks, scroll to show current week is visible
+        scrollToX = Math.max(0, (totalWeeks - 7) * blockWidth);
+      }
+      
       scrollViewRef.current.scrollTo({ x: scrollToX, animated: true });
     }
   }, [selectedWeekOffset]);
@@ -293,12 +310,12 @@ export function DashboardScreen({ navigation }: Props) {
   } = useStravaData();
 
   // Convert Strava activities to the format expected by existing components
-  const activities = getRecentRuns(50).map(run => ({
-    id: run.id,
-    date: run.date,
-    distance: run.distance * 1609.34, // Convert miles back to meters for compatibility
-    duration: run.duration * 60, // Convert minutes back to seconds
-    type: 'Run'
+  const activities = getRecentActivities(100).map(activity => ({
+    id: activity.id,
+    date: activity.date,
+    distance: activity.distance * 1609.34, // Convert miles back to meters for compatibility
+    duration: activity.duration * 60, // Convert minutes back to seconds
+    type: activity.type
   }));
 
   console.log('Dashboard render:', {
@@ -574,73 +591,74 @@ export function DashboardScreen({ navigation }: Props) {
     <ScrollView style={{ flex: 1, backgroundColor: '#ffffff' }}>
       <View style={{ padding: 24, paddingTop: 24 + insets.top }}>
         {/* Header */}
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
-          <View style={{ flex: 1 }}>
+        <View style={{ marginBottom: 32 }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#111827' }}>
               Hey {getAthlete()?.firstname || user?.name?.split(' ')[0] || 'Runner'} 👋
             </Text>
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
-              <TouchableOpacity
-                onPress={() => setSelectedWeekOffset(Math.min(selectedWeekOffset + 1, 11))}
-                disabled={selectedWeekOffset >= 11}
-                style={{ 
-                  backgroundColor: selectedWeekOffset >= 11 ? '#f3f4f6' : '#e5e7eb',
-                  borderRadius: 16, 
-                  width: 32, 
-                  height: 32,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginRight: 12
-                }}
-              >
-                <Text style={{ 
-                  fontSize: 16, 
-                  color: selectedWeekOffset >= 11 ? '#9ca3af' : '#374151' 
-                }}>
-                  ←
-                </Text>
-              </TouchableOpacity>
-              
-              <Text style={{ fontSize: 14, color: '#6b7280', flex: 1, textAlign: 'center' }}>
-                Week of {getWeekDateRangeForOffset(selectedWeekOffset)}
-              </Text>
-              
-              <TouchableOpacity
-                onPress={() => setSelectedWeekOffset(Math.max(selectedWeekOffset - 1, 0))}
-                disabled={selectedWeekOffset <= 0}
-                style={{ 
-                  backgroundColor: selectedWeekOffset <= 0 ? '#f3f4f6' : '#e5e7eb',
-                  borderRadius: 16, 
-                  width: 32, 
-                  height: 32,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginLeft: 12
-                }}
-              >
-                <Text style={{ 
-                  fontSize: 16, 
-                  color: selectedWeekOffset <= 0 ? '#9ca3af' : '#374151' 
-                }}>
-                  →
-                </Text>
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Settings')}
+              style={{ 
+                backgroundColor: '#f3f4f6',
+                borderRadius: 20, 
+                width: 40, 
+                height: 40,
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginTop: -4
+              }}
+            >
+              <Text style={{ fontSize: 18 }}>⚙️</Text>
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity
-            onPress={() => navigation.navigate('Settings')}
-            style={{ 
-              backgroundColor: '#f3f4f6',
-              borderRadius: 20, 
-              width: 40, 
-              height: 40,
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginLeft: 16
-            }}
-          >
-            <Text style={{ fontSize: 18 }}>⚙️</Text>
-          </TouchableOpacity>
+          
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
+            <TouchableOpacity
+              onPress={() => setSelectedWeekOffset(Math.min(selectedWeekOffset + 1, 11))}
+              disabled={selectedWeekOffset >= 11}
+              style={{ 
+                backgroundColor: selectedWeekOffset >= 11 ? '#f3f4f6' : '#e5e7eb',
+                borderRadius: 16, 
+                width: 32, 
+                height: 32,
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginRight: 12
+              }}
+            >
+              <Text style={{ 
+                fontSize: 16, 
+                color: selectedWeekOffset >= 11 ? '#9ca3af' : '#374151' 
+              }}>
+                ←
+              </Text>
+            </TouchableOpacity>
+            
+            <Text style={{ fontSize: 14, color: '#6b7280', flex: 1, textAlign: 'center' }}>
+              Week of {getWeekDateRangeForOffset(selectedWeekOffset)}
+            </Text>
+            
+            <TouchableOpacity
+              onPress={() => setSelectedWeekOffset(Math.max(selectedWeekOffset - 1, 0))}
+              disabled={selectedWeekOffset <= 0}
+              style={{ 
+                backgroundColor: selectedWeekOffset <= 0 ? '#f3f4f6' : '#e5e7eb',
+                borderRadius: 16, 
+                width: 32, 
+                height: 32,
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginLeft: 12
+              }}
+            >
+              <Text style={{ 
+                fontSize: 16, 
+                color: selectedWeekOffset <= 0 ? '#9ca3af' : '#374151' 
+              }}>
+                →
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Progress Ring */}
@@ -661,7 +679,7 @@ export function DashboardScreen({ navigation }: Props) {
           textAlign: 'center',
           backgroundColor: (() => {
             if (selectedWeekOffset > 0) {
-              return progress >= goal ? '#f0fdf4' : '#fff7ed';
+              return progress >= goal ? '#f0fdf4' : progress > 0 ? '#fff7ed' : '#f9fafb';
             } else {
               return progress >= goal ? '#f0fdf4' : progress > 0 ? '#f0fdfa' : '#f0fdfa';
             }
@@ -669,7 +687,7 @@ export function DashboardScreen({ navigation }: Props) {
           borderWidth: 1,
           borderColor: (() => {
             if (selectedWeekOffset > 0) {
-              return progress >= goal ? '#bbf7d0' : '#fed7aa';
+              return progress >= goal ? '#bbf7d0' : progress > 0 ? '#fed7aa' : '#e5e7eb';
             } else {
               return progress >= goal ? '#bbf7d0' : progress > 0 ? '#a7f3d0' : '#a7f3d0';
             }
@@ -691,7 +709,7 @@ export function DashboardScreen({ navigation }: Props) {
                 colorScheme = { title: '#9a3412', message: '#ea580c', bg: '#fff7ed', border: '#fed7aa' };
               } else {
                 scenario = 'past_none';
-                colorScheme = { title: '#9a3412', message: '#ea580c', bg: '#fff7ed', border: '#fed7aa' };
+                colorScheme = { title: '#6b7280', message: '#9ca3af', bg: '#f9fafb', border: '#e5e7eb' };
               }
             } else {
               // Current week scenarios

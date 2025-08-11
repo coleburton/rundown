@@ -291,7 +291,7 @@ export function ActivityDetailScreen({ navigation, route }: Props) {
         {/* Key Stats */}
         <View style={{ 
           flexDirection: 'row', 
-          gap: 16, 
+          gap: 12, 
           marginBottom: 24 
         }}>
           <View style={{
@@ -302,11 +302,12 @@ export function ActivityDetailScreen({ navigation, route }: Props) {
             alignItems: 'center',
             borderWidth: 1,
             borderColor: '#bbf7d0',
+            minWidth: 0,
           }}>
             <Text style={{ fontSize: 12, color: '#16a34a', fontWeight: '600', marginBottom: 4 }}>
               DISTANCE
             </Text>
-            <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#111827' }}>
+            <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#111827', textAlign: 'center' }} numberOfLines={1} adjustsFontSizeToFit>
               {formatDistance(currentActivity.distance)}
             </Text>
           </View>
@@ -319,28 +320,30 @@ export function ActivityDetailScreen({ navigation, route }: Props) {
             alignItems: 'center',
             borderWidth: 1,
             borderColor: '#bae6fd',
+            minWidth: 0,
           }}>
             <Text style={{ fontSize: 12, color: '#0284c7', fontWeight: '600', marginBottom: 4 }}>
               TIME
             </Text>
-            <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#111827' }}>
+            <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#111827', textAlign: 'center' }} numberOfLines={1} adjustsFontSizeToFit>
               {formatDuration(currentActivity.moving_time || currentActivity.elapsed_time)}
             </Text>
           </View>
 
           <View style={{
-            flex: 1,
+            flex: 1.2,
             backgroundColor: '#fef3c7',
             borderRadius: 16,
             padding: 16,
             alignItems: 'center',
             borderWidth: 1,
             borderColor: '#fed7aa',
+            minWidth: 0,
           }}>
             <Text style={{ fontSize: 12, color: '#d97706', fontWeight: '600', marginBottom: 4 }}>
               PACE
             </Text>
-            <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#111827' }}>
+            <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#111827', textAlign: 'center' }} numberOfLines={1} adjustsFontSizeToFit>
               {currentActivity.distance > 0 ? formatPace(currentActivity.distance / (currentActivity.moving_time || currentActivity.elapsed_time)) : '--'}
             </Text>
           </View>
