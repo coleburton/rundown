@@ -102,6 +102,27 @@ export function useStravaData() {
       }));
   };
 
+  const getRecentActivities = (limit: number = 5) => {
+    return activities
+      .slice(0, limit)
+      .map(activity => ({
+        id: activity.id.toString(),
+        name: activity.name,
+        type: activity.type,
+        sport_type: activity.sport_type,
+        date: activity.start_date_local,
+        distance: Math.round(activity.distance / 1609.34 * 100) / 100, // Convert to miles
+        duration: Math.round(activity.moving_time / 60), // Convert to minutes
+        pace: activity.distance > 0 ? 
+          Math.round((activity.moving_time / 60) / (activity.distance / 1609.34) * 100) / 100 : 0,
+        countsTowardGoal: ['Run', 'VirtualRun'].includes(activity.type), // Add flag for goal counting
+      }));
+  };
+
+  const doesActivityCountTowardGoal = (activityType: string) => {
+    return ['Run', 'VirtualRun'].includes(activityType);
+  };
+
   const isAuthenticated = () => stravaAuth.isAuthenticated();
   const getAthlete = () => stravaAuth.getAthlete();
 
@@ -114,6 +135,8 @@ export function useStravaData() {
     getWeeklyProgress,
     getDaysLeft,
     getRecentRuns,
+    getRecentActivities,
+    doesActivityCountTowardGoal,
     isAuthenticated,
     getAthlete,
   };

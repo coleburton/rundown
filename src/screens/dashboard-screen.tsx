@@ -273,6 +273,8 @@ export function DashboardScreen({ navigation }: Props) {
     getWeeklyProgress,
     getDaysLeft,
     getRecentRuns,
+    getRecentActivities,
+    doesActivityCountTowardGoal,
     isAuthenticated,
     getAthlete,
   } = useStravaData();
@@ -360,8 +362,8 @@ export function DashboardScreen({ navigation }: Props) {
     return totalMiles.toFixed(1);
   };
   
-  // Get runs for the selected week
-  const getRunsForSelectedWeek = () => {
+  // Get activities for the selected week
+  const getActivitiesForSelectedWeek = () => {
     const now = new Date();
     const startOfSelectedWeek = new Date(now);
     startOfSelectedWeek.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1) - (selectedWeekOffset * 7));
@@ -371,11 +373,11 @@ export function DashboardScreen({ navigation }: Props) {
     endOfSelectedWeek.setDate(startOfSelectedWeek.getDate() + 6);
     endOfSelectedWeek.setHours(23, 59, 59, 999);
 
-    const recentRuns = getRecentRuns(100);
-    return recentRuns.filter(run => {
-      const runDate = new Date(run.date);
-      return runDate >= startOfSelectedWeek && runDate <= endOfSelectedWeek;
-    }).slice(0, 5); // Limit to 5 most recent runs from that week
+    const recentActivities = getRecentActivities(100);
+    return recentActivities.filter(activity => {
+      const activityDate = new Date(activity.date);
+      return activityDate >= startOfSelectedWeek && activityDate <= endOfSelectedWeek;
+    }).slice(0, 10); // Limit to 10 most recent activities from that week
   };
 
   const handleSignOut = async () => {
@@ -400,6 +402,121 @@ export function DashboardScreen({ navigation }: Props) {
   const getActivityName = (type: string) => {
     const names = ['Morning Run', 'Evening Jog', 'Lunch Run', 'Quick Run', 'Training Run'];
     return names[Math.floor(Math.random() * names.length)];
+  };
+
+  const getActivityIcon = (activityType: string) => {
+    switch (activityType) {
+      case 'Run':
+      case 'VirtualRun':
+        return '🏃‍♂️';
+      case 'Ride':
+      case 'VirtualRide':
+        return '🚴‍♂️';
+      case 'Swim':
+        return '🏊‍♂️';
+      case 'Walk':
+      case 'Hike':
+        return '🚶‍♂️';
+      case 'Workout':
+        return '💪';
+      case 'WeightTraining':
+        return '🏋️‍♂️';
+      case 'Yoga':
+        return '🧘‍♂️';
+      case 'Crossfit':
+        return '🔥';
+      default:
+        return '🏃‍♂️';
+    }
+  };
+
+  const getActivityDisplayName = (activityType: string) => {
+    switch (activityType) {
+      case 'VirtualRun':
+        return 'Virtual Run';
+      case 'VirtualRide':
+        return 'Virtual Ride';
+      case 'WeightTraining':
+        return 'Weight Training';
+      default:
+        return activityType;
+    }
+  };
+
+  const getRandomMessage = (messages: string[]) => {
+    return messages[Math.floor(Math.random() * messages.length)];
+  };
+
+  const getMotivationalMessages = (scenario: 'goal_met' | 'current_with_activity' | 'current_no_activity' | 'past_partial' | 'past_none', progress: number, goal: number, goalDisplay: any) => {
+    const remaining = goal - progress;
+    
+    switch (scenario) {
+      case 'goal_met':
+        return {
+          titles: ['Nailed it! 🎯', 'Crushed it! 💪', 'Goal smashed! 🔥', 'Victory! 🏆', 'Boom! Done! 🚀'],
+          messages: [
+            'Goal crushed! Your accountability buddy was proud.',
+            'Absolutely nailed it this week. Chef\'s kiss.',
+            'Goal demolished! The couch is jealous.',
+            'Mission accomplished. Your future self thanks you.',
+            'Perfectly executed. Mom would be proud.'
+          ]
+        };
+      
+      case 'current_with_activity':
+        return {
+          titles: ['You\'re cooking! 🔥', 'On fire! 💪', 'Rolling! 🚀', 'Keep going! 💯', 'Momentum! ⚡'],
+          messages: [
+            `${remaining} more to go! You've got this.`,
+            `${remaining} left. Finish strong this week!`,
+            `Almost there! ${remaining} more runs.`,
+            `${remaining} to go. The couch is getting nervous.`,
+            `So close! Just ${remaining} more this week.`
+          ]
+        };
+      
+      case 'current_no_activity':
+        return {
+          titles: ['Time to start! 👟', 'Let\'s go! 🏃‍♂️', 'Week\'s waiting! ⏰', 'Ready to run? 🎯', 'Lace up! 💪'],
+          messages: [
+            `${goal} runs this week. Let's make it happen!`,
+            `${goal} to go! Perfect time to start.`,
+            `Fresh week, ${goal} runs. You've got this!`,
+            `${goal} runs ahead. The couch can wait.`,
+            `Week just started. ${goal} runs to conquer!`
+          ]
+        };
+      
+      case 'past_partial':
+        return {
+          titles: ['Close call! 😬', 'Almost! 😅', 'So close! 😭', 'Nearly there! 😤', 'Ouch! 😩'],
+          messages: [
+            `Missed by ${remaining}. Your mom remembers.`,
+            `${remaining} short. The couch celebrated.`,
+            `Almost had it! Missed by ${remaining}.`,
+            `${remaining} away from glory. Next time!`,
+            `Close but no cigar. Off by ${remaining}.`
+          ]
+        };
+      
+      case 'past_none':
+        return {
+          titles: ['Ghost week 👻', 'Invisible week 🫥', 'Couch week 🛋️', 'Mystery week 🕵️', 'Vanishing act 💨'],
+          messages: [
+            'Zero runs. The couch remembers.',
+            'Completely MIA. Your mom noticed.',
+            'Full ghost mode. Netflix won that week.',
+            'Radio silence. Your shoes got dusty.',
+            'Total no-show. Excuses threw a party.'
+          ]
+        };
+      
+      default:
+        return {
+          titles: ['Keep going! 💪'],
+          messages: ['You\'ve got this!']
+        };
+    }
   };
 
   return (
@@ -491,83 +608,58 @@ export function DashboardScreen({ navigation }: Props) {
           padding: 24,
           marginBottom: 24,
           textAlign: 'center',
-          backgroundColor: isOnTrack ? '#f0fdf4' : isBehind ? '#fff7ed' : '#f0fdfa',
+          backgroundColor: (() => {
+            if (selectedWeekOffset > 0) {
+              return progress >= goal ? '#f0fdf4' : '#fff7ed';
+            } else {
+              return progress >= goal ? '#f0fdf4' : progress > 0 ? '#f0fdfa' : '#f0fdfa';
+            }
+          })(),
           borderWidth: 1,
-          borderColor: isOnTrack ? '#bbf7d0' : isBehind ? '#fed7aa' : '#a7f3d0',
+          borderColor: (() => {
+            if (selectedWeekOffset > 0) {
+              return progress >= goal ? '#bbf7d0' : '#fed7aa';
+            } else {
+              return progress >= goal ? '#bbf7d0' : progress > 0 ? '#a7f3d0' : '#a7f3d0';
+            }
+          })(),
         }}>
           {(() => {
-            // Create custom motivational message for past weeks
+            const goalDisplay = getGoalDisplayText(goalType);
+            let scenario: 'goal_met' | 'current_with_activity' | 'current_no_activity' | 'past_partial' | 'past_none';
+            let colorScheme: { title: string; message: string; bg: string; border: string };
+
+            // Determine scenario and colors
             if (selectedWeekOffset > 0) {
-              const goalDisplay = getGoalDisplayText(goalType);
+              // Past week scenarios
               if (progress >= goal) {
-                return (
-                  <>
-                    <Text style={{
-                      fontSize: 18,
-                      fontWeight: 'bold',
-                      marginBottom: 8,
-                      textAlign: 'center',
-                      color: '#166534',
-                    }}>
-                      Nailed it! 🎯
-                    </Text>
-                    <Text style={{
-                      fontSize: 14,
-                      textAlign: 'center',
-                      color: '#16a34a',
-                    }}>
-                      Goal crushed that week! Your accountability buddy was proud.
-                    </Text>
-                  </>
-                );
+                scenario = 'goal_met';
+                colorScheme = { title: '#166534', message: '#16a34a', bg: '#f0fdf4', border: '#bbf7d0' };
               } else if (progress > 0) {
-                const remaining = goal - progress;
-                return (
-                  <>
-                    <Text style={{
-                      fontSize: 18,
-                      fontWeight: 'bold',
-                      marginBottom: 8,
-                      textAlign: 'center',
-                      color: '#9a3412',
-                    }}>
-                      Close, but no cigar 😬
-                    </Text>
-                    <Text style={{
-                      fontSize: 14,
-                      textAlign: 'center',
-                      color: '#ea580c',
-                    }}>
-                      Missed by {remaining.toFixed(goalType.includes('miles') ? 1 : 0)} {goalDisplay.unit}. Your mom remembers.
-                    </Text>
-                  </>
-                );
+                scenario = 'past_partial';
+                colorScheme = { title: '#9a3412', message: '#ea580c', bg: '#fff7ed', border: '#fed7aa' };
               } else {
-                return (
-                  <>
-                    <Text style={{
-                      fontSize: 18,
-                      fontWeight: 'bold',
-                      marginBottom: 8,
-                      textAlign: 'center',
-                      color: '#9a3412',
-                    }}>
-                      Ghost week 👻
-                    </Text>
-                    <Text style={{
-                      fontSize: 14,
-                      textAlign: 'center',
-                      color: '#ea580c',
-                    }}>
-                      Zero {goalDisplay.unit} that week. The couch remembers everything.
-                    </Text>
-                  </>
-                );
+                scenario = 'past_none';
+                colorScheme = { title: '#9a3412', message: '#ea580c', bg: '#fff7ed', border: '#fed7aa' };
+              }
+            } else {
+              // Current week scenarios
+              if (progress >= goal) {
+                scenario = 'goal_met';
+                colorScheme = { title: '#166534', message: '#16a34a', bg: '#f0fdf4', border: '#bbf7d0' };
+              } else if (progress > 0) {
+                scenario = 'current_with_activity';
+                colorScheme = { title: '#134e4a', message: '#0f766e', bg: '#f0fdfa', border: '#a7f3d0' };
+              } else {
+                scenario = 'current_no_activity';
+                colorScheme = { title: '#134e4a', message: '#0f766e', bg: '#f0fdfa', border: '#a7f3d0' };
               }
             }
 
-            // Use existing logic for current week
-            const motivational = getMotivationalMessage(progress, goal, goalType, isOnTrack, isBehind);
+            const messages = getMotivationalMessages(scenario, progress, goal, goalDisplay);
+            const randomTitle = getRandomMessage(messages.titles);
+            const randomMessage = getRandomMessage(messages.messages);
+
             return (
               <>
                 <Text style={{
@@ -575,16 +667,16 @@ export function DashboardScreen({ navigation }: Props) {
                   fontWeight: 'bold',
                   marginBottom: 8,
                   textAlign: 'center',
-                  color: isOnTrack ? '#166534' : isBehind ? '#9a3412' : '#134e4a',
+                  color: colorScheme.title,
                 }}>
-                  {motivational.title}
+                  {randomTitle}
                 </Text>
                 <Text style={{
                   fontSize: 14,
                   textAlign: 'center',
-                  color: isOnTrack ? '#16a34a' : isBehind ? '#ea580c' : '#0f766e',
+                  color: colorScheme.message,
                 }}>
-                  {motivational.message}
+                  {randomMessage}
                 </Text>
               </>
             );
@@ -634,10 +726,10 @@ export function DashboardScreen({ navigation }: Props) {
           </View>
         </View>
 
-        {/* Recent Runs */}
+        {/* Recent Activity */}
         <View style={{ marginBottom: 24 }}>
           <Text style={{ fontSize: 16, fontWeight: '600', color: '#111827', marginBottom: 16 }}>
-            {selectedWeekOffset === 0 ? 'Recent Runs' : `Runs from ${selectedWeekOffset} week${selectedWeekOffset === 1 ? '' : 's'} ago`}
+            {selectedWeekOffset === 0 ? 'Recent Activity' : `Activities from ${selectedWeekOffset} week${selectedWeekOffset === 1 ? '' : 's'} ago`}
           </Text>
 
           {!isAuthenticated() ? (
@@ -652,43 +744,79 @@ export function DashboardScreen({ navigation }: Props) {
             <Text style={{ color: '#ef4444', textAlign: 'center', padding: 16 }}>
               Failed to load activities: {error}
             </Text>
-          ) : getRunsForSelectedWeek().length === 0 ? (
+          ) : getActivitiesForSelectedWeek().length === 0 ? (
             <Text style={{ color: '#6b7280', textAlign: 'center', padding: 16 }}>
-              {selectedWeekOffset === 0 ? 'No runs found. Time to lace up! 👟' : 'No runs found for this week.'}
+              {selectedWeekOffset === 0 ? 'No activities found. Time to get moving! 💪' : 'No activities found for this week.'}
             </Text>
           ) : (
             <View style={{ gap: 12 }}>
-              {getRunsForSelectedWeek().map((run, index) => (
+              {getActivitiesForSelectedWeek().map((activity, index) => (
                 <View
-                  key={run.id}
+                  key={activity.id}
                   style={{
                     flexDirection: 'row',
                     alignItems: 'center',
-                    justifyContent: 'space-between',
-                    backgroundColor: '#f9fafb',
+                    backgroundColor: activity.countsTowardGoal ? '#f0fdf4' : '#f9fafb',
                     borderRadius: 12,
                     padding: 16,
+                    borderWidth: 1,
+                    borderColor: activity.countsTowardGoal ? '#bbf7d0' : '#e5e7eb',
                   }}
                 >
-                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <View style={{
-                      width: 8,
-                      height: 8,
-                      backgroundColor: index % 2 === 0 ? '#10b981' : '#14b8a6',
-                      borderRadius: 4,
-                      marginRight: 12,
-                    }} />
-                    <View>
-                      <Text style={{ fontSize: 14, fontWeight: '500', color: '#111827' }}>
-                        {run.name}
-                      </Text>
-                      <Text style={{ fontSize: 12, color: '#6b7280' }}>
-                        {formatActivityDate(run.date)} • {run.distance} miles • {run.pace} min/mi
-                      </Text>
-                    </View>
+                  <View style={{
+                    width: 32,
+                    height: 32,
+                    backgroundColor: activity.countsTowardGoal ? '#dcfce7' : '#f3f4f6',
+                    borderRadius: 16,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginRight: 12,
+                  }}>
+                    <Text style={{ fontSize: 16 }}>
+                      {getActivityIcon(activity.type)}
+                    </Text>
                   </View>
-                  <Text style={{ fontSize: 12, color: '#6b7280' }}>
-                    {run.duration}m
+                  
+                  <View style={{ flex: 1, marginRight: 12 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
+                      <Text 
+                        style={{ 
+                          fontSize: 14, 
+                          fontWeight: '500', 
+                          color: '#111827',
+                          flex: 1,
+                          marginRight: 8 
+                        }}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                      >
+                        {activity.name}
+                      </Text>
+                      <View style={{
+                        backgroundColor: activity.countsTowardGoal ? '#10b981' : '#9ca3af',
+                        borderRadius: 6,
+                        paddingHorizontal: 6,
+                        paddingVertical: 2,
+                      }}>
+                        <Text style={{ fontSize: 9, color: '#ffffff', fontWeight: '600' }}>
+                          {activity.countsTowardGoal ? 'GOAL' : 'OTHER'}
+                        </Text>
+                      </View>
+                    </View>
+                    <Text style={{ fontSize: 12, color: '#6b7280', numberOfLines: 1 }}>
+                      {formatActivityDate(activity.date)} • {getActivityDisplayName(activity.type)}
+                      {activity.distance > 0 && ` • ${activity.distance}mi`}
+                      {(activity.type === 'Run' || activity.type === 'VirtualRun') && activity.pace && ` • ${activity.pace}`}
+                    </Text>
+                  </View>
+                  
+                  <Text style={{ 
+                    fontSize: 12, 
+                    color: '#6b7280',
+                    minWidth: 30,
+                    textAlign: 'right' 
+                  }}>
+                    {activity.duration}m
                   </Text>
                 </View>
               ))}
