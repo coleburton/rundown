@@ -57,7 +57,7 @@ export function useAuth() {
 
   const signInWithStrava = async () => {
     try {
-      const authUrl = `https://www.strava.com/oauth/authorize?client_id=${STRAVA_CLIENT_ID}&response_type=code&redirect_uri=${redirectUri}&scope=activity:read_all`;
+      const authUrl = `https://www.strava.com/oauth/authorize?client_id=${STRAVA_CLIENT_ID}&response_type=code&redirect_uri=${redirectUri}&scope=read,activity:read`;
 
       const result = await WebBrowser.openAuthSessionAsync(
         authUrl,
