@@ -91,7 +91,7 @@ const ProgressRing = ({ progress, goal, isOnTrack, isBehind, goalType, goalDispl
 };
 
 // Weekly Goal History component
-const WeeklyGoalHistory = ({ activities, goal, selectedWeekOffset, onWeekSelect }: { activities: any[], goal: number, selectedWeekOffset: number, onWeekSelect: (weekOffset: number) => void }) => {
+const WeeklyGoalHistory = ({ activities, goal, selectedWeekOffset, onWeekSelect, user }: { activities: any[], goal: number, selectedWeekOffset: number, onWeekSelect: (weekOffset: number) => void, user: any }) => {
   const scrollViewRef = useRef<ScrollView>(null);
   // Calculate weekly goal achievement for more weeks (12 weeks to show more history)
   const getWeeklyGoalAchievement = () => {
@@ -110,21 +110,33 @@ const WeeklyGoalHistory = ({ activities, goal, selectedWeekOffset, onWeekSelect 
       weekEnd.setDate(weekStart.getDate() + 6);
       weekEnd.setHours(23, 59, 59, 999);
       
-      // Count activities in this week
-      const weeklyRuns = activities.filter(
+      // Get activities for this week and calculate goal progress
+      const weeklyActivities = activities.filter(
         (activity) => {
           const activityDate = new Date(activity.date);
           return activityDate >= weekStart && activityDate <= weekEnd;
         }
       );
       
+      // Convert to format expected by calculateGoalProgress
+      const formattedActivities = weeklyActivities.map(activity => ({
+        id: activity.id || `${activity.date}-${activity.type}`,
+        type: activity.type || 'Run',
+        distance: (activity.distance || 0) * 1609.34, // Convert miles to meters if needed
+        duration: (activity.duration || 0) * 60, // Convert minutes to seconds if needed
+        date: activity.date
+      }));
+      
+      // Use calculateGoalProgress to get the actual progress
+      const { progress } = calculateGoalProgress(user, formattedActivities, weekStart);
+      
       // Determine if goal was met
-      const status = weeklyRuns.length >= goal ? 'met' : weeklyRuns.length > 0 ? 'partial' : 'missed';
+      const status = progress >= goal ? 'met' : progress > 0 ? 'partial' : 'missed';
       
       weeks.push({
         weekStart,
         weekEnd,
-        activityCount: weeklyRuns.length,
+        activityCount: progress,
         status
       });
     }
@@ -137,9 +149,26 @@ const WeeklyGoalHistory = ({ activities, goal, selectedWeekOffset, onWeekSelect 
   
   // Auto-scroll to selected week
   useEffect(() => {
-    if (scrollViewRef.current && selectedWeekOffset > 4) {
+    if (scrollViewRef.current) {
       const blockWidth = 44; // 28px width + 16px margins
-      const scrollToX = Math.max(0, (selectedWeekOffset - 4) * blockWidth);
+      const totalWeeks = 12;
+      const selectedIndex = totalWeeks - 1 - selectedWeekOffset;
+      
+      // For current week (selectedWeekOffset = 0), scroll to show it on the right
+      // For older weeks, center them in view
+      let scrollToX = 0;
+      
+      if (selectedWeekOffset === 0) {
+        // Scroll to show current week (rightmost) - scroll to end
+        scrollToX = Math.max(0, (totalWeeks - 5) * blockWidth);
+      } else if (selectedWeekOffset > 4) {
+        // For older weeks, scroll to center them
+        scrollToX = Math.max(0, (selectedIndex - 4) * blockWidth);
+      } else {
+        // For recent weeks, scroll to show current week is visible
+        scrollToX = Math.max(0, (totalWeeks - 7) * blockWidth);
+      }
+      
       scrollViewRef.current.scrollTo({ x: scrollToX, animated: true });
     }
   }, [selectedWeekOffset]);
@@ -281,12 +310,12 @@ export function DashboardScreen({ navigation }: Props) {
   } = useStravaData();
 
   // Convert Strava activities to the format expected by existing components
-  const activities = getRecentRuns(50).map(run => ({
-    id: run.id,
-    date: run.date,
-    distance: run.distance * 1609.34, // Convert miles back to meters for compatibility
-    duration: run.duration * 60, // Convert minutes back to seconds
-    type: 'Run'
+  const activities = getRecentActivities(100).map(activity => ({
+    id: activity.id,
+    date: activity.date,
+    distance: activity.distance * 1609.34, // Convert miles back to meters for compatibility
+    duration: activity.duration * 60, // Convert minutes back to seconds
+    type: activity.type
   }));
 
   console.log('Dashboard render:', {
@@ -298,36 +327,38 @@ export function DashboardScreen({ navigation }: Props) {
 
   // Calculate progress for the selected week
   const getProgressForSelectedWeek = () => {
-    if (selectedWeekOffset === 0) {
-      // Current week - use the existing hook
-      return getWeeklyProgress(user?.goal_per_week || 3);
-    } else {
-      // Previous week - calculate manually
-      const now = new Date();
-      const startOfSelectedWeek = new Date(now);
-      startOfSelectedWeek.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1) - (selectedWeekOffset * 7));
-      startOfSelectedWeek.setHours(0, 0, 0, 0);
-      
-      const endOfSelectedWeek = new Date(startOfSelectedWeek);
-      endOfSelectedWeek.setDate(startOfSelectedWeek.getDate() + 6);
-      endOfSelectedWeek.setHours(23, 59, 59, 999);
-      
-      const recentRuns = getRecentRuns(100);
-      const selectedWeekRuns = recentRuns.filter(run => {
-        const runDate = new Date(run.date);
-        return runDate >= startOfSelectedWeek && runDate <= endOfSelectedWeek;
-      });
-      
-      return {
-        progress: selectedWeekRuns.length,
-        goal: user?.goal_per_week || 3
-      };
-    }
+    const now = new Date();
+    const startOfSelectedWeek = new Date(now);
+    startOfSelectedWeek.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1) - (selectedWeekOffset * 7));
+    startOfSelectedWeek.setHours(0, 0, 0, 0);
+    
+    const endOfSelectedWeek = new Date(startOfSelectedWeek);
+    endOfSelectedWeek.setDate(startOfSelectedWeek.getDate() + 6);
+    endOfSelectedWeek.setHours(23, 59, 59, 999);
+    
+    // Get all activities for the selected week
+    const recentActivities = getRecentActivities(200);
+    const selectedWeekActivities = recentActivities.filter(activity => {
+      const activityDate = new Date(activity.date);
+      return activityDate >= startOfSelectedWeek && activityDate <= endOfSelectedWeek;
+    });
+    
+    // Convert Strava activities to the format expected by calculateGoalProgress
+    const formattedActivities = selectedWeekActivities.map(activity => ({
+      id: activity.id,
+      type: activity.type,
+      distance: activity.distance * 1609.34, // Convert miles to meters
+      duration: activity.duration * 60, // Convert minutes to seconds
+      date: activity.date
+    }));
+    
+    // Use the goalUtils function to calculate progress
+    return calculateGoalProgress(user, formattedActivities, startOfSelectedWeek);
   };
   
   const { progress, goal } = getProgressForSelectedWeek();
   const daysLeft = selectedWeekOffset === 0 ? getDaysLeft() : 0; // Only show days left for current week
-  const goalType = 'runs'; // Default to runs for now
+  const goalType = user?.goal_type || 'total_activities'; // Use user's actual goal type
   
   console.log('Dashboard render with Strava data:', {
     activitiesCount: activities.length,
@@ -375,10 +406,46 @@ export function DashboardScreen({ navigation }: Props) {
     endOfSelectedWeek.setHours(23, 59, 59, 999);
 
     const recentActivities = getRecentActivities(100);
-    return recentActivities.filter(activity => {
+    const weekActivities = recentActivities.filter(activity => {
       const activityDate = new Date(activity.date);
       return activityDate >= startOfSelectedWeek && activityDate <= endOfSelectedWeek;
-    }).slice(0, 10); // Limit to 10 most recent activities from that week
+    });
+    
+    // Determine which activities count toward the goal
+    const goalType = user?.goal_type || 'total_activities';
+    return weekActivities.map(activity => ({
+      ...activity,
+      countsTowardGoal: checkActivityCountsTowardGoal(activity, goalType)
+    })).slice(0, 10); // Limit to 10 most recent activities from that week
+  };
+  
+  // Helper function to determine if an activity counts toward the goal
+  const checkActivityCountsTowardGoal = (activity: any, goalType: string) => {
+    const activityType = activity.type.toLowerCase();
+    
+    switch (goalType) {
+      case 'total_activities':
+        return true; // All activities count
+        
+      case 'total_runs':
+        return activityType.includes('run');
+        
+      case 'total_miles_running':
+        return activityType.includes('run');
+        
+      case 'total_rides_biking':
+        return activityType.includes('bike') || 
+               activityType.includes('cycling') || 
+               (activityType.includes('ride') && !activityType.includes('run'));
+        
+      case 'total_miles_biking':
+        return activityType.includes('bike') || 
+               activityType.includes('cycling') || 
+               (activityType.includes('ride') && !activityType.includes('run'));
+        
+      default:
+        return true;
+    }
   };
 
   const handleSignOut = async () => {
@@ -460,7 +527,7 @@ export function DashboardScreen({ navigation }: Props) {
             'Absolutely nailed it this week. Chef\'s kiss.',
             'Goal demolished! The couch is jealous.',
             'Mission accomplished. Your future self thanks you.',
-            'Perfectly executed. Mom would be proud.'
+            'Perfectly executed. You should be proud.'
           ]
         };
       
@@ -492,7 +559,7 @@ export function DashboardScreen({ navigation }: Props) {
         return {
           titles: ['Close call! 😬', 'Almost! 😅', 'So close! 😭', 'Nearly there! 😤', 'Ouch! 😩'],
           messages: [
-            `Missed by ${remaining}. Your mom remembers.`,
+            `Missed by ${remaining}. They remember.`,
             `${remaining} short. The couch celebrated.`,
             `Almost had it! Missed by ${remaining}.`,
             `${remaining} away from glory. Next time!`,
@@ -505,7 +572,7 @@ export function DashboardScreen({ navigation }: Props) {
           titles: ['Ghost week 👻', 'Invisible week 🫥', 'Couch week 🛋️', 'Mystery week 🕵️', 'Vanishing act 💨'],
           messages: [
             'Zero runs. The couch remembers.',
-            'Completely MIA. Your mom noticed.',
+            'Completely MIA. They noticed.',
             'Full ghost mode. Netflix won that week.',
             'Radio silence. Your shoes got dusty.',
             'Total no-show. Excuses threw a party.'
@@ -524,73 +591,74 @@ export function DashboardScreen({ navigation }: Props) {
     <ScrollView style={{ flex: 1, backgroundColor: '#ffffff' }}>
       <View style={{ padding: 24, paddingTop: 24 + insets.top }}>
         {/* Header */}
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
-          <View style={{ flex: 1 }}>
+        <View style={{ marginBottom: 32 }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#111827' }}>
               Hey {getAthlete()?.firstname || user?.name?.split(' ')[0] || 'Runner'} 👋
             </Text>
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
-              <TouchableOpacity
-                onPress={() => setSelectedWeekOffset(Math.min(selectedWeekOffset + 1, 11))}
-                disabled={selectedWeekOffset >= 11}
-                style={{ 
-                  backgroundColor: selectedWeekOffset >= 11 ? '#f3f4f6' : '#e5e7eb',
-                  borderRadius: 16, 
-                  width: 32, 
-                  height: 32,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginRight: 12
-                }}
-              >
-                <Text style={{ 
-                  fontSize: 16, 
-                  color: selectedWeekOffset >= 11 ? '#9ca3af' : '#374151' 
-                }}>
-                  ←
-                </Text>
-              </TouchableOpacity>
-              
-              <Text style={{ fontSize: 14, color: '#6b7280', flex: 1, textAlign: 'center' }}>
-                Week of {getWeekDateRangeForOffset(selectedWeekOffset)}
-              </Text>
-              
-              <TouchableOpacity
-                onPress={() => setSelectedWeekOffset(Math.max(selectedWeekOffset - 1, 0))}
-                disabled={selectedWeekOffset <= 0}
-                style={{ 
-                  backgroundColor: selectedWeekOffset <= 0 ? '#f3f4f6' : '#e5e7eb',
-                  borderRadius: 16, 
-                  width: 32, 
-                  height: 32,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginLeft: 12
-                }}
-              >
-                <Text style={{ 
-                  fontSize: 16, 
-                  color: selectedWeekOffset <= 0 ? '#9ca3af' : '#374151' 
-                }}>
-                  →
-                </Text>
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Settings')}
+              style={{ 
+                backgroundColor: '#f3f4f6',
+                borderRadius: 20, 
+                width: 40, 
+                height: 40,
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginTop: -4
+              }}
+            >
+              <Text style={{ fontSize: 18 }}>⚙️</Text>
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity
-            onPress={() => navigation.navigate('Settings')}
-            style={{ 
-              backgroundColor: '#f3f4f6',
-              borderRadius: 20, 
-              width: 40, 
-              height: 40,
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginLeft: 16
-            }}
-          >
-            <Text style={{ fontSize: 18 }}>⚙️</Text>
-          </TouchableOpacity>
+          
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
+            <TouchableOpacity
+              onPress={() => setSelectedWeekOffset(Math.min(selectedWeekOffset + 1, 11))}
+              disabled={selectedWeekOffset >= 11}
+              style={{ 
+                backgroundColor: selectedWeekOffset >= 11 ? '#f3f4f6' : '#e5e7eb',
+                borderRadius: 16, 
+                width: 32, 
+                height: 32,
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginRight: 12
+              }}
+            >
+              <Text style={{ 
+                fontSize: 16, 
+                color: selectedWeekOffset >= 11 ? '#9ca3af' : '#374151' 
+              }}>
+                ←
+              </Text>
+            </TouchableOpacity>
+            
+            <Text style={{ fontSize: 14, color: '#6b7280', flex: 1, textAlign: 'center' }}>
+              Week of {getWeekDateRangeForOffset(selectedWeekOffset)}
+            </Text>
+            
+            <TouchableOpacity
+              onPress={() => setSelectedWeekOffset(Math.max(selectedWeekOffset - 1, 0))}
+              disabled={selectedWeekOffset <= 0}
+              style={{ 
+                backgroundColor: selectedWeekOffset <= 0 ? '#f3f4f6' : '#e5e7eb',
+                borderRadius: 16, 
+                width: 32, 
+                height: 32,
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginLeft: 12
+              }}
+            >
+              <Text style={{ 
+                fontSize: 16, 
+                color: selectedWeekOffset <= 0 ? '#9ca3af' : '#374151' 
+              }}>
+                →
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Progress Ring */}
@@ -611,7 +679,7 @@ export function DashboardScreen({ navigation }: Props) {
           textAlign: 'center',
           backgroundColor: (() => {
             if (selectedWeekOffset > 0) {
-              return progress >= goal ? '#f0fdf4' : '#fff7ed';
+              return progress >= goal ? '#f0fdf4' : progress > 0 ? '#fff7ed' : '#f9fafb';
             } else {
               return progress >= goal ? '#f0fdf4' : progress > 0 ? '#f0fdfa' : '#f0fdfa';
             }
@@ -619,7 +687,7 @@ export function DashboardScreen({ navigation }: Props) {
           borderWidth: 1,
           borderColor: (() => {
             if (selectedWeekOffset > 0) {
-              return progress >= goal ? '#bbf7d0' : '#fed7aa';
+              return progress >= goal ? '#bbf7d0' : progress > 0 ? '#fed7aa' : '#e5e7eb';
             } else {
               return progress >= goal ? '#bbf7d0' : progress > 0 ? '#a7f3d0' : '#a7f3d0';
             }
@@ -641,7 +709,7 @@ export function DashboardScreen({ navigation }: Props) {
                 colorScheme = { title: '#9a3412', message: '#ea580c', bg: '#fff7ed', border: '#fed7aa' };
               } else {
                 scenario = 'past_none';
-                colorScheme = { title: '#9a3412', message: '#ea580c', bg: '#fff7ed', border: '#fed7aa' };
+                colorScheme = { title: '#6b7280', message: '#9ca3af', bg: '#f9fafb', border: '#e5e7eb' };
               }
             } else {
               // Current week scenarios
@@ -690,6 +758,7 @@ export function DashboardScreen({ navigation }: Props) {
           goal={goal} 
           selectedWeekOffset={selectedWeekOffset} 
           onWeekSelect={setSelectedWeekOffset}
+          user={user}
         />
 
         {/* Quick Stats */}
@@ -830,7 +899,7 @@ export function DashboardScreen({ navigation }: Props) {
         {/* Motivational Footer */}
         <View style={{ padding: 16 }}>
           <Text style={{ textAlign: 'center', fontSize: 12, color: '#9ca3af' }}>
-            {isBehind ? "Don't make us text your mom... 📱" : 'Keep crushing those goals! 🎯'}
+            {isBehind ? "Don't make us blow up your phone... 📱" : 'Keep crushing those goals! 🎯'}
           </Text>
         </View>
       </View>

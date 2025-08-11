@@ -16,9 +16,9 @@ interface ContactRolePickerProps {
 
 const ROLE_SUGGESTIONS = [
   {
-    title: 'Mom',
-    description: 'No one can guilt trip you quite like her',
-    emoji: '👩',
+    title: 'Family Member',
+    description: 'Family knows how to keep you accountable',
+    emoji: '👨‍👩‍👧‍👦',
   },
   {
     title: 'Best Friend',

@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 const SLIDES = [
   {
     title: "Run from your excuses.",
-    subtitle: "Or we'll text your mom.",
+    subtitle: "Or we'll tell on you.",
     description: "Connect your Strava, pick your accountability buddy, and let us handle the rest. No more broken promises to yourself.",
     icon: require('../../assets/images/partial-react-logo.png'),
   }

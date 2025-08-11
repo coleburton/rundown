@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput } from 'react-native';
 import analytics, { ANALYTICS_EVENTS } from '../lib/analytics';
 
-export type GoalType = 'daily_checkins' | 'weekly_commitments' | 'habit_streaks' | 'consistency_challenges' | 'accountability_sessions';
+export type GoalType = 'total_activities' | 'total_runs' | 'total_miles_running' | 'total_rides_biking' | 'total_miles_biking';
 
 export interface Goal {
   type: GoalType;
@@ -18,8 +18,8 @@ interface EnhancedGoalPickerProps {
 
 const GOAL_TYPES = [
   {
-    type: 'weekly_commitments' as GoalType,
-    name: 'Weekly Activities',
+    type: 'total_activities' as GoalType,
+    name: 'Total Activities',
     emoji: '🎯',
     unit: 'activities',
     description: 'Any fitness activities per week',
@@ -27,73 +27,78 @@ const GOAL_TYPES = [
     color: '#10b981'
   },
   {
-    type: 'consistency_challenges' as GoalType,
-    name: 'Consistency Days',
-    emoji: '📈',
-    unit: 'days per week',
-    description: 'Days active per week',
-    options: [3, 4, 5, 6, 7],
+    type: 'total_runs' as GoalType,
+    name: 'Total Runs',
+    emoji: '🏃',
+    unit: 'runs',
+    description: 'Running workouts per week',
+    options: [2, 3, 4, 5, 6],
     color: '#3b82f6'
   },
   {
-    type: 'daily_checkins' as GoalType,
-    name: 'Daily Check-ins',
-    emoji: '✅',
-    unit: 'check-ins',
-    description: 'Daily accountability check-ins',
-    options: [5, 6, 7],
+    type: 'total_miles_running' as GoalType,
+    name: 'Running Miles',
+    emoji: '🏃‍♂️',
+    unit: 'miles',
+    description: 'Total running miles per week',
+    options: [5, 10, 15, 20, 25],
     color: '#f97316'
   },
   {
-    type: 'habit_streaks' as GoalType,
-    name: 'Streak Goals',
-    emoji: '🔥',
-    unit: 'day streak',
-    description: 'Target streak length',
-    options: [7, 14, 21, 30],
+    type: 'total_rides_biking' as GoalType,
+    name: 'Total Rides',
+    emoji: '🚴',
+    unit: 'rides',
+    description: 'Cycling workouts per week',
+    options: [2, 3, 4, 5, 6],
     color: '#8b5cf6'
   },
   {
-    type: 'accountability_sessions' as GoalType,
-    name: 'Support Sessions',
-    emoji: '🤝',
-    unit: 'sessions',
-    description: 'Weekly accountability meetings',
-    options: [1, 2, 3, 4],
+    type: 'total_miles_biking' as GoalType,
+    name: 'Cycling Miles',
+    emoji: '🚴‍♂️',
+    unit: 'miles',
+    description: 'Total cycling miles per week',
+    options: [10, 25, 50, 75, 100],
     color: '#ef4444'
   }
 ];
 
 const MOTIVATION_MESSAGES = {
-  daily_checkins: {
-    5: { title: 'Consistency Builder!', description: 'Great start to daily habits', emoji: '🌱' },
-    6: { title: 'Almost There!', description: 'Building strong accountability', emoji: '⚖️' },
-    7: { title: 'Habit Master!', description: 'Daily consistency unlocked', emoji: '👑' }
-  },
-  weekly_commitments: {
-    2: { title: 'Steady Progress!', description: 'Perfect for sustainable growth', emoji: '🌱' },
+  total_activities: {
+    2: { title: 'Steady Start!', description: 'Perfect for sustainable growth', emoji: '🌱' },
     3: { title: 'Well Balanced!', description: 'Great commitment level', emoji: '⚖️' },
-    4: { title: 'Ambitious!', description: 'You\'re really dedicated', emoji: '💪' },
-    5: { title: 'Goal Crusher!', description: 'Maximum weekly commitment', emoji: '🚀' }
+    4: { title: 'Getting Serious!', description: 'You\'re really dedicated', emoji: '💪' },
+    5: { title: 'Activity Master!', description: 'Excellent weekly commitment', emoji: '🚀' },
+    6: { title: 'Goal Crusher!', description: 'Maximum weekly dedication', emoji: '👑' }
   },
-  habit_streaks: {
-    7: { title: 'Week Warrior!', description: 'Building positive momentum', emoji: '🌱' },
-    14: { title: 'Two Week Hero!', description: 'Habits are forming', emoji: '💪' },
-    21: { title: 'Habit Formed!', description: 'Science says you\'ve got this', emoji: '🚀' },
-    30: { title: 'Streak Legend!', description: 'Unstoppable consistency', emoji: '👑' }
+  total_runs: {
+    2: { title: 'Runner\'s Start!', description: 'Building your running habit', emoji: '🌱' },
+    3: { title: 'Consistent Runner!', description: 'Great running rhythm', emoji: '⚖️' },
+    4: { title: 'Dedicated Runner!', description: 'Strong running commitment', emoji: '💪' },
+    5: { title: 'Running Pro!', description: 'Impressive weekly mileage', emoji: '🚀' },
+    6: { title: 'Running Champion!', description: 'Elite running schedule', emoji: '👑' }
   },
-  consistency_challenges: {
-    3: { title: 'Smart Start!', description: 'Building sustainable habits', emoji: '🌱' },
-    4: { title: 'Good Rhythm!', description: 'Finding your groove', emoji: '⚖️' },
-    5: { title: 'Consistency Pro!', description: 'You\'re building momentum', emoji: '💪' },
-    6: { title: 'Almost Daily!', description: 'Impressive dedication', emoji: '🚀' },
-    7: { title: 'Daily Champion!', description: 'Maximum consistency mode', emoji: '👑' }
+  total_miles_running: {
+    5: { title: 'Getting Started!', description: 'Building your base mileage', emoji: '🌱' },
+    10: { title: 'Solid Foundation!', description: 'Great weekly distance', emoji: '⚖️' },
+    15: { title: 'Strong Runner!', description: 'Impressive weekly mileage', emoji: '💪' },
+    20: { title: 'Distance Master!', description: 'Serious weekly commitment', emoji: '🚀' },
+    25: { title: 'Mileage Champion!', description: 'Elite distance training', emoji: '👑' }
   },
-  accountability_sessions: {
-    1: { title: 'Accountability Start!', description: 'Weekly support system', emoji: '🌱' },
-    2: { title: 'Support Strong!', description: 'Twice weekly check-ins', emoji: '⚖️' },
-    3: { title: 'Accountability Pro!', description: 'Regular support schedule', emoji: '💪' },
-    4: { title: 'Support Champion!', description: 'Maximum accountability', emoji: '🚀' }
+  total_rides_biking: {
+    2: { title: 'Cyclist\'s Start!', description: 'Building your cycling habit', emoji: '🌱' },
+    3: { title: 'Consistent Cyclist!', description: 'Great riding rhythm', emoji: '⚖️' },
+    4: { title: 'Dedicated Rider!', description: 'Strong cycling commitment', emoji: '💪' },
+    5: { title: 'Cycling Pro!', description: 'Impressive ride schedule', emoji: '🚀' },
+    6: { title: 'Cycling Champion!', description: 'Elite riding routine', emoji: '👑' }
+  },
+  total_miles_biking: {
+    10: { title: 'Getting Rolling!', description: 'Building your cycling base', emoji: '🌱' },
+    25: { title: 'Solid Cyclist!', description: 'Great weekly distance', emoji: '⚖️' },
+    50: { title: 'Strong Rider!', description: 'Impressive weekly mileage', emoji: '💪' },
+    75: { title: 'Distance Cyclist!', description: 'Serious weekly commitment', emoji: '🚀' },
+    100: { title: 'Mileage Master!', description: 'Elite cycling training', emoji: '👑' }
   }
 };
 
@@ -106,8 +111,8 @@ export function EnhancedGoalPicker({ value, onChange, style }: EnhancedGoalPicke
   const safeValue = currentGoalType.options.includes(value.value) ? value.value : currentGoalType.options[1];
   
   const motivationMessages = MOTIVATION_MESSAGES[selectedType];
-  const motivationMessage = motivationMessages[safeValue as keyof typeof motivationMessages] || 
-    Object.values(motivationMessages)[0];
+  const motivationMessage = motivationMessages?.[safeValue as keyof typeof motivationMessages] || 
+    (motivationMessages ? Object.values(motivationMessages)[0] : { title: 'Goal Set!', description: 'Keep going!', emoji: '🎯' });
 
   const handleTypeChange = (type: GoalType) => {
     setSelectedType(type);
