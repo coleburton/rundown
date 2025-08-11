@@ -307,6 +307,63 @@ class StravaAuthService {
     }
   }
 
+  async getActivityById(activityId: number): Promise<any> {
+    try {
+      const accessToken = await this.getValidAccessToken();
+      if (!accessToken) {
+        throw new Error('No valid access token available');
+      }
+
+      const response = await fetch(`https://www.strava.com/api/v3/activities/${activityId}`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Accept': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Strava API error: ${response.status} ${response.statusText}`);
+      }
+
+      const activity = await response.json();
+      console.log(`Fetched detailed activity ${activityId} from Strava`);
+      
+      return activity;
+    } catch (error) {
+      console.error(`Error fetching Strava activity ${activityId}:`, error);
+      throw error;
+    }
+  }
+
+  async getActivityStreams(activityId: number, keys: string[] = ['latlng', 'distance', 'altitude']): Promise<any> {
+    try {
+      const accessToken = await this.getValidAccessToken();
+      if (!accessToken) {
+        throw new Error('No valid access token available');
+      }
+
+      const keysParam = keys.join(',');
+      const response = await fetch(`https://www.strava.com/api/v3/activities/${activityId}/streams?keys=${keysParam}&key_by_type=true`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Accept': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Strava API error: ${response.status} ${response.statusText}`);
+      }
+
+      const streams = await response.json();
+      console.log(`Fetched streams for activity ${activityId} from Strava`);
+      
+      return streams;
+    } catch (error) {
+      console.error(`Error fetching Strava activity streams ${activityId}:`, error);
+      throw error;
+    }
+  }
+
   async sendTokensToBackend(tokens: StravaTokens): Promise<boolean> {
     try {
       console.log('Sending tokens to backend URL:', `${BACKEND_URL}/api/auth/strava/connect`);

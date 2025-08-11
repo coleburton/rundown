@@ -10,6 +10,7 @@ import { AuthProvider } from './src/lib/auth-context';
 import MixpanelDebug from './src/lib/MixpanelDebug';
 import MixpanelProvider from './src/lib/MixpanelProvider';
 import { MockDataProvider } from './src/lib/mock-data-context';
+import { ActivityDetailScreen } from './src/screens/activity-detail-screen';
 import { ContactSetupScreen } from './src/screens/contact-setup-screen';
 import { DashboardScreen } from './src/screens/dashboard-screen';
 import { FitnessAppConnectScreen } from './src/screens/fitness-app-connect-screen';
@@ -46,6 +47,7 @@ export type RootStackParamList = {
   Settings: undefined;
   Paywall: undefined;
   PaywallFreeTrial: undefined;
+  ActivityDetail: { activityId: string };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -101,6 +103,7 @@ function AppContent() {
         {/* App screens */}
         <Stack.Screen name="Dashboard" component={DashboardScreen} />
         <Stack.Screen name="Settings" component={SettingsScreen} />
+        <Stack.Screen name="ActivityDetail" component={ActivityDetailScreen} />
       </Stack.Navigator>
     </AuthProvider>
   );
