@@ -6,10 +6,8 @@ import { ServiceLogo } from '../components/ServiceLogo';
 import { useAuth } from '../hooks/useAuth';
 import { ThemedView } from '../components/ThemedView';
 import { ThemedText } from '../components/ThemedText';
-import { Switch } from '../components/ui/switch';
-import { useColorScheme } from '../hooks/useColorScheme';
 import { resetOnboardingState } from '../lib/utils';
-import { EnhancedGoalPicker, Goal } from '../components/EnhancedGoalPicker';
+import { Goal } from '../components/EnhancedGoalPicker';
 import { supabase } from '../lib/supabase';
 import { Database } from '../types/supabase';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -20,20 +18,41 @@ type Contact = Database['public']['Tables']['contacts']['Row'];
 type RootStackParamList = {
   Dashboard: undefined;
   Settings: undefined;
+  GoalSetup: undefined;
 };
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Settings'>;
 
 export function SettingsScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
-  const { user, signOut, signInWithStrava } = useAuth();
-  const { colorScheme, toggleColorScheme } = useColorScheme();
-  const isDarkMode = colorScheme === 'dark';
+  const { user, signOut, signInWithStrava, refreshUser } = useAuth();
+
+  const getGoalTypeLabel = (type: string) => {
+    const labels = {
+      'total_activities': 'activities per week',
+      'total_runs': 'runs per week',
+      'total_miles_running': 'miles running per week',
+      'total_rides_biking': 'rides per week',
+      'total_miles_biking': 'miles biking per week'
+    };
+    return labels[type as keyof typeof labels] || 'activities per week';
+  };
+
+  const getGoalTypeDescription = (type: string) => {
+    const descriptions = {
+      'total_activities': 'Any fitness activities per week',
+      'total_runs': 'Running workouts per week',
+      'total_miles_running': 'Total running miles per week',
+      'total_rides_biking': 'Cycling workouts per week',
+      'total_miles_biking': 'Total cycling miles per week'
+    };
+    return descriptions[type as keyof typeof descriptions] || 'Any fitness activities per week';
+  };
   
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [loadingContacts, setLoadingContacts] = useState(true);
   const [userGoal, setUserGoal] = useState<Goal>({
-    type: user?.goal_type || 'runs',
+    type: user?.goal_type || 'total_activities',
     value: user?.goal_value || user?.goal_per_week || 3
   });
   
@@ -62,7 +81,7 @@ export function SettingsScreen({ navigation }: Props) {
     if (user) {
       fetchContacts();
       setUserGoal({
-        type: user.goal_type || 'runs',
+        type: user.goal_type || 'total_activities',
         value: user.goal_value || user.goal_per_week || 3
       });
       setMessageTiming({
@@ -71,6 +90,20 @@ export function SettingsScreen({ navigation }: Props) {
       });
     }
   }, [user, fetchContacts]);
+
+  // Listen for navigation focus to refresh user goal when returning from GoalSetup
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      if (user) {
+        setUserGoal({
+          type: user.goal_type || 'total_activities',
+          value: user.goal_value || user.goal_per_week || 3
+        });
+      }
+    });
+
+    return unsubscribe;
+  }, [navigation, user]);
 
   const fetchContacts = useCallback(async () => {
     if (!user) return;
@@ -145,7 +178,7 @@ export function SettingsScreen({ navigation }: Props) {
         
         Alert.alert('Success', 'Strava has been disconnected successfully.');
         // Refresh user data
-        window.location.reload();
+        await refreshUser();
       } catch (error) {
         console.error('Error disconnecting Strava:', error);
         Alert.alert('Error', 'Failed to disconnect Strava. Please try again.');
@@ -159,6 +192,7 @@ export function SettingsScreen({ navigation }: Props) {
   const handleConnectStrava = async () => {
     try {
       await signInWithStrava();
+      await refreshUser(); // Refresh user data to get updated Strava connection
       Alert.alert('Success', 'Strava connected successfully!');
     } catch (error) {
       console.error('Error connecting Strava:', error);
@@ -166,27 +200,6 @@ export function SettingsScreen({ navigation }: Props) {
     }
   };
 
-  const handleGoalChange = async (newGoal: Goal) => {
-    if (!user) return;
-    
-    try {
-      const { error } = await supabase
-        .from('users')
-        .update({ 
-          goal_per_week: newGoal.type === 'runs' ? newGoal.value : user.goal_per_week,
-          goal_type: newGoal.type,
-          goal_value: newGoal.value
-        })
-        .eq('id', user.id);
-
-      if (error) throw error;
-      
-      setUserGoal(newGoal);
-    } catch (error) {
-      console.error('Error updating goal:', error);
-      Alert.alert('Error', 'Failed to update goal. Please try again.');
-    }
-  };
 
   const handleTimingChange = (field: 'day' | 'timePeriod', value: string) => {
     setPendingTiming({ field, value });
@@ -268,7 +281,7 @@ export function SettingsScreen({ navigation }: Props) {
 
   const renderSectionCard = (children: React.ReactNode) => (
     <View style={{ 
-      backgroundColor: isDarkMode ? '#1f2937' : '#f9fafb', 
+      backgroundColor: '#f9fafb', 
       borderRadius: 12, 
       padding: 16,
       marginBottom: 12
@@ -293,7 +306,7 @@ export function SettingsScreen({ navigation }: Props) {
               padding: 8, 
               marginRight: 12,
               borderRadius: 8,
-              backgroundColor: isDarkMode ? '#374151' : '#f3f4f6'
+              backgroundColor: '#f3f4f6'
             }}
           >
             <Text style={{ fontSize: 18 }}>←</Text>
@@ -319,7 +332,7 @@ export function SettingsScreen({ navigation }: Props) {
                   </View>
                   <View style={{ flex: 1 }}>
                     <ThemedText style={[TYPOGRAPHY_STYLES.body1Medium]}>Strava</ThemedText>
-                    <ThemedText style={[TYPOGRAPHY_STYLES.caption1, { color: isDarkMode ? '#9ca3af' : '#6b7280' }]}>Running & cycling platform</ThemedText>
+                    <ThemedText style={[TYPOGRAPHY_STYLES.caption1, { color: '#6b7280' }]}>Running & cycling platform</ThemedText>
                   </View>
                 </View>
                 <View style={{ 
@@ -342,7 +355,7 @@ export function SettingsScreen({ navigation }: Props) {
                   </View>
                   <View style={{ flex: 1 }}>
                     <ThemedText style={[TYPOGRAPHY_STYLES.body1Medium]}>Garmin Connect</ThemedText>
-                    <ThemedText style={[TYPOGRAPHY_STYLES.caption1, { color: isDarkMode ? '#9ca3af' : '#6b7280' }]}>Garmin device integration</ThemedText>
+                    <ThemedText style={[TYPOGRAPHY_STYLES.caption1, { color: '#6b7280' }]}>Garmin device integration</ThemedText>
                   </View>
                 </View>
                 <View style={{ 
@@ -365,7 +378,7 @@ export function SettingsScreen({ navigation }: Props) {
                   </View>
                   <View style={{ flex: 1 }}>
                     <ThemedText style={[TYPOGRAPHY_STYLES.body1Medium]}>Fitbit</ThemedText>
-                    <ThemedText style={[TYPOGRAPHY_STYLES.caption1, { color: isDarkMode ? '#9ca3af' : '#6b7280' }]}>Activity tracking platform</ThemedText>
+                    <ThemedText style={[TYPOGRAPHY_STYLES.caption1, { color: '#6b7280' }]}>Activity tracking platform</ThemedText>
                   </View>
                 </View>
                 <View style={{ 
@@ -388,7 +401,7 @@ export function SettingsScreen({ navigation }: Props) {
                   </View>
                   <View style={{ flex: 1 }}>
                     <ThemedText style={[TYPOGRAPHY_STYLES.body1Medium]}>Apple Health</ThemedText>
-                    <ThemedText style={[TYPOGRAPHY_STYLES.caption1, { color: isDarkMode ? '#9ca3af' : '#6b7280' }]}>iOS health integration</ThemedText>
+                    <ThemedText style={[TYPOGRAPHY_STYLES.caption1, { color: '#6b7280' }]}>iOS health integration</ThemedText>
                   </View>
                 </View>
                 <View style={{ 
@@ -432,12 +445,38 @@ export function SettingsScreen({ navigation }: Props) {
           
           {renderSectionCard(
             <View>
-              <ThemedText style={{ fontSize: 14, color: isDarkMode ? '#9ca3af' : '#6b7280', marginBottom: 16 }}>
+              <ThemedText style={{ fontSize: 14, color: '#6b7280', marginBottom: 16 }}>
                 Set your weekly fitness goal to stay motivated and track progress.
               </ThemedText>
-              <EnhancedGoalPicker 
-                value={userGoal} 
-                onChange={handleGoalChange}
+              
+              {/* Current Goal Display */}
+              <View style={{ 
+                backgroundColor: '#f0fdf4', 
+                borderRadius: 12, 
+                padding: 16, 
+                marginBottom: 16,
+                borderWidth: 1,
+                borderColor: '#d1fae5'
+              }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+                  <Text style={{ fontSize: 20, marginRight: 8 }}>🎯</Text>
+                  <Text style={{ fontSize: 16, fontWeight: '600', color: '#065f46' }}>
+                    Current Goal
+                  </Text>
+                </View>
+                <Text style={{ fontSize: 18, fontWeight: '700', color: '#047857', marginBottom: 4 }}>
+                  {userGoal.value} {getGoalTypeLabel(userGoal.type)}
+                </Text>
+                <Text style={{ fontSize: 14, color: '#059669' }}>
+                  {getGoalTypeDescription(userGoal.type)}
+                </Text>
+              </View>
+              
+              <Button
+                variant="outline"
+                title="Update Goal"
+                onPress={() => navigation.navigate('GoalSetup', { fromSettings: true })}
+                style={{ borderColor: '#f97316', borderWidth: 1 }}
               />
             </View>
           )}
@@ -451,13 +490,13 @@ export function SettingsScreen({ navigation }: Props) {
           
           {renderSectionCard(
             <View>
-              <ThemedText style={{ fontSize: 14, color: isDarkMode ? '#9ca3af' : '#6b7280', marginBottom: 16 }}>
+              <ThemedText style={{ fontSize: 14, color: '#6b7280', marginBottom: 16 }}>
                 Choose when you'd like to receive accountability messages if you miss your goal.
               </ThemedText>
               
               {/* Day Selection */}
               <View style={{ marginBottom: 16 }}>
-                <Text style={{ fontSize: 15, fontWeight: '500', color: isDarkMode ? '#f3f4f6' : '#374151', marginBottom: 8 }}>
+                <Text style={{ fontSize: 15, fontWeight: '500', color: '#374151', marginBottom: 8 }}>
                   Day of Week
                 </Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -4 }}>
@@ -472,7 +511,7 @@ export function SettingsScreen({ navigation }: Props) {
                           paddingVertical: 8,
                           marginHorizontal: 4,
                           borderRadius: 8,
-                          backgroundColor: isSelected ? '#f97316' : (isDarkMode ? '#374151' : '#f3f4f6'),
+                          backgroundColor: isSelected ? '#f97316' : '#f3f4f6',
                           borderWidth: 1,
                           borderColor: isSelected ? '#f97316' : 'transparent',
                         }}
@@ -480,7 +519,7 @@ export function SettingsScreen({ navigation }: Props) {
                         <Text style={{
                           fontSize: 14,
                           fontWeight: '500',
-                          color: isSelected ? '#ffffff' : (isDarkMode ? '#f3f4f6' : '#374151'),
+                          color: isSelected ? '#ffffff' : '#374151',
                         }}>
                           {day}
                         </Text>
@@ -492,7 +531,7 @@ export function SettingsScreen({ navigation }: Props) {
               
               {/* Time Period Selection */}
               <View>
-                <Text style={{ fontSize: 15, fontWeight: '500', color: isDarkMode ? '#f3f4f6' : '#374151', marginBottom: 8 }}>
+                <Text style={{ fontSize: 15, fontWeight: '500', color: '#374151', marginBottom: 8 }}>
                   Time of Day
                 </Text>
                 <View style={{ flexDirection: 'row', gap: 8 }}>
@@ -506,7 +545,7 @@ export function SettingsScreen({ navigation }: Props) {
                           flex: 1,
                           paddingVertical: 12,
                           borderRadius: 8,
-                          backgroundColor: isSelected ? '#f97316' : (isDarkMode ? '#374151' : '#f3f4f6'),
+                          backgroundColor: isSelected ? '#f97316' : '#f3f4f6',
                           borderWidth: 1,
                           borderColor: isSelected ? '#f97316' : 'transparent',
                           alignItems: 'center',
@@ -515,7 +554,7 @@ export function SettingsScreen({ navigation }: Props) {
                         <Text style={{
                           fontSize: 14,
                           fontWeight: '500',
-                          color: isSelected ? '#ffffff' : (isDarkMode ? '#f3f4f6' : '#374151'),
+                          color: isSelected ? '#ffffff' : '#374151',
                         }}>
                           {period.label}
                         </Text>
@@ -529,14 +568,14 @@ export function SettingsScreen({ navigation }: Props) {
               <View style={{
                 marginTop: 12,
                 padding: 12,
-                backgroundColor: isDarkMode ? '#1f2937' : '#f0fdf4',
+                backgroundColor: '#f0fdf4',
                 borderRadius: 8,
                 borderLeftWidth: 3,
                 borderLeftColor: '#22c55e'
               }}>
                 <Text style={{
                   fontSize: 12,
-                  color: isDarkMode ? '#9ca3af' : '#15803d',
+                  color: '#15803d',
                   textAlign: 'center',
                   fontWeight: '500'
                 }}>
@@ -560,7 +599,7 @@ export function SettingsScreen({ navigation }: Props) {
           ) : contacts.length === 0 ? (
             renderSectionCard(
               <View>
-                <ThemedText style={{ fontSize: 14, color: isDarkMode ? '#9ca3af' : '#6b7280', marginBottom: 12 }}>
+                <ThemedText style={{ fontSize: 14, color: '#6b7280', marginBottom: 12 }}>
                   No contacts added yet. Add someone to keep you accountable!
                 </ThemedText>
                 <Button
@@ -576,7 +615,7 @@ export function SettingsScreen({ navigation }: Props) {
             <View>
               {contacts.map((contact) => (
                 <View key={contact.id} style={{ 
-                  backgroundColor: isDarkMode ? '#374151' : '#ffffff', 
+                  backgroundColor: '#ffffff', 
                   borderRadius: 8, 
                   padding: 12,
                   marginBottom: 8,
@@ -588,7 +627,7 @@ export function SettingsScreen({ navigation }: Props) {
                     <ThemedText style={{ fontSize: 16, fontWeight: '500' }}>
                       {contact.name}
                     </ThemedText>
-                    <ThemedText style={{ fontSize: 14, color: isDarkMode ? '#9ca3af' : '#6b7280' }}>
+                    <ThemedText style={{ fontSize: 14, color: '#6b7280' }}>
                       {contact.relationship || 'Contact'} • {contact.phone_number}
                     </ThemedText>
                   </View>
@@ -632,26 +671,6 @@ export function SettingsScreen({ navigation }: Props) {
           )}
         </View>
 
-        {/* Appearance Section */}
-        <View style={{ marginBottom: 20 }}>
-          <ThemedText style={{ fontSize: 18, fontWeight: '600', marginBottom: 10 }}>
-            Appearance
-          </ThemedText>
-          
-          {renderSectionCard(
-            <View style={{ 
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}>
-              <ThemedText>Dark Mode</ThemedText>
-              <Switch 
-                checked={isDarkMode} 
-                onCheckedChange={toggleColorScheme} 
-              />
-            </View>
-          )}
-        </View>
 
         {/* Developer Options Section */}
         <View style={{ marginBottom: 20 }}>

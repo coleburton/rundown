@@ -90,7 +90,7 @@ const ProgressRing = ({ progress, goal, isOnTrack, isBehind, goalType, goalDispl
 };
 
 // Weekly Goal History component
-const WeeklyGoalHistory = ({ activities, goal, selectedWeekOffset, onWeekSelect }: { activities: any[], goal: number, selectedWeekOffset: number, onWeekSelect: (weekOffset: number) => void }) => {
+const WeeklyGoalHistory = ({ activities, goal, selectedWeekOffset, onWeekSelect, user }: { activities: any[], goal: number, selectedWeekOffset: number, onWeekSelect: (weekOffset: number) => void, user: any }) => {
   const scrollViewRef = useRef<ScrollView>(null);
   // Calculate weekly goal achievement for more weeks (12 weeks to show more history)
   const getWeeklyGoalAchievement = () => {
@@ -109,21 +109,33 @@ const WeeklyGoalHistory = ({ activities, goal, selectedWeekOffset, onWeekSelect 
       weekEnd.setDate(weekStart.getDate() + 6);
       weekEnd.setHours(23, 59, 59, 999);
       
-      // Count activities in this week
-      const weeklyRuns = activities.filter(
+      // Get activities for this week and calculate goal progress
+      const weeklyActivities = activities.filter(
         (activity) => {
           const activityDate = new Date(activity.date);
           return activityDate >= weekStart && activityDate <= weekEnd;
         }
       );
       
+      // Convert to format expected by calculateGoalProgress
+      const formattedActivities = weeklyActivities.map(activity => ({
+        id: activity.id || `${activity.date}-${activity.type}`,
+        type: activity.type || 'Run',
+        distance: (activity.distance || 0) * 1609.34, // Convert miles to meters if needed
+        duration: (activity.duration || 0) * 60, // Convert minutes to seconds if needed
+        date: activity.date
+      }));
+      
+      // Use calculateGoalProgress to get the actual progress
+      const { progress } = calculateGoalProgress(user, formattedActivities, weekStart);
+      
       // Determine if goal was met
-      const status = weeklyRuns.length >= goal ? 'met' : weeklyRuns.length > 0 ? 'partial' : 'missed';
+      const status = progress >= goal ? 'met' : progress > 0 ? 'partial' : 'missed';
       
       weeks.push({
         weekStart,
         weekEnd,
-        activityCount: weeklyRuns.length,
+        activityCount: progress,
         status
       });
     }
@@ -297,36 +309,38 @@ export function DashboardScreen({ navigation }: Props) {
 
   // Calculate progress for the selected week
   const getProgressForSelectedWeek = () => {
-    if (selectedWeekOffset === 0) {
-      // Current week - use the existing hook
-      return getWeeklyProgress(user?.goal_per_week || 3);
-    } else {
-      // Previous week - calculate manually
-      const now = new Date();
-      const startOfSelectedWeek = new Date(now);
-      startOfSelectedWeek.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1) - (selectedWeekOffset * 7));
-      startOfSelectedWeek.setHours(0, 0, 0, 0);
-      
-      const endOfSelectedWeek = new Date(startOfSelectedWeek);
-      endOfSelectedWeek.setDate(startOfSelectedWeek.getDate() + 6);
-      endOfSelectedWeek.setHours(23, 59, 59, 999);
-      
-      const recentRuns = getRecentRuns(100);
-      const selectedWeekRuns = recentRuns.filter(run => {
-        const runDate = new Date(run.date);
-        return runDate >= startOfSelectedWeek && runDate <= endOfSelectedWeek;
-      });
-      
-      return {
-        progress: selectedWeekRuns.length,
-        goal: user?.goal_per_week || 3
-      };
-    }
+    const now = new Date();
+    const startOfSelectedWeek = new Date(now);
+    startOfSelectedWeek.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1) - (selectedWeekOffset * 7));
+    startOfSelectedWeek.setHours(0, 0, 0, 0);
+    
+    const endOfSelectedWeek = new Date(startOfSelectedWeek);
+    endOfSelectedWeek.setDate(startOfSelectedWeek.getDate() + 6);
+    endOfSelectedWeek.setHours(23, 59, 59, 999);
+    
+    // Get all activities for the selected week
+    const recentActivities = getRecentActivities(200);
+    const selectedWeekActivities = recentActivities.filter(activity => {
+      const activityDate = new Date(activity.date);
+      return activityDate >= startOfSelectedWeek && activityDate <= endOfSelectedWeek;
+    });
+    
+    // Convert Strava activities to the format expected by calculateGoalProgress
+    const formattedActivities = selectedWeekActivities.map(activity => ({
+      id: activity.id,
+      type: activity.type,
+      distance: activity.distance * 1609.34, // Convert miles to meters
+      duration: activity.duration * 60, // Convert minutes to seconds
+      date: activity.date
+    }));
+    
+    // Use the goalUtils function to calculate progress
+    return calculateGoalProgress(user, formattedActivities, startOfSelectedWeek);
   };
   
   const { progress, goal } = getProgressForSelectedWeek();
   const daysLeft = selectedWeekOffset === 0 ? getDaysLeft() : 0; // Only show days left for current week
-  const goalType = 'runs'; // Default to runs for now
+  const goalType = user?.goal_type || 'total_activities'; // Use user's actual goal type
   
   console.log('Dashboard render with Strava data:', {
     activitiesCount: activities.length,
@@ -374,10 +388,46 @@ export function DashboardScreen({ navigation }: Props) {
     endOfSelectedWeek.setHours(23, 59, 59, 999);
 
     const recentActivities = getRecentActivities(100);
-    return recentActivities.filter(activity => {
+    const weekActivities = recentActivities.filter(activity => {
       const activityDate = new Date(activity.date);
       return activityDate >= startOfSelectedWeek && activityDate <= endOfSelectedWeek;
-    }).slice(0, 10); // Limit to 10 most recent activities from that week
+    });
+    
+    // Determine which activities count toward the goal
+    const goalType = user?.goal_type || 'total_activities';
+    return weekActivities.map(activity => ({
+      ...activity,
+      countsTowardGoal: checkActivityCountsTowardGoal(activity, goalType)
+    })).slice(0, 10); // Limit to 10 most recent activities from that week
+  };
+  
+  // Helper function to determine if an activity counts toward the goal
+  const checkActivityCountsTowardGoal = (activity: any, goalType: string) => {
+    const activityType = activity.type.toLowerCase();
+    
+    switch (goalType) {
+      case 'total_activities':
+        return true; // All activities count
+        
+      case 'total_runs':
+        return activityType.includes('run');
+        
+      case 'total_miles_running':
+        return activityType.includes('run');
+        
+      case 'total_rides_biking':
+        return activityType.includes('bike') || 
+               activityType.includes('cycling') || 
+               (activityType.includes('ride') && !activityType.includes('run'));
+        
+      case 'total_miles_biking':
+        return activityType.includes('bike') || 
+               activityType.includes('cycling') || 
+               (activityType.includes('ride') && !activityType.includes('run'));
+        
+      default:
+        return true;
+    }
   };
 
   const handleSignOut = async () => {
@@ -459,7 +509,7 @@ export function DashboardScreen({ navigation }: Props) {
             'Absolutely nailed it this week. Chef\'s kiss.',
             'Goal demolished! The couch is jealous.',
             'Mission accomplished. Your future self thanks you.',
-            'Perfectly executed. Mom would be proud.'
+            'Perfectly executed. You should be proud.'
           ]
         };
       
@@ -491,7 +541,7 @@ export function DashboardScreen({ navigation }: Props) {
         return {
           titles: ['Close call! 😬', 'Almost! 😅', 'So close! 😭', 'Nearly there! 😤', 'Ouch! 😩'],
           messages: [
-            `Missed by ${remaining}. Your mom remembers.`,
+            `Missed by ${remaining}. They remember.`,
             `${remaining} short. The couch celebrated.`,
             `Almost had it! Missed by ${remaining}.`,
             `${remaining} away from glory. Next time!`,
@@ -504,7 +554,7 @@ export function DashboardScreen({ navigation }: Props) {
           titles: ['Ghost week 👻', 'Invisible week 🫥', 'Couch week 🛋️', 'Mystery week 🕵️', 'Vanishing act 💨'],
           messages: [
             'Zero runs. The couch remembers.',
-            'Completely MIA. Your mom noticed.',
+            'Completely MIA. They noticed.',
             'Full ghost mode. Netflix won that week.',
             'Radio silence. Your shoes got dusty.',
             'Total no-show. Excuses threw a party.'
@@ -689,6 +739,7 @@ export function DashboardScreen({ navigation }: Props) {
           goal={goal} 
           selectedWeekOffset={selectedWeekOffset} 
           onWeekSelect={setSelectedWeekOffset}
+          user={user}
         />
 
         {/* Quick Stats */}
@@ -827,7 +878,7 @@ export function DashboardScreen({ navigation }: Props) {
         {/* Motivational Footer */}
         <View style={{ padding: 16 }}>
           <Text style={{ textAlign: 'center', fontSize: 12, color: '#9ca3af' }}>
-            {isBehind ? "Don't make us text your mom... 📱" : 'Keep crushing those goals! 🎯'}
+            {isBehind ? "Don't make us blow up your phone... 📱" : 'Keep crushing those goals! 🎯'}
           </Text>
         </View>
       </View>

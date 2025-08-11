@@ -100,10 +100,18 @@ export function useAuth() {
     }
   };
 
+  const refreshUser = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.user) {
+      await fetchUser(session.user.id);
+    }
+  };
+
   return {
     user,
     loading,
     signInWithStrava,
     signOut,
+    refreshUser,
   };
 } 

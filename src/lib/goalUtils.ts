@@ -20,10 +20,10 @@ export function calculateGoalProgress(
   weekStart: Date
 ): { progress: number; goal: number; goalType: GoalType } {
   if (!user) {
-    return { progress: 0, goal: 3, goalType: 'runs' };
+    return { progress: 0, goal: 3, goalType: 'total_activities' };
   }
 
-  const goalType = user.goal_type || 'runs';
+  const goalType = user.goal_type || 'total_activities';
   const goalValue = user.goal_value || user.goal_per_week || 3;
   
   // Filter activities for the current week
@@ -34,26 +34,26 @@ export function calculateGoalProgress(
   let progress = 0;
 
   switch (goalType) {
-    case 'runs':
+    case 'total_activities':
+      // Count all activities (including hikes, walks, etc.)
+      progress = weeklyActivities.length;
+      break;
+      
+    case 'total_runs':
       // Count running activities
       progress = weeklyActivities.filter(a => 
         a.type.toLowerCase().includes('run')
       ).length;
       break;
       
-    case 'run_miles':
+    case 'total_miles_running':
       // Sum miles from running activities
       progress = weeklyActivities
         .filter(a => a.type.toLowerCase().includes('run'))
         .reduce((sum, activity) => sum + (activity.distance / 1609.34), 0);
       break;
       
-    case 'activities':
-      // Count all activities
-      progress = weeklyActivities.length;
-      break;
-      
-    case 'bike_rides':
+    case 'total_rides_biking':
       // Count bike/cycling activities
       progress = weeklyActivities.filter(a => 
         a.type.toLowerCase().includes('bike') || 
@@ -62,7 +62,7 @@ export function calculateGoalProgress(
       ).length;
       break;
       
-    case 'bike_miles':
+    case 'total_miles_biking':
       // Sum miles from bike/cycling activities
       progress = weeklyActivities
         .filter(a => 
@@ -75,7 +75,7 @@ export function calculateGoalProgress(
   }
 
   // Round progress for mile-based goals
-  if (goalType === 'run_miles' || goalType === 'bike_miles') {
+  if (goalType === 'total_miles_running' || goalType === 'total_miles_biking') {
     progress = Math.round(progress * 10) / 10;
   }
 
@@ -84,18 +84,18 @@ export function calculateGoalProgress(
 
 export function getGoalDisplayText(goalType: GoalType): { unit: string; emoji: string; name: string } {
   switch (goalType) {
-    case 'runs':
-      return { unit: 'runs', emoji: '🏃‍♂️', name: 'Runs' };
-    case 'run_miles':
-      return { unit: 'miles run', emoji: '📏', name: 'Running Miles' };
-    case 'activities':
-      return { unit: 'activities', emoji: '🏋️‍♀️', name: 'Activities' };
-    case 'bike_rides':
-      return { unit: 'rides', emoji: '🚴‍♂️', name: 'Bike Rides' };
-    case 'bike_miles':
-      return { unit: 'miles cycled', emoji: '🚵‍♀️', name: 'Cycling Miles' };
+    case 'total_activities':
+      return { unit: 'activities', emoji: '🎯', name: 'Total Activities' };
+    case 'total_runs':
+      return { unit: 'runs', emoji: '🏃', name: 'Total Runs' };
+    case 'total_miles_running':
+      return { unit: 'miles', emoji: '🏃‍♂️', name: 'Running Miles' };
+    case 'total_rides_biking':
+      return { unit: 'rides', emoji: '🚴', name: 'Total Rides' };
+    case 'total_miles_biking':
+      return { unit: 'miles', emoji: '🚴‍♂️', name: 'Cycling Miles' };
     default:
-      return { unit: 'runs', emoji: '🏃‍♂️', name: 'Runs' };
+      return { unit: 'activities', emoji: '🎯', name: 'Total Activities' };
   }
 }
 
@@ -120,7 +120,7 @@ export function getMotivationalMessage(
     const unit = getGoalDisplayText(goalType).unit;
     return {
       title: "Uhhh, Sunday's coming fast... ⏰",
-      message: `${remaining.toFixed(goalType.includes('miles') ? 1 : 0)} more ${unit} needed. Your mom is watching.`
+      message: `${remaining.toFixed(goalType.includes('miles') ? 1 : 0)} more ${unit} needed. Someone's watching.`
     };
   }
   
