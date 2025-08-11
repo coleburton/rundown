@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { Button } from '@/components/ui/button';
 import { useAuthContext } from '@/lib/auth-context';
@@ -7,7 +7,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { formatActivityDate, getWeekDateRange, isValidDate } from '@/lib/utils';
 import { calculateGoalProgress, getGoalDisplayText, getMotivationalMessage } from '@/lib/goalUtils';
-import Svg, { Circle, Rect } from 'react-native-svg';
+import Svg, { Circle, Rect, Defs, LinearGradient, Stop } from 'react-native-svg';
 
 type RootStackParamList = {
   Welcome: undefined;
@@ -90,21 +90,23 @@ const ProgressRing = ({ progress, goal, isOnTrack, isBehind, goalType, goalDispl
 };
 
 // Weekly Goal History component
-const WeeklyGoalHistory = ({ activities, goal }: { activities: any[], goal: number }) => {
-  // Calculate weekly goal achievement for the last 8 weeks
+const WeeklyGoalHistory = ({ activities, goal, selectedWeekOffset, onWeekSelect }: { activities: any[], goal: number, selectedWeekOffset: number, onWeekSelect: (weekOffset: number) => void }) => {
+  const scrollViewRef = useRef<ScrollView>(null);
+  // Calculate weekly goal achievement for more weeks (12 weeks to show more history)
   const getWeeklyGoalAchievement = () => {
     const now = new Date();
     const weeks = [];
     
-    // Generate data for the last 8 weeks
-    for (let i = 0; i < 8; i++) {
-      const weekEnd = new Date(now);
-      weekEnd.setDate(now.getDate() - (now.getDay() + 7 * i));
-      const weekStart = new Date(weekEnd);
-      weekStart.setDate(weekEnd.getDate() - 6);
-      
-      // Set hours to ensure we capture the full days
+    // Generate data for the last 12 weeks
+    for (let i = 0; i < 12; i++) {
+      // Calculate week start (Monday) for i weeks ago
+      const weekStart = new Date(now);
+      weekStart.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1) - (7 * i));
       weekStart.setHours(0, 0, 0, 0);
+      
+      // Calculate week end (Sunday)  
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate() + 6);
       weekEnd.setHours(23, 59, 59, 999);
       
       // Count activities in this week
@@ -132,6 +134,15 @@ const WeeklyGoalHistory = ({ activities, goal }: { activities: any[], goal: numb
   
   const weeklyAchievements = getWeeklyGoalAchievement();
   
+  // Auto-scroll to selected week
+  useEffect(() => {
+    if (scrollViewRef.current && selectedWeekOffset > 4) {
+      const blockWidth = 44; // 28px width + 16px margins
+      const scrollToX = Math.max(0, (selectedWeekOffset - 4) * blockWidth);
+      scrollViewRef.current.scrollTo({ x: scrollToX, animated: true });
+    }
+  }, [selectedWeekOffset]);
+  
   // Calculate current streak (consecutive weeks meeting goal)
   const calculateStreak = () => {
     let streak = 0;
@@ -156,8 +167,14 @@ const WeeklyGoalHistory = ({ activities, goal }: { activities: any[], goal: numb
       </Text>
       
       <View style={{ backgroundColor: '#f9fafb', borderRadius: 16, padding: 16 }}>
-        {/* Weekly blocks */}
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 }}>
+        {/* Weekly blocks - Horizontal ScrollView showing partial blocks at edges */}
+        <View style={{ marginBottom: 16, overflow: 'hidden' }}>
+          <ScrollView 
+            ref={scrollViewRef}
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingLeft: 12, paddingRight: 8 }}
+          >
           {weeklyAchievements.map((week, index) => {
             // Determine color based on status
             const blockColor = 
@@ -165,28 +182,35 @@ const WeeklyGoalHistory = ({ activities, goal }: { activities: any[], goal: numb
               week.status === 'partial' ? '#f59e0b' : // Orange for partial
               '#e5e7eb'; // Gray for missed
             
-            const isCurrentWeek = index === weeklyAchievements.length - 1;
+            const isSelectedWeek = index === (weeklyAchievements.length - 1 - selectedWeekOffset);
+            const weekOffset = weeklyAchievements.length - 1 - index;
             
             return (
-              <View key={index} style={{ alignItems: 'center' }}>
+              <TouchableOpacity 
+                key={index} 
+                style={{ alignItems: 'center', marginHorizontal: 8 }}
+                onPress={() => onWeekSelect(weekOffset)}
+                activeOpacity={0.7}
+              >
                 <View 
                   style={{ 
-                    width: 24, 
-                    height: 24, 
+                    width: 28, 
+                    height: 28, 
                     backgroundColor: blockColor,
-                    borderRadius: 4,
-                    marginBottom: 4,
-                    // Add a subtle border to the current week
-                    borderWidth: isCurrentWeek ? 2 : 0,
-                    borderColor: isCurrentWeek ? '#111827' : 'transparent'
+                    borderRadius: 6,
+                    marginBottom: 6,
+                    // Add a subtle border to the selected week
+                    borderWidth: isSelectedWeek ? 2 : 0,
+                    borderColor: isSelectedWeek ? '#111827' : 'transparent'
                   }}
                 />
-                <Text style={{ fontSize: 10, color: '#6b7280' }}>
-                  {`W${index + 1}`}
+                <Text style={{ fontSize: 10, color: '#6b7280', textAlign: 'center' }}>
+                  {weekOffset === 0 ? 'Now' : `${weekOffset}w`}
                 </Text>
-              </View>
+              </TouchableOpacity>
             );
           })}
+          </ScrollView>
         </View>
         
         {/* Legend */}
@@ -223,6 +247,24 @@ const WeeklyGoalHistory = ({ activities, goal }: { activities: any[], goal: numb
 export function DashboardScreen({ navigation }: Props) {
   const { user, signOut } = useAuthContext();
   const insets = useSafeAreaInsets();
+  const [selectedWeekOffset, setSelectedWeekOffset] = useState(0); // 0 = current week, 1 = last week, etc.
+  
+  // Helper function to get week date range for any week offset
+  const getWeekDateRangeForOffset = (weekOffset: number) => {
+    const now = new Date();
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1) - (weekOffset * 7));
+    
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 6);
+    
+    const formatDate = (date: Date) => {
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    };
+    
+    return `${formatDate(startOfWeek)}–${formatDate(endOfWeek)}`;
+  };
+
   const {
     activities: stravaActivities,
     loading,
@@ -251,9 +293,37 @@ export function DashboardScreen({ navigation }: Props) {
     user: user?.id
   });
 
-  // Use Strava data for progress calculation
-  const { progress, goal } = getWeeklyProgress(user?.goal_per_week || 3);
-  const daysLeft = getDaysLeft();
+  // Calculate progress for the selected week
+  const getProgressForSelectedWeek = () => {
+    if (selectedWeekOffset === 0) {
+      // Current week - use the existing hook
+      return getWeeklyProgress(user?.goal_per_week || 3);
+    } else {
+      // Previous week - calculate manually
+      const now = new Date();
+      const startOfSelectedWeek = new Date(now);
+      startOfSelectedWeek.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1) - (selectedWeekOffset * 7));
+      startOfSelectedWeek.setHours(0, 0, 0, 0);
+      
+      const endOfSelectedWeek = new Date(startOfSelectedWeek);
+      endOfSelectedWeek.setDate(startOfSelectedWeek.getDate() + 6);
+      endOfSelectedWeek.setHours(23, 59, 59, 999);
+      
+      const recentRuns = getRecentRuns(100);
+      const selectedWeekRuns = recentRuns.filter(run => {
+        const runDate = new Date(run.date);
+        return runDate >= startOfSelectedWeek && runDate <= endOfSelectedWeek;
+      });
+      
+      return {
+        progress: selectedWeekRuns.length,
+        goal: user?.goal_per_week || 3
+      };
+    }
+  };
+  
+  const { progress, goal } = getProgressForSelectedWeek();
+  const daysLeft = selectedWeekOffset === 0 ? getDaysLeft() : 0; // Only show days left for current week
   const goalType = 'runs'; // Default to runs for now
   
   console.log('Dashboard render with Strava data:', {
@@ -269,21 +339,43 @@ export function DashboardScreen({ navigation }: Props) {
   const isOnTrack = progress >= goal;
   const isBehind = daysLeft <= 2 && progress < goal;
 
-  // Calculate total weekly distance from Strava data
-  const getWeeklyDistance = () => {
+  // Calculate total weekly distance for selected week
+  const getWeeklyDistanceForSelectedWeek = () => {
     const now = new Date();
-    const monday = new Date(now);
-    monday.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1));
-    monday.setHours(0, 0, 0, 0);
+    const startOfSelectedWeek = new Date(now);
+    startOfSelectedWeek.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1) - (selectedWeekOffset * 7));
+    startOfSelectedWeek.setHours(0, 0, 0, 0);
+    
+    const endOfSelectedWeek = new Date(startOfSelectedWeek);
+    endOfSelectedWeek.setDate(startOfSelectedWeek.getDate() + 6);
+    endOfSelectedWeek.setHours(23, 59, 59, 999);
 
-    const recentRuns = getRecentRuns(50);
+    const recentRuns = getRecentRuns(100);
     const weeklyRuns = recentRuns.filter(run => {
       const runDate = new Date(run.date);
-      return runDate >= monday;
+      return runDate >= startOfSelectedWeek && runDate <= endOfSelectedWeek;
     });
 
     const totalMiles = weeklyRuns.reduce((sum, run) => sum + run.distance, 0);
     return totalMiles.toFixed(1);
+  };
+  
+  // Get runs for the selected week
+  const getRunsForSelectedWeek = () => {
+    const now = new Date();
+    const startOfSelectedWeek = new Date(now);
+    startOfSelectedWeek.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1) - (selectedWeekOffset * 7));
+    startOfSelectedWeek.setHours(0, 0, 0, 0);
+    
+    const endOfSelectedWeek = new Date(startOfSelectedWeek);
+    endOfSelectedWeek.setDate(startOfSelectedWeek.getDate() + 6);
+    endOfSelectedWeek.setHours(23, 59, 59, 999);
+
+    const recentRuns = getRecentRuns(100);
+    return recentRuns.filter(run => {
+      const runDate = new Date(run.date);
+      return runDate >= startOfSelectedWeek && runDate <= endOfSelectedWeek;
+    }).slice(0, 5); // Limit to 5 most recent runs from that week
   };
 
   const handleSignOut = async () => {
@@ -315,13 +407,57 @@ export function DashboardScreen({ navigation }: Props) {
       <View style={{ padding: 24, paddingTop: 24 + insets.top }}>
         {/* Header */}
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
-          <View>
+          <View style={{ flex: 1 }}>
             <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#111827' }}>
               Hey {getAthlete()?.firstname || user?.name?.split(' ')[0] || 'Runner'} 👋
             </Text>
-            <Text style={{ fontSize: 14, color: '#6b7280', marginTop: 4 }}>
-              Week of {getWeekDateRange()}
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
+              <TouchableOpacity
+                onPress={() => setSelectedWeekOffset(Math.min(selectedWeekOffset + 1, 11))}
+                disabled={selectedWeekOffset >= 11}
+                style={{ 
+                  backgroundColor: selectedWeekOffset >= 11 ? '#f3f4f6' : '#e5e7eb',
+                  borderRadius: 16, 
+                  width: 32, 
+                  height: 32,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginRight: 12
+                }}
+              >
+                <Text style={{ 
+                  fontSize: 16, 
+                  color: selectedWeekOffset >= 11 ? '#9ca3af' : '#374151' 
+                }}>
+                  ←
+                </Text>
+              </TouchableOpacity>
+              
+              <Text style={{ fontSize: 14, color: '#6b7280', flex: 1, textAlign: 'center' }}>
+                Week of {getWeekDateRangeForOffset(selectedWeekOffset)}
+              </Text>
+              
+              <TouchableOpacity
+                onPress={() => setSelectedWeekOffset(Math.max(selectedWeekOffset - 1, 0))}
+                disabled={selectedWeekOffset <= 0}
+                style={{ 
+                  backgroundColor: selectedWeekOffset <= 0 ? '#f3f4f6' : '#e5e7eb',
+                  borderRadius: 16, 
+                  width: 32, 
+                  height: 32,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginLeft: 12
+                }}
+              >
+                <Text style={{ 
+                  fontSize: 16, 
+                  color: selectedWeekOffset <= 0 ? '#9ca3af' : '#374151' 
+                }}>
+                  →
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
           <TouchableOpacity
             onPress={() => navigation.navigate('Settings')}
@@ -331,7 +467,8 @@ export function DashboardScreen({ navigation }: Props) {
               width: 40, 
               height: 40,
               alignItems: 'center',
-              justifyContent: 'center'
+              justifyContent: 'center',
+              marginLeft: 16
             }}
           >
             <Text style={{ fontSize: 18 }}>⚙️</Text>
@@ -359,6 +496,77 @@ export function DashboardScreen({ navigation }: Props) {
           borderColor: isOnTrack ? '#bbf7d0' : isBehind ? '#fed7aa' : '#a7f3d0',
         }}>
           {(() => {
+            // Create custom motivational message for past weeks
+            if (selectedWeekOffset > 0) {
+              const goalDisplay = getGoalDisplayText(goalType);
+              if (progress >= goal) {
+                return (
+                  <>
+                    <Text style={{
+                      fontSize: 18,
+                      fontWeight: 'bold',
+                      marginBottom: 8,
+                      textAlign: 'center',
+                      color: '#166534',
+                    }}>
+                      Nailed it! 🎯
+                    </Text>
+                    <Text style={{
+                      fontSize: 14,
+                      textAlign: 'center',
+                      color: '#16a34a',
+                    }}>
+                      Goal crushed that week! Your accountability buddy was proud.
+                    </Text>
+                  </>
+                );
+              } else if (progress > 0) {
+                const remaining = goal - progress;
+                return (
+                  <>
+                    <Text style={{
+                      fontSize: 18,
+                      fontWeight: 'bold',
+                      marginBottom: 8,
+                      textAlign: 'center',
+                      color: '#9a3412',
+                    }}>
+                      Close, but no cigar 😬
+                    </Text>
+                    <Text style={{
+                      fontSize: 14,
+                      textAlign: 'center',
+                      color: '#ea580c',
+                    }}>
+                      Missed by {remaining.toFixed(goalType.includes('miles') ? 1 : 0)} {goalDisplay.unit}. Your mom remembers.
+                    </Text>
+                  </>
+                );
+              } else {
+                return (
+                  <>
+                    <Text style={{
+                      fontSize: 18,
+                      fontWeight: 'bold',
+                      marginBottom: 8,
+                      textAlign: 'center',
+                      color: '#9a3412',
+                    }}>
+                      Ghost week 👻
+                    </Text>
+                    <Text style={{
+                      fontSize: 14,
+                      textAlign: 'center',
+                      color: '#ea580c',
+                    }}>
+                      Zero {goalDisplay.unit} that week. The couch remembers everything.
+                    </Text>
+                  </>
+                );
+              }
+            }
+
+            // Use existing logic for current week
             const motivational = getMotivationalMessage(progress, goal, goalType, isOnTrack, isBehind);
             return (
               <>
@@ -384,7 +592,12 @@ export function DashboardScreen({ navigation }: Props) {
         </View>
 
         {/* Weekly Goal History - Add this new component */}
-        <WeeklyGoalHistory activities={activities} goal={goal} />
+        <WeeklyGoalHistory 
+          activities={activities} 
+          goal={goal} 
+          selectedWeekOffset={selectedWeekOffset} 
+          onWeekSelect={setSelectedWeekOffset}
+        />
 
         {/* Quick Stats */}
         <View style={{ flexDirection: 'row', gap: 16, marginBottom: 24 }}>
@@ -395,10 +608,12 @@ export function DashboardScreen({ navigation }: Props) {
             padding: 16,
           }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
-              <Text style={{ fontSize: 12, color: '#6b7280', marginLeft: 8 }}>📅 This Week</Text>
+              <Text style={{ fontSize: 12, color: '#6b7280', marginLeft: 8 }}>
+                📅 {selectedWeekOffset === 0 ? 'This Week' : `${selectedWeekOffset} week${selectedWeekOffset === 1 ? '' : 's'} ago`}
+              </Text>
             </View>
             <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#111827' }}>
-              {getWeeklyDistance()}
+              {getWeeklyDistanceForSelectedWeek()}
             </Text>
             <Text style={{ fontSize: 12, color: '#6b7280' }}>miles</Text>
           </View>
@@ -422,7 +637,7 @@ export function DashboardScreen({ navigation }: Props) {
         {/* Recent Runs */}
         <View style={{ marginBottom: 24 }}>
           <Text style={{ fontSize: 16, fontWeight: '600', color: '#111827', marginBottom: 16 }}>
-            Recent Runs
+            {selectedWeekOffset === 0 ? 'Recent Runs' : `Runs from ${selectedWeekOffset} week${selectedWeekOffset === 1 ? '' : 's'} ago`}
           </Text>
 
           {!isAuthenticated() ? (
@@ -437,13 +652,13 @@ export function DashboardScreen({ navigation }: Props) {
             <Text style={{ color: '#ef4444', textAlign: 'center', padding: 16 }}>
               Failed to load activities: {error}
             </Text>
-          ) : activities.length === 0 ? (
+          ) : getRunsForSelectedWeek().length === 0 ? (
             <Text style={{ color: '#6b7280', textAlign: 'center', padding: 16 }}>
-              No runs found. Time to lace up! 👟
+              {selectedWeekOffset === 0 ? 'No runs found. Time to lace up! 👟' : 'No runs found for this week.'}
             </Text>
           ) : (
             <View style={{ gap: 12 }}>
-              {getRecentRuns(5).map((run, index) => (
+              {getRunsForSelectedWeek().map((run, index) => (
                 <View
                   key={run.id}
                   style={{
