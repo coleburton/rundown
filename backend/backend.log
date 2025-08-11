@@ -1,0 +1,26 @@
+2025/08/11 11:58:22 No .env file found
+2025/08/11 11:58:22 Warning: Database connection failed: pq: database "rundown_dev" does not exist
+2025/08/11 11:58:22 Running in no-database mode for testing...
+2025/08/11 11:58:22 Warning: Failed to initialize database: pq: database "rundown_dev" does not exist
+2025/08/11 11:58:22 Database operations will be disabled...
+[GIN-debug] [WARNING] Creating an Engine instance with the Logger and Recovery middleware already attached.
+
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] POST   /api/auth/strava/connect  --> main.(*Server).handleStravaConnect-fm (4 handlers)
+[GIN-debug] GET    /api/auth/strava/user/:athlete_id --> main.(*Server).handleGetStravaUser-fm (4 handlers)
+[GIN-debug] DELETE /api/auth/strava/disconnect/:athlete_id --> main.(*Server).handleStravaDisconnect-fm (4 handlers)
+[GIN-debug] GET    /api/strava/activities/:athlete_id --> main.(*Server).handleGetActivities-fm (4 handlers)
+[GIN-debug] POST   /api/strava/refresh-token/:athlete_id --> main.(*Server).handleRefreshToken-fm (4 handlers)
+[GIN-debug] GET    /api/webhooks/strava      --> main.(*Server).handleStravaWebhookValidation-fm (4 handlers)
+[GIN-debug] POST   /api/webhooks/strava      --> main.(*Server).handleStravaWebhookEvent-fm (4 handlers)
+[GIN-debug] POST   /api/webhooks/strava/subscribe --> main.(*Server).handleStravaWebhookSubscribe-fm (4 handlers)
+[GIN-debug] DELETE /api/webhooks/strava/unsubscribe --> main.(*Server).handleStravaWebhookUnsubscribe-fm (4 handlers)
+[GIN-debug] GET    /health                   --> main.main.func1 (4 handlers)
+2025/08/11 11:58:22 Server starting on port 8080
+[GIN-debug] [WARNING] You trusted all proxies, this is NOT safe. We recommend you to set a value.
+Please check https://pkg.go.dev/github.com/gin-gonic/gin#readme-don-t-trust-all-proxies for details.
+[GIN-debug] Listening and serving HTTP on :8080
+signal: killed

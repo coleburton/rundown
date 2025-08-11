@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { Button } from '@/components/ui/button';
 import { useAuthContext } from '@/lib/auth-context';
-import { useMockActivities } from '@/hooks/useMockActivities';
+import { useStravaData } from '@/hooks/useStravaData';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { formatActivityDate, getWeekDateRange, isValidDate } from '@/lib/utils';
@@ -224,11 +224,25 @@ export function DashboardScreen({ navigation }: Props) {
   const { user, signOut } = useAuthContext();
   const insets = useSafeAreaInsets();
   const {
-    activities,
-    isLoading: loading,
+    activities: stravaActivities,
+    loading,
     error,
-    fetchActivities: refresh,
-  } = useMockActivities();
+    refresh,
+    getWeeklyProgress,
+    getDaysLeft,
+    getRecentRuns,
+    isAuthenticated,
+    getAthlete,
+  } = useStravaData();
+
+  // Convert Strava activities to the format expected by existing components
+  const activities = getRecentRuns(50).map(run => ({
+    id: run.id,
+    date: run.date,
+    distance: run.distance * 1609.34, // Convert miles back to meters for compatibility
+    duration: run.duration * 60, // Convert minutes back to seconds
+    type: 'Run'
+  }));
 
   console.log('Dashboard render:', {
     activitiesCount: activities.length,
@@ -237,56 +251,39 @@ export function DashboardScreen({ navigation }: Props) {
     user: user?.id
   });
 
-  // Calculate weekly progress using the new goal system
-  const getWeeklyProgress = () => {
-    const now = new Date();
-    const monday = new Date(now);
-    monday.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1));
-    monday.setHours(0, 0, 0, 0);
-
-    const { progress, goal, goalType } = calculateGoalProgress(user, activities, monday);
-
-    console.log('Weekly progress calculation:', {
-      totalActivities: activities.length,
-      progress,
-      goal,
-      goalType,
-      monday: monday.toISOString()
-    });
-
-    return { progress, goal, goalType };
-  };
-
-  const getDaysLeft = () => {
-    const now = new Date();
-    const sunday = new Date(now);
-    sunday.setDate(now.getDate() - now.getDay() + 7);
-    sunday.setHours(23, 59, 59, 999);
-
-    return Math.ceil((sunday.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-  };
-
-  const { progress, goal, goalType } = getWeeklyProgress();
+  // Use Strava data for progress calculation
+  const { progress, goal } = getWeeklyProgress(user?.goal_per_week || 3);
   const daysLeft = getDaysLeft();
+  const goalType = 'runs'; // Default to runs for now
+  
+  console.log('Dashboard render with Strava data:', {
+    activitiesCount: activities.length,
+    progress,
+    goal,
+    loading,
+    error,
+    isAuthenticated: isAuthenticated()
+  });
   const goalDisplay = getGoalDisplayText(goalType);
 
   const isOnTrack = progress >= goal;
   const isBehind = daysLeft <= 2 && progress < goal;
 
-  // Calculate total weekly distance
+  // Calculate total weekly distance from Strava data
   const getWeeklyDistance = () => {
     const now = new Date();
     const monday = new Date(now);
     monday.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1));
     monday.setHours(0, 0, 0, 0);
 
-    const weeklyRuns = activities.filter(
-      (activity) => new Date(activity.date) >= monday
-    );
+    const recentRuns = getRecentRuns(50);
+    const weeklyRuns = recentRuns.filter(run => {
+      const runDate = new Date(run.date);
+      return runDate >= monday;
+    });
 
-    const totalMeters = weeklyRuns.reduce((sum, activity) => sum + activity.distance, 0);
-    const miles = totalMeters / 1609.34;
-    return miles.toFixed(1);
+    const totalMiles = weeklyRuns.reduce((sum, run) => sum + run.distance, 0);
+    return totalMiles.toFixed(1);
   };
 
   const handleSignOut = async () => {
@@ -320,7 +317,7 @@ export function DashboardScreen({ navigation }: Props) {
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
           <View>
             <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#111827' }}>
-              Hey {user?.name?.split(' ')[0] || 'Runner'} 👋
+              Hey {getAthlete()?.firstname || user?.name?.split(' ')[0] || 'Runner'} 👋
             </Text>
             <Text style={{ fontSize: 14, color: '#6b7280', marginTop: 4 }}>
               Week of {getWeekDateRange()}
@@ -428,25 +425,27 @@ export function DashboardScreen({ navigation }: Props) {
             Recent Runs
           </Text>
 
-          {error ? (
+          {!isAuthenticated() ? (
+            <Text style={{ color: '#6b7280', textAlign: 'center', padding: 16 }}>
+              Connect to Strava to see your activities! 🏃‍♂️
+            </Text>
+          ) : loading ? (
+            <Text style={{ color: '#6b7280', textAlign: 'center', padding: 16 }}>
+              Loading your Strava activities...
+            </Text>
+          ) : error ? (
             <Text style={{ color: '#ef4444', textAlign: 'center', padding: 16 }}>
-              Failed to load activities. Pull down to retry.
+              Failed to load activities: {error}
             </Text>
           ) : activities.length === 0 ? (
             <Text style={{ color: '#6b7280', textAlign: 'center', padding: 16 }}>
-              No runs this week yet. Time to lace up! 👟
+              No runs found. Time to lace up! 👟
             </Text>
           ) : (
             <View style={{ gap: 12 }}>
-              {activities
-                .filter(activity => {
-                  // Filter out activities with invalid dates
-                  return isValidDate(activity.date);
-                })
-                .slice(0, 5)
-                .map((activity, index) => (
+              {getRecentRuns(5).map((run, index) => (
                 <View
-                  key={activity.id}
+                  key={run.id}
                   style={{
                     flexDirection: 'row',
                     alignItems: 'center',
@@ -466,15 +465,15 @@ export function DashboardScreen({ navigation }: Props) {
                     }} />
                     <View>
                       <Text style={{ fontSize: 14, fontWeight: '500', color: '#111827' }}>
-                        {getActivityName(activity.type)}
+                        {run.name}
                       </Text>
                       <Text style={{ fontSize: 12, color: '#6b7280' }}>
-                        {formatActivityDate(activity.date)} • {formatDistance(activity.distance)}
+                        {formatActivityDate(run.date)} • {run.distance} miles • {run.pace} min/mi
                       </Text>
                     </View>
                   </View>
                   <Text style={{ fontSize: 12, color: '#6b7280' }}>
-                    {formatDuration(activity.duration)}
+                    {run.duration}m
                   </Text>
                 </View>
               ))}

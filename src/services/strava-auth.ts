@@ -12,6 +12,7 @@ const BACKEND_URL = Constants.expoConfig?.extra?.backendUrl || process.env.EXPO_
 const redirectUri = AuthSession.makeRedirectUri({
   scheme: 'rundown',
   path: 'auth/strava/callback',
+  preferLocalhost: true,
 });
 
 export interface StravaTokens {
@@ -51,10 +52,13 @@ class StravaAuthService {
       if (!STRAVA_CLIENT_ID) {
         throw new Error('Strava Client ID not configured');
       }
+      
+      console.log('Strava OAuth redirectUri:', redirectUri);
+      console.log('Skipping backend - storing tokens locally only');
 
       const request = new AuthSession.AuthRequest({
         clientId: STRAVA_CLIENT_ID,
-        scopes: ['read', 'activity:read'],
+        scopes: ['activity:read'],
         redirectUri,
         responseType: AuthSession.ResponseType.Code,
         extraParams: {
@@ -232,8 +236,81 @@ class StravaAuthService {
     return this.tokens?.athlete;
   }
 
+  async getActivities(after?: Date, before?: Date, per_page: number = 30): Promise<any[]> {
+    try {
+      const accessToken = await this.getValidAccessToken();
+      if (!accessToken) {
+        throw new Error('No valid access token available');
+      }
+
+      let url = `https://www.strava.com/api/v3/athlete/activities?per_page=${per_page}`;
+      
+      if (after) {
+        url += `&after=${Math.floor(after.getTime() / 1000)}`;
+      }
+      
+      if (before) {
+        url += `&before=${Math.floor(before.getTime() / 1000)}`;
+      }
+
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Accept': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Strava API error: ${response.status} ${response.statusText}`);
+      }
+
+      const activities = await response.json();
+      console.log(`Fetched ${activities.length} activities from Strava`);
+      
+      return activities;
+    } catch (error) {
+      console.error('Error fetching Strava activities:', error);
+      throw error;
+    }
+  }
+
+  async getAthleteStats(): Promise<any> {
+    try {
+      const accessToken = await this.getValidAccessToken();
+      if (!accessToken) {
+        throw new Error('No valid access token available');
+      }
+
+      const athlete = this.getAthlete();
+      if (!athlete?.id) {
+        throw new Error('No athlete ID available');
+      }
+
+      const response = await fetch(`https://www.strava.com/api/v3/athletes/${athlete.id}/stats`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Accept': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Strava API error: ${response.status} ${response.statusText}`);
+      }
+
+      const stats = await response.json();
+      console.log('Fetched athlete stats from Strava');
+      
+      return stats;
+    } catch (error) {
+      console.error('Error fetching Strava athlete stats:', error);
+      throw error;
+    }
+  }
+
   async sendTokensToBackend(tokens: StravaTokens): Promise<boolean> {
     try {
+      console.log('Sending tokens to backend URL:', `${BACKEND_URL}/api/auth/strava/connect`);
+      
       const response = await fetch(`${BACKEND_URL}/api/auth/strava/connect`, {
         method: 'POST',
         headers: {
@@ -246,6 +323,13 @@ class StravaAuthService {
           athlete: tokens.athlete,
         }),
       });
+
+      console.log('Backend response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Backend error response:', errorText);
+      }
 
       return response.ok;
     } catch (error) {

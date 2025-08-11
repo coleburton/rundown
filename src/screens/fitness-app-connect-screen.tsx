@@ -119,12 +119,8 @@ export function FitnessAppConnectScreen({ navigation }: Props) {
         const result = await stravaAuth.authenticate();
         
         if (result.type === 'success' && result.tokens) {
-          // Send tokens to backend for storage
-          const backendSuccess = await stravaAuth.sendTokensToBackend(result.tokens);
-          
-          if (!backendSuccess) {
-            throw new Error('Failed to save authentication data');
-          }
+          // Tokens are already stored locally by the auth service
+          console.log('Strava authentication successful, tokens stored locally');
           
           // Track successful connection and screen completion
           trackOnboardingScreenCompleted(ONBOARDING_SCREENS.FITNESS_APP_CONNECT, {
