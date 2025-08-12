@@ -7,10 +7,21 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
 interface StravaActivity {
   id: number;
+  name: string;
   type: string;
+  sport_type: string;
   start_date: string;
+  start_date_local: string;
   distance: number;
   moving_time: number;
+  elapsed_time: number;
+  total_elevation_gain: number;
+  average_speed: number;
+  max_speed: number;
+  average_heartrate?: number;
+  max_heartrate?: number;
+  kudos_count: number;
+  achievement_count: number;
   athlete: {
     id: number;
   };
@@ -115,27 +126,50 @@ serve(async (req) => {
 
     const activities: StravaActivity[] = await activitiesResponse.json();
 
-    // Filter for runs only
-    const runs = activities.filter((activity) => activity.type === 'Run');
-
-    // Upsert runs to database
-    const { error: runsError } = await supabase.from('run_logs').upsert(
-      runs.map((run) => ({
+    // Store all activities (not just runs)
+    const { error: activitiesError } = await supabase.from('activities').upsert(
+      activities.map((activity) => ({
         user_id: user.id,
-        activity_id: run.id.toString(),
-        date: run.start_date,
-        distance: run.distance,
-        duration: run.moving_time,
-        type: run.type.toLowerCase(),
-      }))
+        strava_activity_id: activity.id,
+        name: activity.name,
+        type: activity.type,
+        sport_type: activity.sport_type,
+        start_date: activity.start_date,
+        start_date_local: activity.start_date_local,
+        distance: activity.distance,
+        moving_time: activity.moving_time,
+        elapsed_time: activity.elapsed_time,
+        total_elevation_gain: activity.total_elevation_gain,
+        average_speed: activity.average_speed,
+        max_speed: activity.max_speed,
+        average_heartrate: activity.average_heartrate,
+        max_heartrate: activity.max_heartrate,
+        kudos_count: activity.kudos_count,
+        achievement_count: activity.achievement_count,
+        raw_data: activity, // Store full response for future use
+        synced_at: new Date().toISOString(),
+      })),
+      { onConflict: 'user_id,strava_activity_id' }
     );
 
-    if (runsError) {
-      throw runsError;
+    if (activitiesError) {
+      throw activitiesError;
     }
 
+    // Update sync status
+    const lastActivityDate = activities.length > 0 
+      ? new Date(Math.max(...activities.map(a => new Date(a.start_date).getTime())))
+      : null;
+
+    await supabase.from('sync_status').upsert({
+      user_id: user.id,
+      last_sync_at: new Date().toISOString(),
+      last_activity_date: lastActivityDate?.toISOString(),
+      sync_errors: null,
+    }, { onConflict: 'user_id' });
+
     return new Response(
-      JSON.stringify({ success: true, count: runs.length }),
+      JSON.stringify({ success: true, count: activities.length }),
       { status: 200 }
     );
   } catch (error) {

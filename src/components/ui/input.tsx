@@ -131,6 +131,7 @@ const styles = StyleSheet.create({
 interface InputProps extends TextInputProps, VariantProps<typeof inputVariants> {
   darkMode?: boolean;
   style?: TextStyle;
+  passwordType?: 'new' | 'current' | 'none';
 }
 
 export function Input({
@@ -138,9 +139,25 @@ export function Input({
   size = "default",
   darkMode = false,
   style,
+  passwordType = 'none',
   ...props
 }: InputProps) {
   const [isFocused, setIsFocused] = React.useState(false);
+  
+  // Quick fix: Disable iOS autofill for reliable simulator behavior
+  const getPasswordProps = () => {
+    if (passwordType !== 'none') {
+      return {
+        textContentType: 'none' as const,
+        autoComplete: 'off' as const,
+        autoCorrect: false,
+        spellCheck: false,
+        // Disable iOS password suggestions entirely
+        passwordRules: ''
+      };
+    }
+    return {};
+  };
   
   const getInputStyle = (): TextStyle[] => {
     const baseStyles = [styles.base];
@@ -198,6 +215,9 @@ export function Input({
         props.onBlur?.(e);
       }}
       placeholderTextColor={getPlaceholderTextColor()}
+      {...getPasswordProps()}
+      // Additional iOS autofill disabling props
+      importantForAutofill="no"
       {...props}
     />
   );

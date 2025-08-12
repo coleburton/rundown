@@ -5,7 +5,12 @@ import { useFonts } from 'expo-font';
 import * as React from 'react';
 import { View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { useMockAuth } from './src/hooks/useMockAuth';
+
+// Polyfill for structuredClone if not available
+if (typeof global.structuredClone === 'undefined') {
+  global.structuredClone = (obj: any) => JSON.parse(JSON.stringify(obj));
+}
+import { useAuth } from './src/hooks/useAuth';
 import { AuthProvider } from './src/lib/auth-context';
 import MixpanelDebug from './src/lib/MixpanelDebug';
 import MixpanelProvider from './src/lib/MixpanelProvider';
@@ -53,27 +58,24 @@ export type RootStackParamList = {
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function AppContent() {
-  const mockAuth = useMockAuth();
-  const { user, isLoading } = mockAuth;
+  const auth = useAuth();
+  const { user, loading } = auth;
 
-  if (isLoading) {
+  if (loading) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff' }} />
     );
   }
 
-  // Always start with the onboarding flow regardless of user state
-  const initialRoute: keyof RootStackParamList = 'Onboarding';
+  // Start with onboarding if no user, otherwise go to dashboard
+  const initialRoute: keyof RootStackParamList = user ? 'Dashboard' : 'Onboarding';
 
   return (
     <AuthProvider auth={{
-      user: mockAuth.user,
-      loading: mockAuth.isLoading,
-      signInWithStrava: async () => {
-        const user = await mockAuth.connectStrava();
-        return;
-      },
-      signOut: mockAuth.signOut
+      user: auth.user,
+      loading: auth.loading,
+      signInWithStrava: auth.signInWithStrava,
+      signOut: auth.signOut
     }}>
       <Stack.Navigator 
         initialRouteName={initialRoute}

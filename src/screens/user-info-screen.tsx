@@ -167,6 +167,10 @@ export function UserInfoScreen() {
 
   const handleSubmit = async () => {
     try {
+      // Store user info in AsyncStorage to be saved after login
+      const AsyncStorage = await import('@react-native-async-storage/async-storage');
+      await AsyncStorage.default.setItem('pendingUserInfo', JSON.stringify(userInfo));
+
       // Set user properties for segmentation
       setUserProperties({
         [USER_PROPERTIES.FIRST_NAME]: userInfo.firstName,
@@ -198,6 +202,7 @@ export function UserInfoScreen() {
       // Navigate to next screen
       navigation.navigate('Login');
     } catch (error) {
+      console.error('Error in handleSubmit:', error);
       Alert.alert('Error', 'Failed to save your information. Please try again.');
     }
   };

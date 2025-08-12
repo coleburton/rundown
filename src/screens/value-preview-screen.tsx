@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Animated } from 'react-native';
 import { Button } from '@/components/ui/button';
-import { useMockAuth } from '@/hooks/useMockAuth';
+import { useAuth } from '@/hooks/useAuth';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { OnboardingStepper } from '@/components/OnboardingStepper';
@@ -99,7 +99,7 @@ const MockProgressRing = ({ progress, goal }: { progress: number; goal: number }
 };
 
 export function ValuePreviewScreen({ navigation }: Props) {
-  const { user } = useMockAuth();
+  const { user } = useAuth();
   const insets = useSafeAreaInsets();
   const [currentPreview, setCurrentPreview] = useState(0);
   const [screenStartTime] = useState(Date.now());
