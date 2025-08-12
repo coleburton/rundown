@@ -74,6 +74,12 @@ export function useStravaActivities() {
 
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('Not authenticated');
+      
+      console.log('Session info for sync:', {
+        hasUser: !!session.user,
+        userId: session.user?.id,
+        hasToken: !!session.access_token
+      });
 
       const { data, error: syncError } = await supabase.functions.invoke('strava-sync', {
         body: { after: after.toISOString() },
@@ -82,7 +88,41 @@ export function useStravaActivities() {
         },
       });
 
-      if (syncError) throw syncError;
+      if (syncError) {
+        console.error('Sync function error details:', {
+          message: syncError.message,
+          context: syncError.context,
+          details: syncError.details,
+          data: data
+        });
+        
+        // Try to extract error details from the response
+        let errorMessage = syncError.message;
+        if (syncError.context && syncError.context._bodyBlob) {
+          try {
+            const response = syncError.context;
+            const errorText = await response.text();
+            console.error('Function response body:', errorText);
+            
+            try {
+              const errorJson = JSON.parse(errorText);
+              errorMessage = errorJson.error || errorMessage;
+              if (errorJson.details) {
+                errorMessage += ` (${errorJson.details})`;
+              }
+            } catch {
+              // Not JSON, use raw text
+              if (errorText) {
+                errorMessage += ` - ${errorText}`;
+              }
+            }
+          } catch (e) {
+            console.error('Failed to read error response:', e);
+          }
+        }
+        
+        throw new Error(`Sync failed: ${errorMessage}`);
+      }
 
       // Refresh activities after sync
       await fetchActivities();

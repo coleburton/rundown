@@ -3,8 +3,9 @@ import { View, Text, ScrollView, TouchableOpacity, Linking } from 'react-native'
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '@/components/ui/button';
+import { useStravaActivities } from '@/hooks/useStravaActivities';
 import StravaAuthService from '@/services/strava-auth';
-import { StravaActivity } from '@/hooks/useStravaData';
+import { Activity } from '@/hooks/useStravaActivities';
 import { RouteVisualization } from '@/components/RouteVisualization';
 
 type RootStackParamList = {
@@ -17,41 +18,51 @@ type Props = NativeStackScreenProps<RootStackParamList, 'ActivityDetail'>;
 export function ActivityDetailScreen({ navigation, route }: Props) {
   const { activityId } = route.params;
   const insets = useSafeAreaInsets();
-  const [activity, setActivity] = useState<StravaActivity | null>(null);
+  const [activity, setActivity] = useState<Activity | null>(null);
   const [detailedActivity, setDetailedActivity] = useState<any>(null);
   const [routeStreams, setRouteStreams] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
+  const { activities } = useStravaActivities();
   const stravaAuth = StravaAuthService.getInstance();
 
   useEffect(() => {
     fetchActivityDetails();
-  }, [activityId]);
+  }, [activityId, activities]);
 
   const fetchActivityDetails = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      // Get detailed activity from Strava API
-      const detailed = await stravaAuth.getActivityById(parseInt(activityId));
-      setDetailedActivity(detailed);
+      // Find the activity in our Supabase activities
+      const foundActivity = activities.find(a => a.strava_activity_id.toString() === activityId);
       
-      // Also get basic activity info (already cached)
-      const activities = await stravaAuth.getActivities(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), undefined, 100);
-      const basicActivity = activities.find(a => a.id.toString() === activityId);
-      setActivity(basicActivity || null);
-
-      // Fetch route streams if the activity has GPS data
-      if (detailed && detailed.start_latlng) {
+      if (foundActivity) {
+        setActivity(foundActivity);
+        setDetailedActivity(foundActivity);
+        
+        // Try to get additional details from Strava API for route visualization
         try {
-          const streams = await stravaAuth.getActivityStreams(parseInt(activityId), ['latlng', 'distance', 'altitude']);
-          setRouteStreams(streams);
-        } catch (streamsError) {
-          console.warn('Failed to fetch route streams:', streamsError);
-          // Don't fail the whole request if streams fail
+          const detailed = await stravaAuth.getActivityById(foundActivity.strava_activity_id);
+          
+          // If we have GPS data, fetch route streams
+          if (detailed && detailed.start_latlng) {
+            try {
+              const streams = await stravaAuth.getActivityStreams(foundActivity.strava_activity_id, ['latlng', 'distance', 'altitude']);
+              setRouteStreams(streams);
+            } catch (streamsError) {
+              console.warn('Failed to fetch route streams:', streamsError);
+              // Don't fail the whole request if streams fail
+            }
+          }
+        } catch (detailError) {
+          console.warn('Failed to fetch additional activity details from Strava:', detailError);
+          // Don't fail if we can't get additional details - we have the basic data
         }
+      } else {
+        setError('Activity not found');
       }
 
     } catch (err) {
@@ -344,7 +355,7 @@ export function ActivityDetailScreen({ navigation, route }: Props) {
               PACE
             </Text>
             <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#111827', textAlign: 'center' }} numberOfLines={1} adjustsFontSizeToFit>
-              {currentActivity.distance > 0 ? formatPace(currentActivity.distance / (currentActivity.moving_time || currentActivity.elapsed_time)) : '--'}
+              {(currentActivity.distance || 0) > 0 ? formatPace((currentActivity.distance || 0) / ((currentActivity.moving_time || currentActivity.elapsed_time) || 1)) : '--'}
             </Text>
           </View>
         </View>
@@ -357,7 +368,7 @@ export function ActivityDetailScreen({ navigation, route }: Props) {
           
           <View style={{ gap: 12 }}>
             {/* Elevation */}
-            {currentActivity.total_elevation_gain > 0 && (
+            {!!(currentActivity.total_elevation_gain && currentActivity.total_elevation_gain > 0) && (
               <View style={{
                 flexDirection: 'row',
                 justifyContent: 'space-between',
@@ -379,7 +390,7 @@ export function ActivityDetailScreen({ navigation, route }: Props) {
             )}
 
             {/* Calories */}
-            {currentActivity.calories && (
+            {!!(currentActivity.calories && currentActivity.calories > 0) && (
               <View style={{
                 flexDirection: 'row',
                 justifyContent: 'space-between',
@@ -401,7 +412,7 @@ export function ActivityDetailScreen({ navigation, route }: Props) {
             )}
 
             {/* Average Speed */}
-            {currentActivity.average_speed && (
+            {!!(currentActivity.average_speed && currentActivity.average_speed > 0) && (
               <View style={{
                 flexDirection: 'row',
                 justifyContent: 'space-between',
@@ -423,7 +434,7 @@ export function ActivityDetailScreen({ navigation, route }: Props) {
             )}
 
             {/* Max Speed */}
-            {currentActivity.max_speed && (
+            {!!(currentActivity.max_speed && currentActivity.max_speed > 0) && (
               <View style={{
                 flexDirection: 'row',
                 justifyContent: 'space-between',
@@ -445,7 +456,7 @@ export function ActivityDetailScreen({ navigation, route }: Props) {
             )}
 
             {/* Average Watts (Power) */}
-            {currentActivity.average_watts && (
+            {!!(currentActivity.average_watts && currentActivity.average_watts > 0) && (
               <View style={{
                 flexDirection: 'row',
                 justifyContent: 'space-between',
@@ -469,7 +480,7 @@ export function ActivityDetailScreen({ navigation, route }: Props) {
             )}
 
             {/* Max Watts (Power) */}
-            {currentActivity.max_watts && (
+            {!!(currentActivity.max_watts && currentActivity.max_watts > 0) && (
               <View style={{
                 flexDirection: 'row',
                 justifyContent: 'space-between',
@@ -493,7 +504,7 @@ export function ActivityDetailScreen({ navigation, route }: Props) {
             )}
 
             {/* Heart Rate */}
-            {currentActivity.average_heartrate && (
+            {!!(currentActivity.average_heartrate && currentActivity.average_heartrate > 0) && (
               <View style={{
                 flexDirection: 'row',
                 justifyContent: 'space-between',
@@ -517,7 +528,7 @@ export function ActivityDetailScreen({ navigation, route }: Props) {
             )}
 
             {/* Max Heart Rate */}
-            {currentActivity.max_heartrate && (
+            {!!(currentActivity.max_heartrate && currentActivity.max_heartrate > 0) && (
               <View style={{
                 flexDirection: 'row',
                 justifyContent: 'space-between',
@@ -541,7 +552,7 @@ export function ActivityDetailScreen({ navigation, route }: Props) {
             )}
 
             {/* Cadence */}
-            {currentActivity.average_cadence && (
+            {!!(currentActivity.average_cadence && currentActivity.average_cadence > 0) && (
               <View style={{
                 flexDirection: 'row',
                 justifyContent: 'space-between',
@@ -574,7 +585,7 @@ export function ActivityDetailScreen({ navigation, route }: Props) {
           
           <View style={{ gap: 12 }}>
             {/* Device Name */}
-            {currentActivity.device_name && (
+            {!!(currentActivity.device_name) && (
               <View style={{
                 flexDirection: 'row',
                 justifyContent: 'space-between',
@@ -596,7 +607,7 @@ export function ActivityDetailScreen({ navigation, route }: Props) {
             )}
 
             {/* Start Latlng */}
-            {currentActivity.start_latlng && currentActivity.start_latlng.length === 2 && (
+            {!!(currentActivity.start_latlng && Array.isArray(currentActivity.start_latlng) && currentActivity.start_latlng.length === 2 && typeof currentActivity.start_latlng[0] === 'number' && typeof currentActivity.start_latlng[1] === 'number') && (
               <View style={{
                 flexDirection: 'row',
                 justifyContent: 'space-between',
@@ -618,7 +629,7 @@ export function ActivityDetailScreen({ navigation, route }: Props) {
             )}
 
             {/* Temperature */}
-            {currentActivity.average_temp && (
+            {!!(currentActivity.average_temp && typeof currentActivity.average_temp === 'number') && (
               <View style={{
                 flexDirection: 'row',
                 justifyContent: 'space-between',
@@ -640,7 +651,7 @@ export function ActivityDetailScreen({ navigation, route }: Props) {
             )}
 
             {/* Perceived Exertion */}
-            {currentActivity.perceived_exertion && (
+            {!!(currentActivity.perceived_exertion && currentActivity.perceived_exertion > 0) && (
               <View style={{
                 flexDirection: 'row',
                 justifyContent: 'space-between',
