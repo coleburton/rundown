@@ -12,6 +12,7 @@ import { supabase } from '../lib/supabase';
 import { Database } from '../types/supabase';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { TYPOGRAPHY_STYLES } from '../constants/Typography';
+import { twilioService } from '../services/twilio';
 
 type Contact = Database['public']['Tables']['contacts']['Row'];
 
@@ -65,6 +66,8 @@ export function SettingsScreen({ navigation }: Props) {
     field: 'day' | 'timePeriod';
     value: string;
   } | null>(null);
+  
+  const [sendingSMS, setSendingSMS] = useState(false);
 
   const DAYS_OF_WEEK = [
     'Monday', 'Tuesday', 'Wednesday', 'Thursday', 
@@ -277,6 +280,52 @@ export function SettingsScreen({ navigation }: Props) {
         }
       ]
     );
+  };
+
+  const handleSendTestSMS = async () => {
+    if (contacts.length === 0) {
+      Alert.alert('No Contacts', 'Please add at least one contact before sending a test message.');
+      return;
+    }
+
+    setSendingSMS(true);
+
+    try {
+      // Initialize Twilio service with environment variables
+      const twilioConfig = {
+        accountSid: process.env.EXPO_PUBLIC_TWILIO_ACCOUNT_SID || '',
+        authToken: process.env.EXPO_PUBLIC_TWILIO_AUTH_TOKEN || '',
+        fromPhoneNumber: process.env.EXPO_PUBLIC_TWILIO_FROM_PHONE || ''
+      };
+
+      if (!twilioConfig.accountSid || !twilioConfig.authToken || !twilioConfig.fromPhoneNumber) {
+        Alert.alert('Configuration Error', 'Twilio credentials are not configured. Please check your .env file.');
+        return;
+      }
+
+      twilioService.initialize(twilioConfig);
+
+      const testMessage = `Hi! This is a test message from Rundown. Your accountability buddy is testing the SMS feature. 🏃‍♂️`;
+      
+      // Send to the first contact for testing
+      const firstContact = contacts[0];
+      const result = await twilioService.sendSMS(firstContact.phone_number, testMessage);
+
+      if (result.success) {
+        Alert.alert(
+          'Test SMS Sent!',
+          `Successfully sent test message to ${firstContact.name} at ${firstContact.phone_number}`,
+          [{ text: 'OK' }]
+        );
+      } else {
+        Alert.alert('SMS Failed', result.error || 'Failed to send test message');
+      }
+    } catch (error) {
+      console.error('Error sending test SMS:', error);
+      Alert.alert('Error', 'Failed to send test message. Check your configuration.');
+    } finally {
+      setSendingSMS(false);
+    }
   };
 
   const renderSectionCard = (children: React.ReactNode) => (
@@ -679,11 +728,32 @@ export function SettingsScreen({ navigation }: Props) {
           </ThemedText>
           
           {renderSectionCard(
-            <Button
-              variant="outline"
-              title="Reset Onboarding"
-              onPress={handleResetOnboarding}
-            />
+            <View style={{ gap: 8 }}>
+              <Button
+                variant="outline"
+                title="Reset Onboarding"
+                onPress={handleResetOnboarding}
+              />
+              <Button
+                title={sendingSMS ? "Sending..." : "Send Test SMS"}
+                onPress={handleSendTestSMS}
+                disabled={sendingSMS || contacts.length === 0}
+                style={{ 
+                  backgroundColor: contacts.length === 0 ? '#94a3b8' : '#f97316',
+                  opacity: sendingSMS ? 0.7 : 1
+                }}
+              />
+              {contacts.length === 0 && (
+                <Text style={{ 
+                  fontSize: 12, 
+                  color: '#6b7280', 
+                  textAlign: 'center',
+                  marginTop: 4 
+                }}>
+                  Add a contact to test SMS functionality
+                </Text>
+              )}
+            </View>
           )}
         </View>
       </ScrollView>
