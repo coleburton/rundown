@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { Button } from '@/components/ui/button';
 import { useAuthContext } from '@/lib/auth-context';
-import { useStravaData } from '@/hooks/useStravaData';
+import { useStravaActivities } from '@/hooks/useStravaActivities';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { formatActivityDate, getWeekDateRange, isValidDate } from '@/lib/utils';
@@ -300,21 +300,20 @@ export function DashboardScreen({ navigation }: Props) {
     loading,
     error,
     refresh,
+    syncWithStrava,
     getWeeklyProgress,
     getDaysLeft,
     getRecentRuns,
     getRecentActivities,
     doesActivityCountTowardGoal,
-    isAuthenticated,
-    getAthlete,
-  } = useStravaData();
+  } = useStravaActivities();
 
-  // Convert Strava activities to the format expected by existing components
-  const activities = getRecentActivities(100).map(activity => ({
-    id: activity.id,
-    date: activity.date,
-    distance: activity.distance * 1609.34, // Convert miles back to meters for compatibility
-    duration: activity.duration * 60, // Convert minutes back to seconds
+  // Convert Supabase activities to the format expected by existing components
+  const activities = stravaActivities.map(activity => ({
+    id: activity.strava_activity_id.toString(),
+    date: activity.start_date_local,
+    distance: activity.distance, // Already in meters from Supabase
+    duration: activity.moving_time, // Already in seconds from Supabase  
     type: activity.type
   }));
 
@@ -360,13 +359,12 @@ export function DashboardScreen({ navigation }: Props) {
   const daysLeft = selectedWeekOffset === 0 ? getDaysLeft() : 0; // Only show days left for current week
   const goalType = user?.goal_type || 'total_activities'; // Use user's actual goal type
   
-  console.log('Dashboard render with Strava data:', {
+  console.log('Dashboard render with Supabase data:', {
     activitiesCount: activities.length,
     progress,
     goal,
     loading,
-    error,
-    isAuthenticated: isAuthenticated()
+    error
   });
   const goalDisplay = getGoalDisplayText(goalType);
 
@@ -594,7 +592,7 @@ export function DashboardScreen({ navigation }: Props) {
         <View style={{ marginBottom: 32 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#111827' }}>
-              Hey {getAthlete()?.firstname || user?.name?.split(' ')[0] || 'Runner'} 👋
+              Hey {user?.name?.split(' ')[0] || 'Runner'} 👋
             </Text>
             <TouchableOpacity
               onPress={() => navigation.navigate('Settings')}
@@ -659,6 +657,31 @@ export function DashboardScreen({ navigation }: Props) {
               </Text>
             </TouchableOpacity>
           </View>
+
+          {/* Sync Button */}
+          {user && (
+            <TouchableOpacity
+              onPress={async () => {
+                try {
+                  await syncWithStrava();
+                } catch (error) {
+                  console.error('Failed to sync:', error);
+                }
+              }}
+              style={{
+                backgroundColor: '#10b981',
+                borderRadius: 12,
+                paddingHorizontal: 16,
+                paddingVertical: 8,
+                marginTop: 12,
+                alignSelf: 'center',
+              }}
+            >
+              <Text style={{ color: 'white', fontSize: 12, fontWeight: '600' }}>
+                🔄 Sync Strava Data
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Progress Ring */}
@@ -802,9 +825,9 @@ export function DashboardScreen({ navigation }: Props) {
             {selectedWeekOffset === 0 ? 'Recent Activity' : `Activities from ${selectedWeekOffset} week${selectedWeekOffset === 1 ? '' : 's'} ago`}
           </Text>
 
-          {!isAuthenticated() ? (
+          {!user ? (
             <Text style={{ color: '#6b7280', textAlign: 'center', padding: 16 }}>
-              Connect to Strava to see your activities! 🏃‍♂️
+              Please sign in to see your activities! 🏃‍♂️
             </Text>
           ) : loading ? (
             <Text style={{ color: '#6b7280', textAlign: 'center', padding: 16 }}>

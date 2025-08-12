@@ -29,12 +29,22 @@ export function useStravaData() {
   const stravaAuth = StravaAuthService.getInstance();
 
   useEffect(() => {
-    if (stravaAuth.isAuthenticated()) {
-      fetchData();
-    } else {
+    initializeAuth();
+  }, []);
+
+  const initializeAuth = async () => {
+    try {
+      await stravaAuth.loadStoredTokens();
+      if (stravaAuth.isAuthenticated()) {
+        await fetchData();
+      } else {
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error('Error initializing Strava auth:', error);
       setLoading(false);
     }
-  }, []);
+  };
 
   const fetchData = async () => {
     try {
