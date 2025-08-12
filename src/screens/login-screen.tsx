@@ -164,8 +164,109 @@ export function LoginScreen() {
     setIsLoading(true);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const { supabase } = await import('@/lib/supabase');
+      
+      if (authMode === 'signup') {
+        // Sign up new user
+        console.log('Login - Starting signup for:', loginData.email);
+        const { data, error } = await supabase.auth.signUp({
+          email: loginData.email,
+          password: loginData.password,
+          options: {
+            emailRedirectTo: undefined, // Disable email confirmation for now
+          }
+        });
+
+        console.log('Login - Signup result:', { 
+          hasUser: !!data.user, 
+          userId: data.user?.id,
+          hasSession: !!data.session,
+          needsConfirmation: !data.session && !!data.user,
+          error: error?.message 
+        });
+
+        if (error) {
+          console.error('Supabase auth error:', error);
+          
+          // Handle specific error cases
+          if (error.message.includes('User already registered')) {
+            Alert.alert(
+              'Account exists', 
+              'This email is already registered. Please sign in instead or use a different email.',
+              [{ text: 'OK' }]
+            );
+            return;
+          }
+          
+          throw new Error(`Signup failed: ${error.message}`);
+        }
+
+        // Check if email confirmation is required
+        if (!data.session && data.user) {
+          console.log('Login - Email confirmation required. User created but not confirmed.');
+          Alert.alert(
+            'Check your email', 
+            'Please check your email and click the confirmation link to complete signup.',
+            [{ text: 'OK' }]
+          );
+          return; // Don't proceed to navigation
+        }
+
+        // User profile will be created automatically by database trigger
+        // Now check for any pending user info from onboarding and save it
+        if (data.user) {
+          const AsyncStorage = await import('@react-native-async-storage/async-storage');
+          const pendingUserInfoStr = await AsyncStorage.default.getItem('pendingUserInfo');
+          
+          if (pendingUserInfoStr) {
+            try {
+              const userInfo = JSON.parse(pendingUserInfoStr);
+              
+              // Parse birthday from MM/DD/YYYY to YYYY-MM-DD format
+              const parseDate = (dateStr: string) => {
+                const [month, day, year] = dateStr.split('/');
+                return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+              };
+
+              // Update user profile with the collected info
+              const { error: profileError } = await supabase
+                .from('users')
+                .update({
+                  name: `${userInfo.firstName} ${userInfo.lastName}`,
+                  birthday: userInfo.dateOfBirth ? parseDate(userInfo.dateOfBirth) : null,
+                  fitness_level: userInfo.fitnessLevel || null,
+                  primary_goal: userInfo.primaryGoal || null,
+                })
+                .eq('id', data.user.id);
+
+              if (profileError) {
+                console.error('Error updating user profile:', profileError);
+              } else {
+                // Clear the pending user info since it's been saved
+                await AsyncStorage.default.removeItem('pendingUserInfo');
+              }
+            } catch (parseError) {
+              console.error('Error parsing pending user info:', parseError);
+            }
+          }
+        }
+      } else {
+        // Sign in existing user
+        console.log('Login - Starting signin for:', loginData.email);
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: loginData.email,
+          password: loginData.password,
+        });
+
+        console.log('Login - Signin result:', { 
+          hasUser: !!data.user, 
+          userId: data.user?.id,
+          hasSession: !!data.session,
+          error: error?.message 
+        });
+
+        if (error) throw error;
+      }
       
       // Set user properties for segmentation
       setUserProperties({
@@ -372,13 +473,14 @@ export function LoginScreen() {
           </View>
 
           {/* Form */}
-          <View style={styles.form}>
+          <View style={styles.form} importantForAutofill="noExcludeDescendants">
             {/* Email Input */}
             <View style={styles.inputGroup}>
               <Text style={[styles.inputLabel, isDarkMode && styles.darkText]}>
                 Email Address
               </Text>
               <Input
+                key={`email-${authMode}`}
                 value={loginData.email}
                 onChangeText={(text) => setLoginData({ ...loginData, email: text.toLowerCase().trim() })}
                 placeholder="Enter your email"
@@ -388,6 +490,9 @@ export function LoginScreen() {
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
+                textContentType="none"
+                autoComplete="off"
+                importantForAutofill="no"
               />
               {errors.email && (
                 <Text style={styles.errorText}>{errors.email}</Text>
@@ -401,6 +506,7 @@ export function LoginScreen() {
               </Text>
               <View style={styles.passwordContainer}>
                 <Input
+                  key={`password-${authMode}`}
                   value={loginData.password}
                   onChangeText={handlePasswordChange}
                   placeholder={authMode === 'login' ? 'Enter your password' : 'Create a secure password'}
@@ -410,6 +516,11 @@ export function LoginScreen() {
                   secureTextEntry={!isPasswordVisible}
                   autoCapitalize="none"
                   autoCorrect={false}
+                  autoComplete="off"
+                  textContentType="none"
+                  passwordRules=""
+                  spellCheck={false}
+                  importantForAutofill="no"
                 />
                 <TouchableOpacity
                   style={styles.passwordToggle}
@@ -456,6 +567,7 @@ export function LoginScreen() {
                 </Text>
                 <View style={styles.passwordContainer}>
                   <Input
+                    key={`confirm-password-${authMode}`}
                     value={loginData.confirmPassword}
                     onChangeText={(text) => setLoginData({ ...loginData, confirmPassword: text })}
                     placeholder="Confirm your password"
@@ -465,6 +577,11 @@ export function LoginScreen() {
                     secureTextEntry={!isConfirmPasswordVisible}
                     autoCapitalize="none"
                     autoCorrect={false}
+                    autoComplete="off"
+                    textContentType="none"
+                    passwordRules=""
+                    spellCheck={false}
+                    importantForAutofill="no"
                   />
                   <TouchableOpacity
                     style={styles.passwordToggle}

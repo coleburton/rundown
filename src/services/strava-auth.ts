@@ -11,7 +11,7 @@ const BACKEND_URL = Constants.expoConfig?.extra?.backendUrl || process.env.EXPO_
 
 const redirectUri = AuthSession.makeRedirectUri({
   scheme: 'rundown',
-  path: 'auth/strava/callback',
+  path: 'auth/callback',
   preferLocalhost: true,
 });
 

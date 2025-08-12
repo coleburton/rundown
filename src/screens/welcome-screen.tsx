@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ViewStyle, TextStyle, Animated } from 'react-native';
 import { Button } from '@/components/ui/button';
-import { useMockAuth } from '@/hooks/useMockAuth';
+import { useAuth } from '@/hooks/useAuth';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
 });
 
 export function WelcomeScreen({ navigation }: Props) {
-  const { signIn, connectStrava, updateUser } = useMockAuth();
+  const { user } = useAuth();
   const { colorScheme, toggleColorScheme } = useColorScheme();
   const insets = useSafeAreaInsets();
   const isDarkMode = colorScheme === 'dark';
@@ -237,35 +237,26 @@ export function WelcomeScreen({ navigation }: Props) {
     animatePulse();
   }, [dot1Anim, dot2Anim, dot3Anim, pulseAnim]);
 
-  const handleSignIn = async () => {
+  const handleStart = async () => {
     try {
-      // Track the sign-in button click
+      // Track the start button click
       analytics.trackEvent(ANALYTICS_EVENTS.BUTTON_CLICK, {
-        button_name: 'sign_in',
+        button_name: 'start_onboarding',
         screen: 'Welcome'
       });
       
-      const user = await signIn();
+      // User is already authenticated from login screen, proceed to onboarding
+      console.log('Welcome screen - User is authenticated:', user?.id);
       
-      // Mark onboarding as completed when user signs in
-      await updateUser({ onboardingCompleted: true });
-      
-      // Track successful sign-in
-      analytics.trackEvent(ANALYTICS_EVENTS.USER_SIGN_IN, {
-        method: 'strava',
-        success: true
+      // Track onboarding start
+      analytics.trackEvent(ANALYTICS_EVENTS.ONBOARDING_STARTED, {
+        user_id: user?.id,
+        screen: 'Welcome'
       });
       
       navigation.navigate('WhyAccountability');
     } catch (error) {
-      console.error('Failed to sign in:', error);
-      
-      // Track failed sign-in
-      analytics.trackEvent(ANALYTICS_EVENTS.USER_SIGN_IN, {
-        method: 'strava',
-        success: false,
-        error: error instanceof Error ? error.message : String(error)
-      });
+      console.error('Failed to start onboarding:', error);
     }
   };
 
@@ -392,7 +383,7 @@ export function WelcomeScreen({ navigation }: Props) {
       {/* Bottom CTA */}
       <View style={[ONBOARDING_CONTAINER_STYLE, { paddingBottom: Math.max(16, insets.bottom) }]}>
         <Button
-          onPress={handleSignIn}
+          onPress={handleStart}
           variant="default"
           size="lg"
           style={ONBOARDING_BUTTON_STYLE}

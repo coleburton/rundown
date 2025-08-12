@@ -1,5 +1,7 @@
 import React, { createContext, useContext } from 'react';
-import { User } from '@/types/mock';
+import { Database } from '@/types/supabase';
+
+type User = Database['public']['Tables']['users']['Row'];
 
 interface AuthContextType {
   user: User | null;

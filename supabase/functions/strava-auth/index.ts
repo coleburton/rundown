@@ -22,15 +22,37 @@ interface StravaTokenResponse {
 
 serve(async (req) => {
   try {
-    const { code } = await req.json();
+    console.log('Strava auth function called');
+    const { code, user_id } = await req.json();
+    console.log('Request data:', { hasCode: !!code, user_id });
 
     if (!code) {
+      console.error('No authorization code provided');
       return new Response(
         JSON.stringify({ error: 'Authorization code is required' }),
         { status: 400 }
       );
     }
 
+    if (!user_id) {
+      console.error('No user_id provided');
+      return new Response(
+        JSON.stringify({ error: 'User ID is required for Strava connection' }),
+        { status: 400 }
+      );
+    }
+
+    // Check environment variables
+    if (!STRAVA_CLIENT_ID || !STRAVA_CLIENT_SECRET) {
+      console.error('Missing Strava environment variables');
+      return new Response(
+        JSON.stringify({ error: 'Strava configuration missing' }),
+        { status: 500 }
+      );
+    }
+
+    console.log('Exchanging code for token with Strava');
+    
     // Exchange authorization code for access token
     const tokenResponse = await fetch('https://www.strava.com/oauth/token', {
       method: 'POST',
@@ -45,73 +67,137 @@ serve(async (req) => {
       }),
     });
 
-    const stravaData = (await tokenResponse.json()) as StravaTokenResponse;
+    console.log('Strava token response status:', tokenResponse.status);
 
     if (!tokenResponse.ok) {
-      throw new Error('Failed to exchange code for token');
+      const errorData = await tokenResponse.text();
+      console.error('Strava token exchange failed:', {
+        status: tokenResponse.status,
+        statusText: tokenResponse.statusText,
+        error: errorData
+      });
+      return new Response(
+        JSON.stringify({ 
+          error: 'Failed to exchange code for token', 
+          status: tokenResponse.status,
+          statusText: tokenResponse.statusText,
+          details: errorData 
+        }),
+        { 
+          status: 400,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
     }
 
+    const stravaData = (await tokenResponse.json()) as StravaTokenResponse;
+    console.log('Strava data received:', { athleteId: stravaData.athlete.id });
+
     // Initialize Supabase client with service role key
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+      console.error('Missing Supabase environment variables');
+      return new Response(
+        JSON.stringify({ error: 'Database configuration missing' }),
+        { status: 500 }
+      );
+    }
+
     const supabase = createClient(
       SUPABASE_URL!,
       SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    // Check if user exists
-    const { data: existingUser } = await supabase
-      .from('users')
-      .select('id, email')
-      .eq('strava_id', stravaData.athlete.id.toString())
-      .single();
+    console.log('Checking if user exists:', user_id);
 
-    if (existingUser) {
-      // Update existing user
-      await supabase
+    try {
+      // Check if user exists by user_id (from current session)
+      const { data: existingUser, error: userError } = await supabase
+        .from('users')
+        .select('id, email, strava_id, name')
+        .eq('id', user_id)
+        .single();
+
+      console.log('User lookup completed');
+
+      if (userError) {
+        console.error('Error fetching user:', userError);
+        return new Response(
+          JSON.stringify({ error: 'User not found', details: userError.message }),
+          { status: 404 }
+        );
+      }
+
+      if (!existingUser) {
+        console.error('User not found in database');
+        return new Response(
+          JSON.stringify({ error: 'User not found' }),
+          { status: 404 }
+        );
+      }
+
+      console.log('User found, updating Strava connection');
+
+      // Update the existing user's Strava connection
+      const { error: updateError } = await supabase
         .from('users')
         .update({
+          strava_id: stravaData.athlete.id.toString(),
           access_token: stravaData.access_token,
           refresh_token: stravaData.refresh_token,
           token_expires_at: new Date(stravaData.expires_at * 1000).toISOString(),
+          name: existingUser.name || `${stravaData.athlete.firstname} ${stravaData.athlete.lastname}`,
         })
-        .eq('id', existingUser.id);
+        .eq('id', user_id);
 
+      console.log('User update completed');
+
+      if (updateError) {
+        console.error('Error updating user:', updateError);
+        
+        // Check if this is a duplicate strava_id error
+        if (updateError.code === '23505' && updateError.message.includes('strava_id')) {
+          return new Response(
+            JSON.stringify({ 
+              error: 'This Strava account is already connected to another user', 
+              code: 'STRAVA_ALREADY_CONNECTED'
+            }),
+            { status: 409 }
+          );
+        }
+        
+        return new Response(
+          JSON.stringify({ error: 'Failed to update user', details: updateError.message }),
+          { status: 500 }
+        );
+      }
+    } catch (dbError) {
+      console.error('Database operation failed:', dbError);
       return new Response(
-        JSON.stringify({
-          email: existingUser.email,
-          token: stravaData.access_token,
-        }),
-        { status: 200 }
+        JSON.stringify({ error: 'Database error', details: dbError.message }),
+        { status: 500 }
       );
     }
 
-    // Create new user
-    const { data: newUser, error: createError } = await supabase
-      .from('users')
-      .insert({
-        email: stravaData.athlete.email,
-        strava_id: stravaData.athlete.id.toString(),
-        access_token: stravaData.access_token,
-        refresh_token: stravaData.refresh_token,
-        token_expires_at: new Date(stravaData.expires_at * 1000).toISOString(),
-        name: `${stravaData.athlete.firstname} ${stravaData.athlete.lastname}`,
-      })
-      .select()
-      .single();
-
-    if (createError) {
-      throw createError;
-    }
+    console.log('Strava connection successful');
 
     return new Response(
       JSON.stringify({
-        email: newUser.email,
-        token: stravaData.access_token,
+        success: true,
+        athlete: stravaData.athlete,
+        message: 'Strava account connected successfully'
       }),
-      { status: 200 }
+      { 
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      }
     );
   } catch (error) {
+    console.error('Unexpected error in strava-auth function:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: 'Internal server error', 
+        message: error instanceof Error ? error.message : 'Unknown error'
+      }),
       { status: 500 }
     );
   }

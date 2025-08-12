@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Linking } from 'react-native';
 import { Button } from '@/components/ui/button';
 import { ServiceLogo } from '@/components/ServiceLogo';
-import { useMockAuth } from '@/hooks/useMockAuth';
+import { useAuth } from '@/hooks/useAuth';
 import StravaAuthService from '@/services/strava-auth';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -25,6 +25,7 @@ type RootStackParamList = {
   FitnessAppConnect: undefined;
   ContactSetup: undefined;
   Dashboard: undefined;
+  Login: undefined;
 };
 
 type Props = NativeStackScreenProps<RootStackParamList, 'FitnessAppConnect'>;
@@ -74,13 +75,22 @@ const FITNESS_APPS: FitnessApp[] = [
 ];
 
 export function FitnessAppConnectScreen({ navigation }: Props) {
-  const { connectStrava } = useMockAuth();
+  const { signInWithStrava, user, loading } = useAuth();
   const insets = useSafeAreaInsets();
   const [selectedApp, setSelectedApp] = useState<string>('strava');
   const [isConnecting, setIsConnecting] = useState(false);
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [screenStartTime] = useState(Date.now());
   const stravaAuth = StravaAuthService.getInstance();
+
+  // Debug: log auth state and handle unauthenticated users
+  useEffect(() => {
+    console.log('FitnessAppConnect - Auth state:', { user: user?.id, loading });
+    if (!loading && !user) {
+      console.warn('FitnessAppConnect - No authenticated user found, redirecting to login');
+      navigation.navigate('Login');
+    }
+  }, [user, loading, navigation]);
 
   // Track screen view on mount
   useEffect(() => {
@@ -107,6 +117,13 @@ export function FitnessAppConnectScreen({ navigation }: Props) {
       setConnectionError(null);
       const timeSpent = Date.now() - screenStartTime;
       
+      // Check auth state before attempting connection
+      if (!user && !loading) {
+        console.error('Attempting to connect Strava without authenticated user');
+        setConnectionError('You must be logged in to connect your fitness app. Please complete the login process first.');
+        return;
+      }
+      
       // Track connection attempt
       analytics.trackEvent(ANALYTICS_EVENTS.FITNESS_APP_CONNECTED, {
         app_name: selectedApp,
@@ -115,47 +132,38 @@ export function FitnessAppConnectScreen({ navigation }: Props) {
       });
       
       if (selectedApp === 'strava') {
-        // Use real Strava authentication
-        const result = await stravaAuth.authenticate();
+        // Use real Strava authentication via useAuth hook
+        console.log('Attempting Strava connection for user:', user?.id);
+        await signInWithStrava();
         
-        if (result.type === 'success' && result.tokens) {
-          // Tokens are already stored locally by the auth service
-          console.log('Strava authentication successful, tokens stored locally');
-          
-          // Track successful connection and screen completion
-          trackOnboardingScreenCompleted(ONBOARDING_SCREENS.FITNESS_APP_CONNECT, {
-            time_spent_ms: timeSpent,
-            time_spent_seconds: Math.round(timeSpent / 1000),
-            step_number: 6,
-            total_steps: 9,
-            fitness_app: selectedApp,
-            completion_type: 'connected',
-            athlete_id: result.tokens.athlete?.id
-          });
-          
-          // Track funnel progression
-          trackFunnelStep(ONBOARDING_SCREENS.FITNESS_APP_CONNECT, 6, 9, {
-            time_spent_ms: timeSpent,
-            fitness_app: selectedApp,
-            athlete_id: result.tokens.athlete?.id
-          });
-          
-          // Set user properties for segmentation
-          setUserProperties({
-            [USER_PROPERTIES.FITNESS_APP_CONNECTED]: true,
-            [USER_PROPERTIES.ONBOARDING_STEP]: 'contact_setup'
-          });
-          
-          navigation.navigate('ContactSetup');
-        } else if (result.type === 'cancel') {
-          setConnectionError('Authentication was cancelled. Please try again.');
-        } else {
-          setConnectionError(result.error || 'Failed to connect to Strava. Please try again.');
-        }
-      } else {
-        // Fallback to mock for other apps
-        await connectStrava();
+        console.log('Strava authentication successful');
+        
+        // Track successful connection and screen completion
+        trackOnboardingScreenCompleted(ONBOARDING_SCREENS.FITNESS_APP_CONNECT, {
+          time_spent_ms: timeSpent,
+          time_spent_seconds: Math.round(timeSpent / 1000),
+          step_number: 6,
+          total_steps: 9,
+          fitness_app: selectedApp,
+          completion_type: 'connected'
+        });
+        
+        // Track funnel progression
+        trackFunnelStep(ONBOARDING_SCREENS.FITNESS_APP_CONNECT, 6, 9, {
+          time_spent_ms: timeSpent,
+          fitness_app: selectedApp
+        });
+        
+        // Set user properties for segmentation
+        setUserProperties({
+          [USER_PROPERTIES.FITNESS_APP_CONNECTED]: true,
+          [USER_PROPERTIES.ONBOARDING_STEP]: 'contact_setup'
+        });
+        
         navigation.navigate('ContactSetup');
+      } else {
+        // Other apps not yet supported
+        setConnectionError('This fitness app is not yet supported. Please try Strava.');
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
