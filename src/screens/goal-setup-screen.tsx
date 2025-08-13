@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { Button } from '@/components/ui/button';
-import { useMockAuth } from '@/hooks/useMockAuth';
+import { useAuth } from '@/hooks/useAuth';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { OnboardingStepper } from '@/components/OnboardingStepper';
@@ -33,7 +33,7 @@ type RootStackParamList = {
 type Props = NativeStackScreenProps<RootStackParamList, 'GoalSetup'>;
 
 export function GoalSetupScreen({ navigation, route }: Props) {
-  const { user, updateUser } = useMockAuth();
+  const { user, updateUser } = useAuth();
   const insets = useSafeAreaInsets();
   const fromSettings = route.params?.fromSettings;
   const [selectedGoal, setSelectedGoal] = useState<Goal>({ 
@@ -158,7 +158,7 @@ export function GoalSetupScreen({ navigation, route }: Props) {
         from_settings: fromSettings
       });
       
-      // Update user with the selected goal using mock auth
+      // Update user with the selected goal
       await updateUser({ 
         goal_per_week: selectedGoal.value, // Keep legacy field for backwards compatibility
         goal_type: selectedGoal.type,
@@ -168,7 +168,7 @@ export function GoalSetupScreen({ navigation, route }: Props) {
       if (fromSettings) {
         navigation.goBack(); // Go back to settings
       } else {
-        navigation.navigate('ValuePreview'); // Continue onboarding
+        navigation.navigate('MotivationQuiz'); // Continue onboarding
       }
     } catch (error) {
       trackOnboardingError(error as Error, {

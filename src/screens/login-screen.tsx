@@ -416,24 +416,6 @@ export function LoginScreen() {
           </TouchableOpacity>
         </View>
         
-        {/* Skip Button for QA */}
-        {__DEV__ && (
-          <TouchableOpacity
-            style={styles.skipButton}
-            onPress={() => {
-              analytics.trackEvent(ANALYTICS_EVENTS.BUTTON_CLICK, {
-                button_name: 'skip_login',
-                screen: ONBOARDING_SCREENS.LOGIN,
-                auth_mode: authMode
-              });
-              navigation.navigate('Welcome');
-            }}
-          >
-            <Text style={[styles.skipButtonText, isDarkMode && styles.darkText]}>
-              Skip
-            </Text>
-          </TouchableOpacity>
-        )}
       </View>
 
       <ScrollView 
@@ -736,17 +718,6 @@ const styles = StyleSheet.create({
   },
   activeToggleText: {
     color: '#111827',
-  },
-  skipButton: {
-    position: 'absolute',
-    top: 16,
-    right: 24,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-  },
-  skipButtonText: {
-    ...TYPOGRAPHY_STYLES.body2Medium,
-    color: '#6b7280',
   },
   content: {
     flex: 1,

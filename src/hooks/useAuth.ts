@@ -142,11 +142,34 @@ export function useAuth() {
     }
   };
 
+  const updateUser = async (updates: Partial<User>) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) {
+      throw new Error('User not authenticated');
+    }
+
+    const { data, error } = await supabase
+      .from('users')
+      .update(updates)
+      .eq('id', session.user.id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating user:', error);
+      throw error;
+    }
+
+    setUser(data);
+    return data;
+  };
+
   return {
     user,
     loading,
     signInWithStrava,
     signOut,
     refreshUser,
+    updateUser,
   };
 } 

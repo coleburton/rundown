@@ -95,15 +95,18 @@ export function SettingsScreen({ navigation }: Props) {
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       if (user) {
-        setUserGoal({
-          type: user.goal_type || 'total_activities',
-          value: user.goal_value || user.goal_per_week || 3
+        // Refresh user data from database to get latest changes
+        refreshUser().then(() => {
+          setUserGoal({
+            type: user.goal_type || 'total_activities',
+            value: user.goal_value || user.goal_per_week || 3
+          });
         });
       }
     });
 
     return unsubscribe;
-  }, [navigation, user]);
+  }, [navigation, user, refreshUser]);
 
   const fetchContacts = useCallback(async () => {
     if (!user) return;

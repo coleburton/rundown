@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { Button } from '@/components/ui/button';
 import { useAuthContext } from '@/lib/auth-context';
@@ -6,7 +6,7 @@ import { useStravaActivities } from '@/hooks/useStravaActivities';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { formatActivityDate, getWeekDateRange, isValidDate } from '@/lib/utils';
-import { calculateGoalProgress, getGoalDisplayText, getMotivationalMessage } from '@/lib/goalUtils';
+import { calculateGoalProgress, calculateGoalProgressWithHistory, getGoalDisplayText, getMotivationalMessage } from '@/lib/goalUtils';
 import Svg, { Circle, Rect, Defs, LinearGradient, Stop } from 'react-native-svg';
 
 type RootStackParamList = {
@@ -91,10 +91,14 @@ const ProgressRing = ({ progress, goal, isOnTrack, isBehind, goalType, goalDispl
 };
 
 // Weekly Goal History component
-const WeeklyGoalHistory = ({ activities, goal, selectedWeekOffset, onWeekSelect, user }: { activities: any[], goal: number, selectedWeekOffset: number, onWeekSelect: (weekOffset: number) => void, user: any }) => {
+const WeeklyGoalHistory = ({ activities, goal, goalType, selectedWeekOffset, onWeekSelect, user }: { activities: any[], goal: number, goalType: string, selectedWeekOffset: number, onWeekSelect: (weekOffset: number) => void, user: any }) => {
   const scrollViewRef = useRef<ScrollView>(null);
+  const [weeklyAchievements, setWeeklyAchievements] = useState<any[]>([]);
+  
   // Calculate weekly goal achievement for more weeks (12 weeks to show more history)
   const getWeeklyGoalAchievement = () => {
+    if (!user?.id) return [];
+    
     const now = new Date();
     const weeks = [];
     
@@ -118,25 +122,65 @@ const WeeklyGoalHistory = ({ activities, goal, selectedWeekOffset, onWeekSelect,
         }
       );
       
-      // Convert to format expected by calculateGoalProgress
+      // Convert to format expected by calculateGoalProgressWithHistory
       const formattedActivities = weeklyActivities.map(activity => ({
         id: activity.id || `${activity.date}-${activity.type}`,
         type: activity.type || 'Run',
-        distance: (activity.distance || 0) * 1609.34, // Convert miles to meters if needed
-        duration: (activity.duration || 0) * 60, // Convert minutes to seconds if needed
+        distance: activity.distance || 0, // Keep as meters since it's already converted
+        duration: activity.duration || 0, // Keep as seconds since it's already converted
         date: activity.date
       }));
       
-      // Use calculateGoalProgress to get the actual progress
-      const { progress } = calculateGoalProgress(user, formattedActivities, weekStart);
+      // Use the exact same goal and goalType that the main dashboard is using
+      const weekGoal = goal; // Use the passed goal from main dashboard
+      
+      
+      // Calculate progress using the same logic as the main dashboard
+      let progress = 0;
+      switch (goalType) {
+        case 'total_activities':
+          progress = formattedActivities.length;
+          break;
+        case 'total_runs':
+          progress = formattedActivities.filter(a => a.type.toLowerCase().includes('run')).length;
+          break;
+        case 'total_miles_running':
+          progress = formattedActivities
+            .filter(a => a.type.toLowerCase().includes('run'))
+            .reduce((sum, activity) => sum + (activity.distance / 1609.34), 0);
+          break;
+        case 'total_rides_biking':
+          progress = formattedActivities.filter(a => 
+            a.type.toLowerCase().includes('bike') || 
+            a.type.toLowerCase().includes('cycling') ||
+            a.type.toLowerCase().includes('ride')
+          ).length;
+          break;
+        case 'total_miles_biking':
+          progress = formattedActivities
+            .filter(a => 
+              a.type.toLowerCase().includes('bike') || 
+              a.type.toLowerCase().includes('cycling') ||
+              a.type.toLowerCase().includes('ride')
+            )
+            .reduce((sum, activity) => sum + (activity.distance / 1609.34), 0);
+          break;
+      }
+      
+      // Round progress for mile-based goals
+      if (goalType === 'total_miles_running' || goalType === 'total_miles_biking') {
+        progress = Math.round(progress * 10) / 10;
+      }
       
       // Determine if goal was met
-      const status = progress >= goal ? 'met' : progress > 0 ? 'partial' : 'missed';
+      const status = progress >= weekGoal ? 'met' : progress > 0 ? 'partial' : 'missed';
+      
       
       weeks.push({
         weekStart,
         weekEnd,
         activityCount: progress,
+        goal: weekGoal,
         status
       });
     }
@@ -145,7 +189,13 @@ const WeeklyGoalHistory = ({ activities, goal, selectedWeekOffset, onWeekSelect,
     return weeks.reverse();
   };
   
-  const weeklyAchievements = getWeeklyGoalAchievement();
+  // Load weekly achievements on component mount and when user changes
+  useEffect(() => {
+    if (user?.id) {
+      const achievements = getWeeklyGoalAchievement();
+      setWeeklyAchievements(achievements);
+    }
+  }, [user?.id, goal, goalType]);
   
   // Auto-scroll to selected week
   useEffect(() => {
@@ -205,12 +255,16 @@ const WeeklyGoalHistory = ({ activities, goal, selectedWeekOffset, onWeekSelect,
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ paddingLeft: 12, paddingRight: 8 }}
           >
-          {weeklyAchievements.map((week, index) => {
+          {weeklyAchievements.length > 0 ? weeklyAchievements.map((week, index) => {
             // Determine color based on status
-            const blockColor = 
-              week.status === 'met' ? '#10b981' :  // Green for met
-              week.status === 'partial' ? '#f59e0b' : // Orange for partial
-              '#e5e7eb'; // Gray for missed
+            let blockColor = '#e5e7eb'; // Default gray for missed
+            if (week.status === 'met') {
+              blockColor = '#10b981'; // Green for met
+            } else if (week.status === 'partial') {
+              blockColor = '#f59e0b'; // Orange for partial
+            }
+            
+            
             
             const isSelectedWeek = index === (weeklyAchievements.length - 1 - selectedWeekOffset);
             const weekOffset = weeklyAchievements.length - 1 - index;
@@ -239,7 +293,11 @@ const WeeklyGoalHistory = ({ activities, goal, selectedWeekOffset, onWeekSelect,
                 </Text>
               </TouchableOpacity>
             );
-          })}
+          }) : (
+            <View style={{ alignItems: 'center', padding: 16 }}>
+              <Text style={{ fontSize: 12, color: '#6b7280' }}>Loading history...</Text>
+            </View>
+          )}
           </ScrollView>
         </View>
         
@@ -313,21 +371,21 @@ export function DashboardScreen({ navigation }: Props) {
     date: activity.start_date_local,
     distance: activity.distance, // Already in meters from Supabase
     duration: activity.moving_time, // Already in seconds from Supabase  
-    type: activity.type
+    type: activity.type,
+    name: activity.name || 'Activity'
   }));
 
-  console.log('Dashboard render:', {
-    activitiesCount: activities.length,
-    loading,
-    error,
-    user: user?.id
-  });
 
-  // Calculate progress for the selected week
-  const getProgressForSelectedWeek = () => {
+  // State for progress data
+  const [progressData, setProgressData] = useState({ progress: 0, goal: 3, goalType: 'total_activities' as any });
+
+  // Calculate progress directly in useEffect to avoid callback dependencies
+  const calculateProgressForWeek = (weekOffset: number) => {
+    if (!user?.id) return { progress: 0, goal: 3, goalType: 'total_activities' as any };
+    
     const now = new Date();
     const startOfSelectedWeek = new Date(now);
-    startOfSelectedWeek.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1) - (selectedWeekOffset * 7));
+    startOfSelectedWeek.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1) - (weekOffset * 7));
     startOfSelectedWeek.setHours(0, 0, 0, 0);
     
     const endOfSelectedWeek = new Date(startOfSelectedWeek);
@@ -341,7 +399,7 @@ export function DashboardScreen({ navigation }: Props) {
       return activityDate >= startOfSelectedWeek && activityDate <= endOfSelectedWeek;
     });
     
-    // Convert Strava activities to the format expected by calculateGoalProgress
+    // Convert activities to standard format
     const formattedActivities = selectedWeekActivities.map(activity => ({
       id: activity.id,
       type: activity.type,
@@ -350,21 +408,61 @@ export function DashboardScreen({ navigation }: Props) {
       date: activity.date
     }));
     
-    // Use the goalUtils function to calculate progress
-    return calculateGoalProgress(user, formattedActivities, startOfSelectedWeek);
+    // Use current user goal settings for all weeks (simpler, no async delays)
+    const goalType = user.goal_type || 'total_activities';
+    const goalValue = user.goal_value || user.goal_per_week || 3;
+    
+    // Calculate progress using the same logic as calculateGoalProgress
+    let progress = 0;
+    switch (goalType) {
+      case 'total_activities':
+        progress = formattedActivities.length;
+        break;
+      case 'total_runs':
+        progress = formattedActivities.filter(a => a.type.toLowerCase().includes('run')).length;
+        break;
+      case 'total_miles_running':
+        progress = formattedActivities
+          .filter(a => a.type.toLowerCase().includes('run'))
+          .reduce((sum, activity) => sum + (activity.distance / 1609.34), 0);
+        break;
+      case 'total_rides_biking':
+        progress = formattedActivities.filter(a => 
+          a.type.toLowerCase().includes('bike') || 
+          a.type.toLowerCase().includes('cycling') ||
+          a.type.toLowerCase().includes('ride')
+        ).length;
+        break;
+      case 'total_miles_biking':
+        progress = formattedActivities
+          .filter(a => 
+            a.type.toLowerCase().includes('bike') || 
+            a.type.toLowerCase().includes('cycling') ||
+            a.type.toLowerCase().includes('ride')
+          )
+          .reduce((sum, activity) => sum + (activity.distance / 1609.34), 0);
+        break;
+    }
+    
+    // Round progress for mile-based goals
+    if (goalType === 'total_miles_running' || goalType === 'total_miles_biking') {
+      progress = Math.round(progress * 10) / 10;
+    }
+    
+    return { progress, goal: goalValue, goalType };
   };
   
-  const { progress, goal } = getProgressForSelectedWeek();
-  const daysLeft = selectedWeekOffset === 0 ? getDaysLeft() : 0; // Only show days left for current week
-  const goalType = user?.goal_type || 'total_activities'; // Use user's actual goal type
+
+  // Load progress data when user or selected week changes
+  useEffect(() => {
+    if (user?.id) {
+      const data = calculateProgressForWeek(selectedWeekOffset);
+      setProgressData(data);
+    }
+  }, [user?.id, user?.goal_type, user?.goal_value, user?.goal_per_week, selectedWeekOffset]);
   
-  console.log('Dashboard render with Supabase data:', {
-    activitiesCount: activities.length,
-    progress,
-    goal,
-    loading,
-    error
-  });
+  const { progress, goal, goalType } = progressData;
+  const daysLeft = selectedWeekOffset === 0 ? getDaysLeft() : 0; // Only show days left for current week
   const goalDisplay = getGoalDisplayText(goalType);
 
   const isOnTrack = progress >= goal;
@@ -408,8 +506,7 @@ export function DashboardScreen({ navigation }: Props) {
       return activityDate >= startOfSelectedWeek && activityDate <= endOfSelectedWeek;
     });
     
-    // Determine which activities count toward the goal
-    const goalType = user?.goal_type || 'total_activities';
+    // Determine which activities count toward the goal using the current goal type from progressData
     return weekActivities.map(activity => ({
       ...activity,
       countsTowardGoal: checkActivityCountsTowardGoal(activity, goalType)
@@ -508,8 +605,16 @@ export function DashboardScreen({ navigation }: Props) {
     }
   };
 
-  const getRandomMessage = (messages: string[]) => {
-    return messages[Math.floor(Math.random() * messages.length)];
+  const getStableMessage = (messages: string[], seed: string) => {
+    // Create a simple hash from the seed string for deterministic selection
+    let hash = 0;
+    for (let i = 0; i < seed.length; i++) {
+      const char = seed.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32-bit integer
+    }
+    const index = Math.abs(hash) % messages.length;
+    return messages[index];
   };
 
   const getMotivationalMessages = (scenario: 'goal_met' | 'current_with_activity' | 'current_no_activity' | 'past_partial' | 'past_none', progress: number, goal: number, goalDisplay: any) => {
@@ -724,8 +829,10 @@ export function DashboardScreen({ navigation }: Props) {
             }
 
             const messages = getMotivationalMessages(scenario, progress, goal, goalDisplay);
-            const randomTitle = getRandomMessage(messages.titles);
-            const randomMessage = getRandomMessage(messages.messages);
+            // Create a stable seed based on user ID, week, and scenario to ensure consistent messages
+            const messageSeed = `${user?.id}-${selectedWeekOffset}-${scenario}-${progress}-${goal}`;
+            const stableTitle = getStableMessage(messages.titles, messageSeed + '-title');
+            const stableMessage = getStableMessage(messages.messages, messageSeed + '-message');
 
             return (
               <>
@@ -736,14 +843,14 @@ export function DashboardScreen({ navigation }: Props) {
                   textAlign: 'center',
                   color: colorScheme.title,
                 }}>
-                  {randomTitle}
+                  {stableTitle}
                 </Text>
                 <Text style={{
                   fontSize: 14,
                   textAlign: 'center',
                   color: colorScheme.message,
                 }}>
-                  {randomMessage}
+                  {stableMessage}
                 </Text>
               </>
             );
@@ -754,6 +861,7 @@ export function DashboardScreen({ navigation }: Props) {
         <WeeklyGoalHistory 
           activities={activities} 
           goal={goal} 
+          goalType={goalType}
           selectedWeekOffset={selectedWeekOffset} 
           onWeekSelect={setSelectedWeekOffset}
           user={user}
