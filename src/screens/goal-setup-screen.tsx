@@ -218,10 +218,10 @@ export function GoalSetupScreen({ navigation, route }: Props) {
 
   return (
     <View style={{ flex: 1, backgroundColor: '#ffffff' }}>
-      <OnboardingStepper currentStep={6} />
+      {!fromSettings && <OnboardingStepper currentStep={6} />}
       
       {/* Back Button */}
-      <View style={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 4 }}>
+      <View style={{ paddingHorizontal: 16, paddingTop: fromSettings ? 48 : 8, paddingBottom: 4 }}>
         <TouchableOpacity 
           onPress={handleBack}
           style={{
@@ -238,7 +238,7 @@ export function GoalSetupScreen({ navigation, route }: Props) {
       
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 16 }}>
         {/* Header */}
-        <View style={{ alignItems: 'center', marginBottom: 16, marginTop: 12 }}>
+        <View style={{ alignItems: 'center', marginBottom: 16, marginTop: fromSettings ? 0 : 12 }}>
           <Text style={{ 
             fontSize: 24, 
             fontWeight: 'bold', 

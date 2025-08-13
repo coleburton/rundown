@@ -232,6 +232,8 @@ export function LoginScreen() {
               const { error: profileError } = await supabase
                 .from('users')
                 .update({
+                  first_name: userInfo.firstName,
+                  last_name: userInfo.lastName,
                   name: `${userInfo.firstName} ${userInfo.lastName}`,
                   birthday: userInfo.dateOfBirth ? parseDate(userInfo.dateOfBirth) : null,
                   fitness_level: userInfo.fitnessLevel || null,

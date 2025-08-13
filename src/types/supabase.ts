@@ -139,6 +139,41 @@ export type Database = {
           },
         ]
       }
+      goal_history: {
+        Row: {
+          created_at: string
+          effective_date: string
+          goal_type: string
+          goal_value: number
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          effective_date?: string
+          goal_type: string
+          goal_value: number
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          effective_date?: string
+          goal_type?: string
+          goal_value?: number
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "goal_history_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       goal_progress: {
         Row: {
           current_value: number | null
@@ -401,11 +436,13 @@ export type Database = {
           birthday: string | null
           created_at: string | null
           email: string
+          first_name: string | null
           fitness_level: string | null
           goal_per_week: number
           goal_type: string | null
           goal_value: number | null
           id: string
+          last_name: string | null
           measurement_unit: string | null
           message_day: string | null
           message_style: string
@@ -428,11 +465,13 @@ export type Database = {
           birthday?: string | null
           created_at?: string | null
           email: string
+          first_name?: string | null
           fitness_level?: string | null
           goal_per_week?: number
           goal_type?: string | null
           goal_value?: number | null
           id?: string
+          last_name?: string | null
           measurement_unit?: string | null
           message_day?: string | null
           message_style?: string
@@ -455,11 +494,13 @@ export type Database = {
           birthday?: string | null
           created_at?: string | null
           email?: string
+          first_name?: string | null
           fitness_level?: string | null
           goal_per_week?: number
           goal_type?: string | null
           goal_value?: number | null
           id?: string
+          last_name?: string | null
           measurement_unit?: string | null
           message_day?: string | null
           message_style?: string
@@ -484,7 +525,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_goal_for_week: {
+        Args: { p_user_id: string; p_week_start: string }
+        Returns: {
+          goal_type: string
+          goal_value: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

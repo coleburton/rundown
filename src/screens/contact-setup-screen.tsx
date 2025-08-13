@@ -264,7 +264,7 @@ export function ContactSetupScreen({ navigation }: Props) {
               fontWeight: '600',
               marginBottom: 3
             }}>
-              💬 Example: "Hey! {newContact.name || 'Your buddy'} missed their goal. Time for motivation!"
+              💬 Example: "Hey! {user?.first_name || user?.name || user?.email?.split('@')[0] || 'Your friend'} missed their goal. Time for motivation!"
             </Text>
           </View>
         </View>
