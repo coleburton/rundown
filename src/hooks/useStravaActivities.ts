@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { useAuth } from './useAuth';
+import { useAuthContext } from '@/lib/auth-context';
 
 export interface Activity {
   id: string;
@@ -26,7 +26,7 @@ export interface Activity {
 }
 
 export function useStravaActivities() {
-  const { user } = useAuth();
+  const { user } = useAuthContext();
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -44,16 +44,35 @@ export function useStravaActivities() {
       setLoading(true);
       setError(null);
 
+      console.log('fetchActivities - Starting fetch for user:', user?.id);
+
+      // Calculate date 12 weeks ago for dashboard historical data
+      const twelveWeeksAgo = new Date();
+      twelveWeeksAgo.setDate(twelveWeeksAgo.getDate() - (12 * 7));
+
+      console.log('fetchActivities - Date filter:', {
+        twelveWeeksAgo: twelveWeeksAgo.toISOString(),
+        now: new Date().toISOString()
+      });
+
       const { data, error: fetchError } = await supabase
         .from('activities')
         .select('*')
         .eq('user_id', user?.id)
-        .order('start_date', { ascending: false })
-        .limit(50);
+        .gte('start_date_local', twelveWeeksAgo.toISOString())
+        .order('start_date', { ascending: false });
+
+      console.log('fetchActivities - Supabase response:', {
+        userId: user?.id,
+        dataCount: data?.length || 0,
+        error: fetchError,
+        hasData: !!data
+      });
 
       if (fetchError) throw fetchError;
 
       setActivities(data || []);
+      console.log('fetchActivities - Activities set:', (data || []).length);
     } catch (err) {
       console.error('Error fetching activities:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch activities');
