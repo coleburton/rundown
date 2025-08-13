@@ -1,0 +1,13 @@
+# Supabase Edge Functions Configuration
+
+# Disable JWT verification for Strava webhook endpoints
+# This allows Strava to send webhook events without authentication
+[functions.smooth-responder]
+verify_jwt = false
+
+[functions.strava-webhook-public]
+verify_jwt = false
+
+# Keep JWT verification enabled for webhook manager (internal use only)
+[functions.strava-webhook-manager]
+verify_jwt = true
