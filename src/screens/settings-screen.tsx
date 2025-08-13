@@ -12,6 +12,7 @@ import { supabase } from '../lib/supabase';
 import { Database } from '../types/supabase';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { TYPOGRAPHY_STYLES } from '../constants/Typography';
+import { AddContactModal } from '../components/AddContactModal';
 
 type Contact = Database['public']['Tables']['contacts']['Row'];
 
@@ -65,6 +66,7 @@ export function SettingsScreen({ navigation }: Props) {
     field: 'day' | 'timePeriod';
     value: string;
   } | null>(null);
+  const [showAddContactModal, setShowAddContactModal] = useState(false);
 
   const DAYS_OF_WEEK = [
     'Monday', 'Tuesday', 'Wednesday', 'Thursday', 
@@ -607,10 +609,7 @@ export function SettingsScreen({ navigation }: Props) {
                 </ThemedText>
                 <Button
                   title="Add Contact"
-                  onPress={() => {
-                    // TODO: Navigate to contact setup screen
-                    Alert.alert('Info', 'Contact setup screen coming soon!');
-                  }}
+                  onPress={() => setShowAddContactModal(true)}
                 />
               </View>
             )
@@ -638,7 +637,7 @@ export function SettingsScreen({ navigation }: Props) {
                     onPress={() => handleDeleteContact(contact.id)}
                     style={{ padding: 8 }}
                   >
-                    <Text style={{ color: '#ef4444', fontSize: 16 }}>🗑️</Text>
+                    <Text style={{ color: '#ef4444', fontSize: 18, fontWeight: 'bold' }}>×</Text>
                   </TouchableOpacity>
                 </View>
               ))}
@@ -646,15 +645,19 @@ export function SettingsScreen({ navigation }: Props) {
               <Button
                 variant="outline"
                 title="Add Another Contact"
-                onPress={() => {
-                  // TODO: Navigate to contact setup screen
-                  Alert.alert('Info', 'Contact setup screen coming soon!');
-                }}
+                onPress={() => setShowAddContactModal(true)}
                 style={{ marginTop: 8 }}
               />
             </View>
           )}
         </View>
+
+        {/* Add Contact Modal */}
+        <AddContactModal
+          visible={showAddContactModal}
+          onClose={() => setShowAddContactModal(false)}
+          onContactAdded={fetchContacts}
+        />
 
         {/* Account Section */}
         <View style={{ marginBottom: 20 }}>
