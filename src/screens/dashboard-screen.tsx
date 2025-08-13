@@ -300,7 +300,6 @@ export function DashboardScreen({ navigation }: Props) {
     loading,
     error,
     refresh,
-    syncWithStrava,
     getWeeklyProgress,
     getDaysLeft,
     getRecentRuns,
@@ -658,30 +657,6 @@ export function DashboardScreen({ navigation }: Props) {
             </TouchableOpacity>
           </View>
 
-          {/* Sync Button */}
-          {user && (
-            <TouchableOpacity
-              onPress={async () => {
-                try {
-                  await syncWithStrava();
-                } catch (error) {
-                  console.error('Failed to sync:', error);
-                }
-              }}
-              style={{
-                backgroundColor: '#10b981',
-                borderRadius: 12,
-                paddingHorizontal: 16,
-                paddingVertical: 8,
-                marginTop: 12,
-                alignSelf: 'center',
-              }}
-            >
-              <Text style={{ color: 'white', fontSize: 12, fontWeight: '600' }}>
-                🔄 Sync Strava Data
-              </Text>
-            </TouchableOpacity>
-          )}
         </View>
 
         {/* Progress Ring */}

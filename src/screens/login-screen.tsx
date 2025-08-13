@@ -291,8 +291,14 @@ export function LoginScreen() {
         screen: ONBOARDING_SCREENS.LOGIN
       });
       
-      // Navigate to next screen
-      navigation.navigate('Welcome');
+      // Navigate to next screen based on auth mode
+      if (authMode === 'login') {
+        // For sign-in, go directly to dashboard (skip onboarding)
+        navigation.navigate('Dashboard');
+      } else {
+        // For sign-up, continue with onboarding flow
+        navigation.navigate('Welcome');
+      }
     } catch (error) {
       Alert.alert('Error', `Failed to ${authMode === 'login' ? 'sign in' : 'create account'}. Please try again.`);
       
