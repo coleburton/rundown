@@ -32,7 +32,7 @@ This document outlines the remaining steps needed to receive Strava webhook even
 ### 3. Webhook Configuration
 - [ ] **Configure webhook callback URL**
   - Update `WEBHOOK_CALLBACK_URL` in environment
-  - Format: `https://yourdomain.com/api/webhooks/strava`
+  - Format: `https://[supabase-project].supabase.co/functions/v1/smooth-responder`
   - Must be publicly accessible over HTTPS
 
 ### 4. Strava App Configuration
@@ -49,7 +49,7 @@ This document outlines the remaining steps needed to receive Strava webhook even
     curl -X POST https://www.strava.com/api/v3/push_subscriptions \
       -F client_id=YOUR_CLIENT_ID \
       -F client_secret=YOUR_CLIENT_SECRET \
-      -F callback_url=https://yourdomain.com/api/webhooks/strava \
+      -F callback_url=https://[supabase-project].supabase.co/functions/v1/smooth-responder \
       -F verify_token=rundown_strava_webhook_2024
     ```
 
@@ -65,7 +65,7 @@ STRAVA_WEBHOOK_VERIFY_TOKEN=rundown_strava_webhook_2024
 DATABASE_URL=postgres://user:pass@host:port/database
 
 # Webhook
-WEBHOOK_CALLBACK_URL=https://yourdomain.com/api/webhooks/strava
+WEBHOOK_CALLBACK_URL=https://[supabase-project].supabase.co/functions/v1/smooth-responder
 
 # Server
 PORT=8080
