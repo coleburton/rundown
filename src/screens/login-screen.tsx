@@ -14,6 +14,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
+import { IconComponent } from '../components/ui/IconComponent';
 import { useColorScheme } from '../hooks/useColorScheme';
 import { TYPOGRAPHY_STYLES } from '../constants/Typography';
 import { ONBOARDING_BUTTON_STYLE, ONBOARDING_CONTAINER_STYLE } from '../constants/OnboardingStyles';
@@ -298,8 +299,8 @@ export function LoginScreen() {
         // For sign-in, go directly to dashboard (skip onboarding)
         navigation.navigate('Dashboard');
       } else {
-        // For sign-up, continue with onboarding flow
-        navigation.navigate('Welcome');
+        // For sign-up, continue with onboarding flow (skip Welcome screen)
+        navigation.navigate('WhyAccountability');
       }
     } catch (error) {
       Alert.alert('Error', `Failed to ${authMode === 'login' ? 'sign in' : 'create account'}. Please try again.`);
@@ -447,32 +448,6 @@ export function LoginScreen() {
             </Text>
           </View>
 
-          {/* Social Proof */}
-          <View style={styles.socialProof}>
-            <View style={[styles.testimonial, isDarkMode && styles.darkTestimonial]}>
-              <View style={styles.testimonialHeader}>
-                <View style={styles.avatarPlaceholder}>
-                  <Text style={styles.avatarText}>SM</Text>
-                </View>
-                <View style={styles.testimonialMeta}>
-                  <Text style={[styles.testimonialAuthor, isDarkMode && styles.darkText]}>
-                    Sarah M.
-                  </Text>
-                  <View style={styles.ratingContainer}>
-                    {[...Array(5)].map((_, i) => (
-                      <Text key={i} style={styles.star}>★</Text>
-                    ))}
-                  </View>
-                </View>
-              </View>
-              <Text style={[styles.testimonialText, isDarkMode && styles.darkSubtitle]}>
-                "This app transformed how I approach running. The personalized plans and progress tracking keep me motivated every single day."
-              </Text>
-            </View>
-            <Text style={[styles.userCount, isDarkMode && styles.darkSubtitle]}>
-              Trusted by 10,000+ active runners worldwide
-            </Text>
-          </View>
 
           {/* Form */}
           <View style={styles.form} importantForAutofill="noExcludeDescendants">
@@ -528,9 +503,12 @@ export function LoginScreen() {
                   style={styles.passwordToggle}
                   onPress={() => setIsPasswordVisible(!isPasswordVisible)}
                 >
-                  <Text style={styles.passwordToggleText}>
-                    {isPasswordVisible ? '🙈' : '👁️'}
-                  </Text>
+                  <IconComponent
+                    library="Lucide"
+                    name={isPasswordVisible ? "EyeOff" : "Eye"}
+                    size={18}
+                    color="#6b7280"
+                  />
                 </TouchableOpacity>
               </View>
               {errors.password && (
@@ -589,9 +567,12 @@ export function LoginScreen() {
                     style={styles.passwordToggle}
                     onPress={() => setIsConfirmPasswordVisible(!isConfirmPasswordVisible)}
                   >
-                    <Text style={styles.passwordToggleText}>
-                      {isConfirmPasswordVisible ? '🙈' : '👁️'}
-                    </Text>
+                    <IconComponent
+                      library="Lucide"
+                      name={isConfirmPasswordVisible ? "EyeOff" : "Eye"}
+                      size={18}
+                      color="#6b7280"
+                    />
                   </TouchableOpacity>
                 </View>
                 {errors.confirmPassword && (
@@ -612,7 +593,12 @@ export function LoginScreen() {
                   isDarkMode && styles.darkCheckbox,
                 ]}>
                   {acceptedTerms && (
-                    <Text style={styles.checkmark}>✓</Text>
+                    <IconComponent
+                      library="Lucide"
+                      name="Check"
+                      size={12}
+                      color="#ffffff"
+                    />
                   )}
                 </View>
                 <Text style={[styles.termsText, isDarkMode && styles.darkSubtitle]}>
@@ -638,7 +624,12 @@ export function LoginScreen() {
             <View style={styles.trustIndicators}>
               <View style={styles.trustBadge}>
                 <View style={styles.trustIcon}>
-                  <Text style={styles.trustIconText}>🔒</Text>
+                  <IconComponent
+                    library="Lucide"
+                    name="Shield"
+                    size={16}
+                    color="#10b981"
+                  />
                 </View>
                 <Text style={[styles.trustText, isDarkMode && styles.darkSubtitle]}>
                   Bank-level security
@@ -646,7 +637,12 @@ export function LoginScreen() {
               </View>
               <View style={styles.trustBadge}>
                 <View style={styles.trustIcon}>
-                  <Text style={styles.trustIconText}>✓</Text>
+                  <IconComponent
+                    library="Lucide"
+                    name="ShieldCheck"
+                    size={16}
+                    color="#3b82f6"
+                  />
                 </View>
                 <Text style={[styles.trustText, isDarkMode && styles.darkSubtitle]}>
                   Privacy protected
@@ -666,7 +662,7 @@ export function LoginScreen() {
           style={[ONBOARDING_BUTTON_STYLE, isLoading && styles.loadingButton]}
           title={isLoading 
             ? (authMode === 'login' ? 'Signing In...' : 'Creating Account...') 
-            : (authMode === 'login' ? 'Sign In' : 'Create Account - Free!')
+            : (authMode === 'login' ? 'Sign In' : 'Create Account')
           }
           darkMode={isDarkMode}
           disabled={isLoading}
@@ -674,8 +670,8 @@ export function LoginScreen() {
         
         <Text style={[styles.footerText, isDarkMode && styles.darkSubtitle]}>
           {authMode === 'login' 
-            ? "Free to start. Cancel anytime." 
-            : "Free to start. No credit card required."
+            ? "Welcome back to your running journey" 
+            : "Start your personalized running journey"
           }
         </Text>
       </View>
@@ -762,70 +758,6 @@ const styles = StyleSheet.create({
     color: '#6b7280',
     textAlign: 'center',
     maxWidth: 280,
-  },
-  socialProof: {
-    alignItems: 'center',
-    marginBottom: 28,
-    paddingHorizontal: 16,
-  },
-  testimonial: {
-    backgroundColor: '#f9fafb',
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 20,
-    maxWidth: 320,
-    borderWidth: 1,
-    borderColor: '#f3f4f6',
-  },
-  darkTestimonial: {
-    backgroundColor: '#1f2937',
-    borderColor: '#374151',
-  },
-  testimonialHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  avatarPlaceholder: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#f97316',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  avatarText: {
-    color: '#ffffff',
-    fontWeight: '600',
-    fontSize: 14,
-  },
-  testimonialMeta: {
-    flex: 1,
-  },
-  testimonialAuthor: {
-    ...TYPOGRAPHY_STYLES.body2Medium,
-    color: '#111827',
-    marginBottom: 2,
-  },
-  ratingContainer: {
-    flexDirection: 'row',
-  },
-  star: {
-    color: '#fbbf24',
-    fontSize: 12,
-    marginRight: 1,
-  },
-  testimonialText: {
-    ...TYPOGRAPHY_STYLES.body2,
-    color: '#374151',
-    lineHeight: 22,
-    fontStyle: 'italic',
-  },
-  userCount: {
-    ...TYPOGRAPHY_STYLES.caption1,
-    color: '#6b7280',
-    textAlign: 'center',
   },
   form: {
     gap: 20,

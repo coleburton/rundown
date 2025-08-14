@@ -31,14 +31,12 @@ import { SettingsScreen } from './src/screens/settings-screen';
 import { SocialProofScreen } from './src/screens/social-proof-screen';
 import { UserInfoScreen } from './src/screens/user-info-screen';
 import { ValuePreviewScreen } from './src/screens/value-preview-screen';
-import { WelcomeScreen } from './src/screens/welcome-screen';
 import { WhyAccountabilityScreen } from './src/screens/why-accountability-screen';
 import { PostPaywallOnboardingScreen } from './src/screens/post-paywall-onboarding-screen';
 import { isDebugMode } from './src/lib/debug-mode';
 
 export type RootStackParamList = {
   Onboarding: undefined;
-  Welcome: undefined;
   UserInfo: undefined;
   Login: undefined;
   WhyAccountability: undefined;
@@ -95,7 +93,6 @@ function AppContent() {
         <Stack.Screen name="Onboarding" component={OnboardingScreen} />
         
         {/* Auth screens */}
-        <Stack.Screen name="Welcome" component={WelcomeScreen} />
         <Stack.Screen name="UserInfo" component={UserInfoScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
         

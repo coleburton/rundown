@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput } from 'react-native';
 import analytics, { ANALYTICS_EVENTS } from '../lib/analytics';
-import { VectorIcon } from './ui/IconComponent';
+import { VectorIcon, IconComponent } from './ui/IconComponent';
 
 export type GoalType = 'total_activities' | 'total_runs' | 'total_miles_running' | 'total_rides_biking' | 'total_miles_biking';
 
@@ -21,7 +21,7 @@ const GOAL_TYPES = [
   {
     type: 'total_activities' as GoalType,
     name: 'Total Activities',
-    emoji: '🎯',
+    icon: 'Target',
     unit: 'activities',
     description: 'Any fitness activities per week',
     options: [2, 3, 4, 5, 6],
@@ -30,7 +30,7 @@ const GOAL_TYPES = [
   {
     type: 'total_runs' as GoalType,
     name: 'Total Runs',
-    emoji: '🏃',
+    icon: 'Footprints',
     unit: 'runs',
     description: 'Running workouts per week',
     options: [2, 3, 4, 5, 6],
@@ -39,7 +39,7 @@ const GOAL_TYPES = [
   {
     type: 'total_miles_running' as GoalType,
     name: 'Running Miles',
-    emoji: '🏃‍♂️',
+    icon: 'MapPin',
     unit: 'miles',
     description: 'Total running miles per week',
     options: [5, 10, 15, 20, 25],
@@ -48,7 +48,7 @@ const GOAL_TYPES = [
   {
     type: 'total_rides_biking' as GoalType,
     name: 'Total Rides',
-    emoji: '🚴',
+    icon: 'Bike',
     unit: 'rides',
     description: 'Cycling workouts per week',
     options: [2, 3, 4, 5, 6],
@@ -57,7 +57,7 @@ const GOAL_TYPES = [
   {
     type: 'total_miles_biking' as GoalType,
     name: 'Cycling Miles',
-    emoji: '🚴‍♂️',
+    icon: 'Navigation',
     unit: 'miles',
     description: 'Total cycling miles per week',
     options: [10, 25, 50, 75, 100],
@@ -67,39 +67,39 @@ const GOAL_TYPES = [
 
 const MOTIVATION_MESSAGES = {
   total_activities: {
-    2: { title: 'Steady Start!', description: 'Perfect for sustainable growth', emoji: '🌱' },
-    3: { title: 'Well Balanced!', description: 'Great commitment level', emoji: '⚖️' },
-    4: { title: 'Getting Serious!', description: 'You\'re really dedicated', emoji: '💪' },
-    5: { title: 'Activity Master!', description: 'Excellent weekly commitment', emoji: '🚀' },
-    6: { title: 'Goal Crusher!', description: 'Maximum weekly dedication', emoji: '👑' }
+    2: { title: 'Steady Start!', description: 'Perfect for sustainable growth', icon: 'Sprout', color: '#10b981' },
+    3: { title: 'Well Balanced!', description: 'Great commitment level', icon: 'Scale', color: '#3b82f6' },
+    4: { title: 'Getting Serious!', description: 'You\'re really dedicated', icon: 'Zap', color: '#f59e0b' },
+    5: { title: 'Activity Master!', description: 'Excellent weekly commitment', icon: 'Rocket', color: '#8b5cf6' },
+    6: { title: 'Goal Crusher!', description: 'Maximum weekly dedication', icon: 'Crown', color: '#ef4444' }
   },
   total_runs: {
-    2: { title: 'Runner\'s Start!', description: 'Building your running habit', emoji: '🌱' },
-    3: { title: 'Consistent Runner!', description: 'Great running rhythm', emoji: '⚖️' },
-    4: { title: 'Dedicated Runner!', description: 'Strong running commitment', emoji: '💪' },
-    5: { title: 'Running Pro!', description: 'Impressive weekly mileage', emoji: '🚀' },
-    6: { title: 'Running Champion!', description: 'Elite running schedule', emoji: '👑' }
+    2: { title: 'Runner\'s Start!', description: 'Building your running habit', icon: 'Sprout', color: '#10b981' },
+    3: { title: 'Consistent Runner!', description: 'Great running rhythm', icon: 'Scale', color: '#3b82f6' },
+    4: { title: 'Dedicated Runner!', description: 'Strong running commitment', icon: 'Zap', color: '#f59e0b' },
+    5: { title: 'Running Pro!', description: 'Impressive weekly mileage', icon: 'Rocket', color: '#8b5cf6' },
+    6: { title: 'Running Champion!', description: 'Elite running schedule', icon: 'Crown', color: '#ef4444' }
   },
   total_miles_running: {
-    5: { title: 'Getting Started!', description: 'Building your base mileage', emoji: '🌱' },
-    10: { title: 'Solid Foundation!', description: 'Great weekly distance', emoji: '⚖️' },
-    15: { title: 'Strong Runner!', description: 'Impressive weekly mileage', emoji: '💪' },
-    20: { title: 'Distance Master!', description: 'Serious weekly commitment', emoji: '🚀' },
-    25: { title: 'Mileage Champion!', description: 'Elite distance training', emoji: '👑' }
+    5: { title: 'Getting Started!', description: 'Building your base mileage', icon: 'Sprout', color: '#10b981' },
+    10: { title: 'Solid Foundation!', description: 'Great weekly distance', icon: 'Scale', color: '#3b82f6' },
+    15: { title: 'Strong Runner!', description: 'Impressive weekly mileage', icon: 'Zap', color: '#f59e0b' },
+    20: { title: 'Distance Master!', description: 'Serious weekly commitment', icon: 'Rocket', color: '#8b5cf6' },
+    25: { title: 'Mileage Champion!', description: 'Elite distance training', icon: 'Crown', color: '#ef4444' }
   },
   total_rides_biking: {
-    2: { title: 'Cyclist\'s Start!', description: 'Building your cycling habit', emoji: '🌱' },
-    3: { title: 'Consistent Cyclist!', description: 'Great riding rhythm', emoji: '⚖️' },
-    4: { title: 'Dedicated Rider!', description: 'Strong cycling commitment', emoji: '💪' },
-    5: { title: 'Cycling Pro!', description: 'Impressive ride schedule', emoji: '🚀' },
-    6: { title: 'Cycling Champion!', description: 'Elite riding routine', emoji: '👑' }
+    2: { title: 'Cyclist\'s Start!', description: 'Building your cycling habit', icon: 'Sprout', color: '#10b981' },
+    3: { title: 'Consistent Cyclist!', description: 'Great riding rhythm', icon: 'Scale', color: '#3b82f6' },
+    4: { title: 'Dedicated Rider!', description: 'Strong cycling commitment', icon: 'Zap', color: '#f59e0b' },
+    5: { title: 'Cycling Pro!', description: 'Impressive ride schedule', icon: 'Rocket', color: '#8b5cf6' },
+    6: { title: 'Cycling Champion!', description: 'Elite riding routine', icon: 'Crown', color: '#ef4444' }
   },
   total_miles_biking: {
-    10: { title: 'Getting Rolling!', description: 'Building your cycling base', emoji: '🌱' },
-    25: { title: 'Solid Cyclist!', description: 'Great weekly distance', emoji: '⚖️' },
-    50: { title: 'Strong Rider!', description: 'Impressive weekly mileage', emoji: '💪' },
-    75: { title: 'Distance Cyclist!', description: 'Serious weekly commitment', emoji: '🚀' },
-    100: { title: 'Mileage Master!', description: 'Elite cycling training', emoji: '👑' }
+    10: { title: 'Getting Rolling!', description: 'Building your cycling base', icon: 'Sprout', color: '#10b981' },
+    25: { title: 'Solid Cyclist!', description: 'Great weekly distance', icon: 'Scale', color: '#3b82f6' },
+    50: { title: 'Strong Rider!', description: 'Impressive weekly mileage', icon: 'Zap', color: '#f59e0b' },
+    75: { title: 'Distance Cyclist!', description: 'Serious weekly commitment', icon: 'Rocket', color: '#8b5cf6' },
+    100: { title: 'Mileage Master!', description: 'Elite cycling training', icon: 'Crown', color: '#ef4444' }
   }
 };
 
@@ -113,7 +113,7 @@ export function EnhancedGoalPicker({ value, onChange, style }: EnhancedGoalPicke
   
   const motivationMessages = MOTIVATION_MESSAGES[selectedType];
   const motivationMessage = motivationMessages?.[safeValue as keyof typeof motivationMessages] || 
-    (motivationMessages ? Object.values(motivationMessages)[0] : { title: 'Goal Set!', description: 'Keep going!', emoji: '🎯' });
+    (motivationMessages ? Object.values(motivationMessages)[0] : { title: 'Goal Set!', description: 'Keep going!', icon: 'Target', color: '#10b981' });
 
   const handleTypeChange = (type: GoalType) => {
     setSelectedType(type);
@@ -168,7 +168,14 @@ export function EnhancedGoalPicker({ value, onChange, style }: EnhancedGoalPicke
                   isSelected && { backgroundColor: goalType.color, borderColor: goalType.color }
                 ]}
               >
-                <Text style={styles.typeEmoji}>{goalType.emoji}</Text>
+                <View style={{ marginBottom: 8 }}>
+                  <IconComponent
+                    library="Lucide"
+                    name={goalType.icon}
+                    size={24}
+                    color={isSelected ? '#ffffff' : goalType.color}
+                  />
+                </View>
                 <Text style={[
                   styles.typeName,
                   isSelected && styles.typeNameSelected
@@ -272,9 +279,14 @@ export function EnhancedGoalPicker({ value, onChange, style }: EnhancedGoalPicke
 
       {/* Motivation Message */}
       <View style={[styles.motivation, { backgroundColor: currentGoalType.color + '20' }]}>
-        <Text style={styles.motivationEmoji}>
-          {motivationMessage.emoji}
-        </Text>
+        <View style={{ marginBottom: 8 }}>
+          <IconComponent
+            library="Lucide"
+            name={motivationMessage.icon}
+            size={28}
+            color={motivationMessage.color}
+          />
+        </View>
         <Text style={[styles.motivationTitle, { color: currentGoalType.color }]}>
           {motivationMessage.title}
         </Text>
@@ -311,10 +323,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: 'transparent',
     alignItems: 'center',
-  },
-  typeEmoji: {
-    fontSize: 24,
-    marginBottom: 8,
   },
   typeName: {
     fontSize: 14,
@@ -390,10 +398,6 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 16,
-  },
-  motivationEmoji: {
-    fontSize: 28,
-    marginBottom: 8,
   },
   motivationTitle: {
     fontSize: 16,

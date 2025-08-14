@@ -3,6 +3,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { IconComponent } from '../components/ui/IconComponent';
 import Animated, {
     useAnimatedStyle,
     useSharedValue,
@@ -21,9 +22,9 @@ const PLAN_FEATURES = {
 };
 
 const SOCIAL_PROOF = [
-  { name: 'Sarah', achievement: 'Lost 15 lbs in 2 months', emoji: '🏃‍♀️' },
-  { name: 'Mike', achievement: 'First marathon completed', emoji: '🏅' },
-  { name: 'Emma', achievement: 'Consistent for 6 months', emoji: '🔥' }
+  { name: 'Sarah', achievement: 'Lost 15 lbs in 2 months', icon: 'Footprints', color: '#3b82f6' },
+  { name: 'Mike', achievement: 'First marathon completed', icon: 'Medal', color: '#f59e0b' },
+  { name: 'Emma', achievement: 'Consistent for 6 months', icon: 'Flame', color: '#ef4444' }
 ];
 
 export function PaywallScreen() {
@@ -152,7 +153,14 @@ export function PaywallScreen() {
         <Animated.View style={[styles.content, containerStyle]}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={[styles.emoji, { fontSize: 64 }]}>🏃‍♂️</Text>
+            <View style={{ marginBottom: 12 }}>
+              <IconComponent
+                library="Lucide"
+                name="Zap"
+                size={64}
+                color="#f97316"
+              />
+            </View>
             <Text style={[styles.title, isDarkMode && styles.darkText]}>
               Ready to stop making excuses?
             </Text>
@@ -168,7 +176,14 @@ export function PaywallScreen() {
             </Text>
             {SOCIAL_PROOF.map((proof, index) => (
               <View key={index} style={[styles.proofItem, isDarkMode && styles.darkProofItem]}>
-                <Text style={styles.proofEmoji}>{proof.emoji}</Text>
+                <View style={{ marginRight: 12 }}>
+                  <IconComponent
+                    library="Lucide"
+                    name={proof.icon}
+                    size={24}
+                    color={proof.color}
+                  />
+                </View>
                 <View style={styles.proofText}>
                   <Text style={[styles.proofName, isDarkMode && styles.darkText]}>{proof.name}</Text>
                   <Text style={[styles.proofAchievement, isDarkMode && styles.darkSubtext]}>
@@ -345,9 +360,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 24,
   },
-  emoji: {
-    marginBottom: 12,
-  },
   title: {
     fontSize: 24,
     fontWeight: '700',
@@ -383,10 +395,6 @@ const styles = StyleSheet.create({
   },
   darkProofItem: {
     backgroundColor: '#1f2937',
-  },
-  proofEmoji: {
-    fontSize: 24,
-    marginRight: 12,
   },
   proofText: {
     flex: 1,

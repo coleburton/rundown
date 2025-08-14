@@ -103,16 +103,45 @@ export function PostPaywallOnboardingScreen() {
           {/* Header */}
           <View style={styles.header}>
             <View style={styles.heroSection}>
-              <Text style={styles.heroEmoji}>🎉</Text>
+              <IconComponent
+                library="Lucide"
+                name="PartyPopper"
+                size={64}
+                color="#f97316"
+              />
               <View style={styles.sparkles}>
-                <Text style={[styles.sparkle, { top: 5, left: 15 }]}>✨</Text>
-                <Text style={[styles.sparkle, { top: 25, right: 10 }]}>⭐</Text>
-                <Text style={[styles.sparkle, { bottom: 15, left: 5 }]}>
-                  💪
-                </Text>
-                <Text style={[styles.sparkle, { bottom: 5, right: 20 }]}>
-                  🔥
-                </Text>
+                <View style={[styles.sparkle, { top: 5, left: 15 }]}>
+                  <IconComponent
+                    library="Lucide"
+                    name="Sparkles"
+                    size={14}
+                    color="#fbbf24"
+                  />
+                </View>
+                <View style={[styles.sparkle, { top: 25, right: 10 }]}>
+                  <IconComponent
+                    library="Lucide"
+                    name="Star"
+                    size={14}
+                    color="#f59e0b"
+                  />
+                </View>
+                <View style={[styles.sparkle, { bottom: 15, left: 5 }]}>
+                  <IconComponent
+                    library="Lucide"
+                    name="Zap"
+                    size={14}
+                    color="#8b5cf6"
+                  />
+                </View>
+                <View style={[styles.sparkle, { bottom: 5, right: 20 }]}>
+                  <IconComponent
+                    library="Lucide"
+                    name="Flame"
+                    size={14}
+                    color="#ef4444"
+                  />
+                </View>
               </View>
             </View>
             <Text style={[styles.title, isDarkMode && styles.darkText]}>

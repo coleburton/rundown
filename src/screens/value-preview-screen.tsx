@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Animated } from 'react-native';
 import { Button } from '@/components/ui/button';
+import { IconComponent } from '@/components/ui/IconComponent';
 import { useAuth } from '@/hooks/useAuth';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -90,7 +91,12 @@ const MockProgressRing = ({ progress, goal }: { progress: number; goal: number }
             of {goal} runs
           </Text>
           {progress >= goal && (
-            <Text style={{ fontSize: 16, marginTop: 2 }}>🔥</Text>
+            <IconComponent
+              library="Lucide"
+              name="Flame"
+              size={16}
+              color="#f59e0b"
+            />
           )}
         </View>
       </View>
@@ -143,7 +149,7 @@ export function ValuePreviewScreen({ navigation }: Props) {
         }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
             <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#111827' }}>
-              Hey {user?.name?.split(' ')[0] || 'Runner'} 👋
+              Hey, {user?.name?.split(' ')[0] || 'Runner'}
             </Text>
             <View style={{ 
               backgroundColor: '#f3f4f6',
@@ -153,7 +159,12 @@ export function ValuePreviewScreen({ navigation }: Props) {
               alignItems: 'center',
               justifyContent: 'center'
             }}>
-              <Text style={{ fontSize: 14 }}>⚙️</Text>
+              <IconComponent
+                library="Lucide"
+                name="Settings"
+                size={14}
+                color="#6b7280"
+              />
             </View>
           </View>
           
@@ -167,15 +178,23 @@ export function ValuePreviewScreen({ navigation }: Props) {
             borderWidth: 1,
             borderColor: '#bbf7d0'
           }}>
-            <Text style={{
-              fontSize: 14,
-              fontWeight: '600',
-              color: '#166534',
-              textAlign: 'center',
-              marginBottom: 4
-            }}>
-              On track! 🎯
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 4 }}>
+              <Text style={{
+                fontSize: 14,
+                fontWeight: '600',
+                color: '#166534'
+              }}>
+                On track!
+              </Text>
+              <View style={{ marginLeft: 4 }}>
+                <IconComponent
+                  library="Lucide"
+                  name="Target"
+                  size={14}
+                  color="#10b981"
+                />
+              </View>
+            </View>
             <Text style={{
               fontSize: 12,
               color: '#16a34a',
@@ -263,49 +282,82 @@ export function ValuePreviewScreen({ navigation }: Props) {
           elevation: 2
         }}>
           <Text style={{ fontSize: 16, fontWeight: '600', color: '#111827', marginBottom: 16, textAlign: 'center' }}>
-            8-Week Goal History
+            Weekly Goal History
           </Text>
           
-          {/* Weekly blocks simulation */}
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 }}>
-            {[
-              { status: 'met', week: 'W1' },
-              { status: 'met', week: 'W2' },
-              { status: 'partial', week: 'W3' },
-              { status: 'met', week: 'W4' },
-              { status: 'met', week: 'W5' },
-              { status: 'met', week: 'W6' },
-              { status: 'met', week: 'W7' },
-              { status: 'current', week: 'W8' }
-            ].map((week, index) => {
+          {/* Weekly blocks simulation - 12 weeks, most recent on right */}
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16 }}>
+            <View style={{ flexDirection: 'row', gap: 6, paddingHorizontal: 8 }}>
+              {[
+                { status: 'met', week: '11w' },
+                { status: 'partial', week: '10w' },
+                { status: 'met', week: '9w' },
+                { status: 'met', week: '8w' },
+                { status: 'missed', week: '7w' },
+                { status: 'met', week: '6w' },
+                { status: 'met', week: '5w' },
+                { status: 'met', week: '4w' },
+                { status: 'partial', week: '3w' },
+                { status: 'met', week: '2w' },
+                { status: 'met', week: '1w' },
+                { status: 'current', week: 'Now' }
+              ].map((week, index) => {
               const blockColor = 
                 week.status === 'met' ? '#10b981' :
                 week.status === 'partial' ? '#f59e0b' :
-                week.status === 'current' ? '#3b82f6' : '#e5e7eb';
+                week.status === 'current' ? '#3b82f6' : 
+                week.status === 'missed' ? '#e5e7eb' : '#e5e7eb';
               
               return (
                 <View key={index} style={{ alignItems: 'center' }}>
                   <View style={{ 
-                    width: 24, 
-                    height: 24, 
+                    width: 28, 
+                    height: 28, 
                     backgroundColor: blockColor,
-                    borderRadius: 4,
-                    marginBottom: 4,
+                    borderRadius: 6,
+                    marginBottom: 6,
                     borderWidth: week.status === 'current' ? 2 : 0,
                     borderColor: '#111827'
                   }} />
-                  <Text style={{ fontSize: 8, color: '#6b7280' }}>
+                  <Text style={{ fontSize: 10, color: '#6b7280' }}>
                     {week.week}
                   </Text>
                 </View>
               );
             })}
+            </View>
+          </ScrollView>
+          
+          {/* Legend */}
+          <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 12, marginBottom: 16 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <View style={{ width: 8, height: 8, backgroundColor: '#10b981', borderRadius: 2, marginRight: 4 }} />
+              <Text style={{ fontSize: 10, color: '#6b7280' }}>Met Goal</Text>
+            </View>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <View style={{ width: 8, height: 8, backgroundColor: '#f59e0b', borderRadius: 2, marginRight: 4 }} />
+              <Text style={{ fontSize: 10, color: '#6b7280' }}>Partial</Text>
+            </View>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <View style={{ width: 8, height: 8, backgroundColor: '#e5e7eb', borderRadius: 2, marginRight: 4 }} />
+              <Text style={{ fontSize: 10, color: '#6b7280' }}>Missed</Text>
+            </View>
           </View>
           
           <View style={{ alignItems: 'center', backgroundColor: '#f0fdf4', borderRadius: 8, padding: 12 }}>
-            <Text style={{ fontSize: 14, color: '#15803d', fontWeight: '600' }}>
-              6 week streak! 🔥
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={{ fontSize: 14, color: '#15803d', fontWeight: '600' }}>
+                6 week streak!
+              </Text>
+              <View style={{ marginLeft: 4 }}>
+                <IconComponent
+                  library="Lucide"
+                  name="Flame"
+                  size={14}
+                  color="#f59e0b"
+                />
+              </View>
+            </View>
             <Text style={{ fontSize: 12, color: '#166534', marginTop: 2 }}>
               You're building an amazing habit
             </Text>
@@ -487,11 +539,11 @@ export function ValuePreviewScreen({ navigation }: Props) {
           
           <View style={{ gap: 12 }}>
             {[
-              { icon: '📊', text: 'Real-time progress tracking' },
-              { icon: '🎯', text: 'Personalized goal management' },
-              { icon: '💬', text: 'Smart accountability messages' },
-              { icon: '📈', text: 'Streak building & motivation' },
-              { icon: '🔒', text: 'Complete privacy control' }
+              { icon: 'BarChart3', color: '#3b82f6', text: 'Real-time progress tracking' },
+              { icon: 'Target', color: '#10b981', text: 'Personalized goal management' },
+              { icon: 'MessageCircle', color: '#8b5cf6', text: 'Smart accountability messages' },
+              { icon: 'TrendingUp', color: '#f59e0b', text: 'Streak building & motivation' },
+              { icon: 'Shield', color: '#ef4444', text: 'Complete privacy control' }
             ].map((benefit, index) => (
               <View key={index} style={{
                 flexDirection: 'row',
@@ -500,7 +552,14 @@ export function ValuePreviewScreen({ navigation }: Props) {
                 borderRadius: 12,
                 padding: 16
               }}>
-                <Text style={{ fontSize: 20, marginRight: 12 }}>{benefit.icon}</Text>
+                <View style={{ marginRight: 12 }}>
+                  <IconComponent
+                    library="Lucide"
+                    name={benefit.icon}
+                    size={20}
+                    color={benefit.color}
+                  />
+                </View>
                 <Text style={{
                   fontSize: 14,
                   color: '#374151',
@@ -522,15 +581,23 @@ export function ValuePreviewScreen({ navigation }: Props) {
           borderLeftColor: '#f97316',
           marginBottom: 32
         }}>
-          <Text style={{
-            fontSize: 16,
-            fontWeight: '600',
-            color: '#9a3412',
-            marginBottom: 8,
-            textAlign: 'center'
-          }}>
-            Ready to make it official? ⚡
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
+            <Text style={{
+              fontSize: 16,
+              fontWeight: '600',
+              color: '#9a3412'
+            }}>
+              Ready to make it official?
+            </Text>
+            <View style={{ marginLeft: 4 }}>
+              <IconComponent
+                library="Lucide"
+                name="Zap"
+                size={16}
+                color="#f59e0b"
+              />
+            </View>
+          </View>
           <Text style={{
             fontSize: 14,
             color: '#c2410c',

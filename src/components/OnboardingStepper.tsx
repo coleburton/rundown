@@ -17,6 +17,19 @@ const STEP_ICONS = [
   'chatbubble-outline',     // Message Style (step 10)
 ] as const;
 
+const STEP_COLORS = [
+  '#6366f1',    // User Info - indigo
+  '#8b5cf6',    // Login - violet  
+  '#06b6d4',    // Why Accountability - cyan
+  '#f59e0b',    // Social Proof - amber
+  '#eab308',    // Motivation Quiz - yellow
+  '#10b981',    // Goal Setup - emerald
+  '#3b82f6',    // Value Preview - blue
+  '#f97316',    // Strava Connect - orange
+  '#ec4899',    // Contact Setup - pink
+  '#84cc16',    // Message Style - lime
+] as const;
+
 interface StepperProps {
   currentStep: number;
   style?: any;
@@ -42,7 +55,7 @@ export function OnboardingStepper({ currentStep, style }: StepperProps) {
                 <Ionicons 
                   name={STEP_ICONS[index]} 
                   size={14} 
-                  color={index < currentStep ? '#ffffff' : '#9ca3af'} 
+                  color={STEP_COLORS[index]} 
                 />
               )}
             </View>
