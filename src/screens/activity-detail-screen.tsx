@@ -1,12 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Linking } from 'react-native';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Button } from '@/components/ui/button';
-import { useStravaActivities } from '@/hooks/useStravaActivities';
-import StravaAuthService from '@/services/strava-auth';
-import { Activity } from '@/hooks/useStravaActivities';
 import { RouteVisualization } from '@/components/RouteVisualization';
+import { VectorIcon } from '@/components/ui/IconComponent';
+import { Activity, useStravaActivities } from '@/hooks/useStravaActivities';
+import StravaAuthService from '@/services/strava-auth';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import React, { useEffect, useState } from 'react';
+import { Linking, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type RootStackParamList = {
   Dashboard: undefined;
@@ -114,29 +113,29 @@ export function ActivityDetailScreen({ navigation, route }: Props) {
     });
   };
 
-  const getActivityIcon = (activityType: string) => {
+  const getActivityIconConfig = (activityType: string) => {
     switch (activityType) {
       case 'Run':
       case 'VirtualRun':
-        return '🏃‍♂️';
+        return { emoji: '🏃‍♂️' as const };
       case 'Ride':
       case 'VirtualRide':
-        return '🚴‍♂️';
+        return { emoji: '🚴‍♂️' as const };
       case 'Swim':
-        return '🏊‍♂️';
+        return { emoji: '🏊‍♂️' as const };
       case 'Walk':
       case 'Hike':
-        return '🚶‍♂️';
+        return { emoji: '🚶‍♂️' as const };
       case 'Workout':
-        return '💪';
+        return { emoji: '💪' as const };
       case 'WeightTraining':
-        return '🏋️‍♂️';
+        return { emoji: '🏋️‍♂️' as const };
       case 'Yoga':
-        return '🧘‍♂️';
+        return { emoji: '🧘‍♂️' as const };
       case 'Crossfit':
-        return '🔥';
+        return { emoji: '🔥' as const };
       default:
-        return '🏃‍♂️';
+        return { emoji: '🏃‍♂️' as const };
     }
   };
 
@@ -288,9 +287,12 @@ export function ActivityDetailScreen({ navigation, route }: Props) {
           marginBottom: 24,
           alignItems: 'center'
         }}>
-          <Text style={{ fontSize: 48, marginBottom: 8 }}>
-            {getActivityIcon(currentActivity.type || currentActivity.sport_type)}
-          </Text>
+          <VectorIcon 
+            emoji={getActivityIconConfig(currentActivity.type || currentActivity.sport_type).emoji} 
+            size={48} 
+            color="#111827" 
+            style={{ marginBottom: 8 }}
+          />
           <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#111827', textAlign: 'center', marginBottom: 4 }}>
             {currentActivity.name}
           </Text>
@@ -361,12 +363,12 @@ export function ActivityDetailScreen({ navigation, route }: Props) {
         </View>
 
         {/* Detailed Stats */}
-        <View style={{ marginBottom: 24 }}>
-          <Text style={{ fontSize: 18, fontWeight: '600', color: '#111827', marginBottom: 16 }}>
+        <View style={{ marginBottom: 32 }}>
+          <Text style={{ fontSize: 18, fontWeight: '600', color: '#111827', marginBottom: 20 }}>
             Performance Stats
           </Text>
           
-          <View style={{ gap: 12 }}>
+          <View style={{ gap: 16 }}>
             {/* Elevation */}
             {!!(currentActivity.total_elevation_gain && currentActivity.total_elevation_gain > 0) && (
               <View style={{
@@ -375,11 +377,11 @@ export function ActivityDetailScreen({ navigation, route }: Props) {
                 alignItems: 'center',
                 backgroundColor: '#f9fafb',
                 borderRadius: 12,
-                padding: 16,
+                padding: 20,
               }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <Text style={{ fontSize: 20, marginRight: 12 }}>⛰️</Text>
-                  <Text style={{ fontSize: 16, fontWeight: '500', color: '#111827' }}>
+                  <VectorIcon emoji="⛰️" size={20} color="#111827" style={{ marginRight: 0 }} />
+                  <Text style={{ fontSize: 16, fontWeight: '500', color: '#111827', paddingLeft: 12 }}>
                     Elevation Gain
                   </Text>
                 </View>
@@ -397,10 +399,10 @@ export function ActivityDetailScreen({ navigation, route }: Props) {
                 alignItems: 'center',
                 backgroundColor: '#f9fafb',
                 borderRadius: 12,
-                padding: 16,
+                padding: 20,
               }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <Text style={{ fontSize: 20, marginRight: 12 }}>🔥</Text>
+                  <VectorIcon emoji="🔥" size={20} color="#111827" style={{ marginRight: 12 }} />
                   <Text style={{ fontSize: 16, fontWeight: '500', color: '#111827' }}>
                     Calories Burned
                   </Text>
@@ -419,11 +421,11 @@ export function ActivityDetailScreen({ navigation, route }: Props) {
                 alignItems: 'center',
                 backgroundColor: '#f9fafb',
                 borderRadius: 12,
-                padding: 16,
+                padding: 20,
               }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <Text style={{ fontSize: 20, marginRight: 12 }}>📈</Text>
-                  <Text style={{ fontSize: 16, fontWeight: '500', color: '#111827' }}>
+                  <VectorIcon emoji="📈" size={20} color="#111827" style={{ marginRight: 0 }} />
+                  <Text style={{ fontSize: 16, fontWeight: '500', color: '#111827', paddingLeft: 12 }}>
                     Average Speed
                   </Text>
                 </View>
@@ -441,11 +443,11 @@ export function ActivityDetailScreen({ navigation, route }: Props) {
                 alignItems: 'center',
                 backgroundColor: '#f9fafb',
                 borderRadius: 12,
-                padding: 16,
+                padding: 20,
               }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <Text style={{ fontSize: 20, marginRight: 12 }}>⚡</Text>
-                  <Text style={{ fontSize: 16, fontWeight: '500', color: '#111827' }}>
+                  <VectorIcon emoji="⚡" size={20} color="#111827" style={{ marginRight: 0 }} />
+                  <Text style={{ fontSize: 16, fontWeight: '500', color: '#111827', paddingLeft: 12 }}>
                     Max Speed
                   </Text>
                 </View>
@@ -463,12 +465,12 @@ export function ActivityDetailScreen({ navigation, route }: Props) {
                 alignItems: 'center',
                 backgroundColor: '#fffbeb',
                 borderRadius: 12,
-                padding: 16,
+                padding: 20,
                 borderWidth: 1,
                 borderColor: '#fed7aa',
               }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <Text style={{ fontSize: 20, marginRight: 12 }}>⚡</Text>
+                  <VectorIcon emoji="⚡" size={20} color="#111827" style={{ marginRight: 12 }} />
                   <Text style={{ fontSize: 16, fontWeight: '500', color: '#111827' }}>
                     Average Power
                   </Text>
@@ -487,12 +489,12 @@ export function ActivityDetailScreen({ navigation, route }: Props) {
                 alignItems: 'center',
                 backgroundColor: '#fffbeb',
                 borderRadius: 12,
-                padding: 16,
+                padding: 20,
                 borderWidth: 1,
                 borderColor: '#fed7aa',
               }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <Text style={{ fontSize: 20, marginRight: 12 }}>🚀</Text>
+                  <VectorIcon emoji="🚀" size={20} color="#111827" style={{ marginRight: 12 }} />
                   <Text style={{ fontSize: 16, fontWeight: '500', color: '#111827' }}>
                     Max Power
                   </Text>
@@ -511,13 +513,13 @@ export function ActivityDetailScreen({ navigation, route }: Props) {
                 alignItems: 'center',
                 backgroundColor: '#fef2f2',
                 borderRadius: 12,
-                padding: 16,
+                padding: 20,
                 borderWidth: 1,
                 borderColor: '#fecaca',
               }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <Text style={{ fontSize: 20, marginRight: 12 }}>❤️</Text>
-                  <Text style={{ fontSize: 16, fontWeight: '500', color: '#111827' }}>
+                  <VectorIcon emoji="❤️" size={20} color="#111827" style={{ marginRight: 0 }} />
+                  <Text style={{ fontSize: 16, fontWeight: '500', color: '#111827', paddingLeft: 12 }}>
                     Avg Heart Rate
                   </Text>
                 </View>
@@ -535,13 +537,13 @@ export function ActivityDetailScreen({ navigation, route }: Props) {
                 alignItems: 'center',
                 backgroundColor: '#fef2f2',
                 borderRadius: 12,
-                padding: 16,
+                padding: 20,
                 borderWidth: 1,
                 borderColor: '#fecaca',
               }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <Text style={{ fontSize: 20, marginRight: 12 }}>💓</Text>
-                  <Text style={{ fontSize: 16, fontWeight: '500', color: '#111827' }}>
+                  <VectorIcon emoji="💓" size={20} color="#111827" style={{ marginRight: 0 }} />
+                  <Text style={{ fontSize: 16, fontWeight: '500', color: '#111827', paddingLeft: 12 }}>
                     Max Heart Rate
                   </Text>
                 </View>
@@ -559,12 +561,12 @@ export function ActivityDetailScreen({ navigation, route }: Props) {
                 alignItems: 'center',
                 backgroundColor: '#f0f9ff',
                 borderRadius: 12,
-                padding: 16,
+                padding: 20,
                 borderWidth: 1,
                 borderColor: '#bae6fd',
               }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <Text style={{ fontSize: 20, marginRight: 12 }}>🎯</Text>
+                  <VectorIcon emoji="🎯" size={20} color="#111827" style={{ marginRight: 12 }} />
                   <Text style={{ fontSize: 16, fontWeight: '500', color: '#111827' }}>
                     Average Cadence
                   </Text>
@@ -578,12 +580,12 @@ export function ActivityDetailScreen({ navigation, route }: Props) {
         </View>
 
         {/* Additional Activity Info */}
-        <View style={{ marginBottom: 24 }}>
-          <Text style={{ fontSize: 18, fontWeight: '600', color: '#111827', marginBottom: 16 }}>
+        <View style={{ marginBottom: 32 }}>
+          <Text style={{ fontSize: 18, fontWeight: '600', color: '#111827', marginBottom: 20 }}>
             Activity Details
           </Text>
           
-          <View style={{ gap: 12 }}>
+          <View style={{ gap: 16 }}>
             {/* Device Name */}
             {!!(currentActivity.device_name) && (
               <View style={{
@@ -592,10 +594,10 @@ export function ActivityDetailScreen({ navigation, route }: Props) {
                 alignItems: 'center',
                 backgroundColor: '#f9fafb',
                 borderRadius: 12,
-                padding: 16,
+                padding: 20,
               }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <Text style={{ fontSize: 20, marginRight: 12 }}>📱</Text>
+                  <VectorIcon emoji="📱" size={20} color="#111827" style={{ marginRight: 12 }} />
                   <Text style={{ fontSize: 16, fontWeight: '500', color: '#111827' }}>
                     Device
                   </Text>
@@ -614,10 +616,10 @@ export function ActivityDetailScreen({ navigation, route }: Props) {
                 alignItems: 'center',
                 backgroundColor: '#f9fafb',
                 borderRadius: 12,
-                padding: 16,
+                padding: 20,
               }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <Text style={{ fontSize: 20, marginRight: 12 }}>📍</Text>
+                  <VectorIcon emoji="📍" size={20} color="#111827" style={{ marginRight: 12 }} />
                   <Text style={{ fontSize: 16, fontWeight: '500', color: '#111827' }}>
                     Start Location
                   </Text>
@@ -636,10 +638,10 @@ export function ActivityDetailScreen({ navigation, route }: Props) {
                 alignItems: 'center',
                 backgroundColor: '#f9fafb',
                 borderRadius: 12,
-                padding: 16,
+                padding: 20,
               }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <Text style={{ fontSize: 20, marginRight: 12 }}>🌡️</Text>
+                  <VectorIcon emoji="🌡️" size={20} color="#111827" style={{ marginRight: 12 }} />
                   <Text style={{ fontSize: 16, fontWeight: '500', color: '#111827' }}>
                     Average Temperature
                   </Text>
@@ -658,10 +660,10 @@ export function ActivityDetailScreen({ navigation, route }: Props) {
                 alignItems: 'center',
                 backgroundColor: '#f9fafb',
                 borderRadius: 12,
-                padding: 16,
+                padding: 20,
               }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <Text style={{ fontSize: 20, marginRight: 12 }}>💯</Text>
+                  <VectorIcon emoji="💯" size={20} color="#111827" style={{ marginRight: 12 }} />
                   <Text style={{ fontSize: 16, fontWeight: '500', color: '#111827' }}>
                     Perceived Exertion
                   </Text>
@@ -675,21 +677,21 @@ export function ActivityDetailScreen({ navigation, route }: Props) {
         </View>
 
         {/* Social Stats */}
-        <View style={{ marginBottom: 24 }}>
-          <Text style={{ fontSize: 18, fontWeight: '600', color: '#111827', marginBottom: 16 }}>
+        <View style={{ marginBottom: 32 }}>
+          <Text style={{ fontSize: 18, fontWeight: '600', color: '#111827', marginBottom: 20 }}>
             Social
           </Text>
           
-          <View style={{ flexDirection: 'row', gap: 16 }}>
+          <View style={{ flexDirection: 'row', gap: 20 }}>
             <View style={{
               flex: 1,
               backgroundColor: '#f9fafb',
               borderRadius: 12,
-              padding: 16,
+              padding: 20,
               alignItems: 'center',
             }}>
-              <Text style={{ fontSize: 24, marginBottom: 4 }}>👍</Text>
-              <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#111827', marginBottom: 2 }}>
+              <VectorIcon emoji="👍" size={24} color="#111827" style={{ marginBottom: 6 }} />
+              <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#111827', marginBottom: 4 }}>
                 {currentActivity.kudos_count || 0}
               </Text>
               <Text style={{ fontSize: 12, color: '#6b7280' }}>Kudos</Text>
@@ -699,11 +701,11 @@ export function ActivityDetailScreen({ navigation, route }: Props) {
               flex: 1,
               backgroundColor: '#f9fafb',
               borderRadius: 12,
-              padding: 16,
+              padding: 20,
               alignItems: 'center',
             }}>
-              <Text style={{ fontSize: 24, marginBottom: 4 }}>🏆</Text>
-              <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#111827', marginBottom: 2 }}>
+              <VectorIcon emoji="🏆" size={24} color="#111827" style={{ marginBottom: 6 }} />
+              <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#111827', marginBottom: 4 }}>
                 {currentActivity.achievement_count || 0}
               </Text>
               <Text style={{ fontSize: 12, color: '#6b7280' }}>Achievements</Text>
@@ -712,8 +714,8 @@ export function ActivityDetailScreen({ navigation, route }: Props) {
         </View>
 
         {/* Route Visualization */}
-        <View style={{ marginBottom: 32 }}>
-          <Text style={{ fontSize: 18, fontWeight: '600', color: '#111827', marginBottom: 16 }}>
+        <View style={{ marginBottom: 40 }}>
+          <Text style={{ fontSize: 18, fontWeight: '600', color: '#111827', marginBottom: 20 }}>
             Route
           </Text>
           

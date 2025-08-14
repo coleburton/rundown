@@ -215,7 +215,7 @@ export function getMotivationalMessage(
   
   if (isOnTrack) {
     return {
-      title: 'Look at you, fitness machine! 💪',
+      title: 'Look at you, fitness machine!',
       message: `Goal crushed! Your accountability buddy is proud of your ${name.toLowerCase()} progress.`
     };
   }
@@ -224,7 +224,7 @@ export function getMotivationalMessage(
     const remaining = goal - progress;
     const unit = getGoalDisplayText(goalType).unit;
     return {
-      title: "Uhhh, Sunday's coming fast... ⏰",
+      title: "Uhhh, Sunday's coming fast...",
       message: `${remaining.toFixed(goalType.includes('miles') ? 1 : 0)} more ${unit} needed. Someone's watching.`
     };
   }
@@ -232,7 +232,7 @@ export function getMotivationalMessage(
   const remaining = goal - progress;
   const unit = getGoalDisplayText(goalType).unit;
   return {
-    title: "You're doing great! Keep it up! 💪",
+    title: "You're doing great! Keep it up!",
     message: `${remaining.toFixed(goalType.includes('miles') ? 1 : 0)} more ${unit} to go!`
   };
 }
