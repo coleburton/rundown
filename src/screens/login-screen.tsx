@@ -437,28 +437,40 @@ export function LoginScreen() {
           {/* Hero Section */}
           <View style={styles.heroSection}>
             <Text style={[styles.title, isDarkMode && styles.darkText]}>
-              {authMode === 'login' ? 'Welcome back!' : 'Join the community'}
+              {authMode === 'login' ? 'Welcome back!' : 'Start your journey'}
             </Text>
             <Text style={[styles.subtitle, isDarkMode && styles.darkSubtitle]}>
               {authMode === 'login' 
-                ? 'Sign in to continue your fitness journey' 
-                : 'Create your account and start achieving your goals'
+                ? 'Pick up right where you left off' 
+                : 'Join thousands of runners achieving their personal best'
               }
             </Text>
           </View>
 
           {/* Social Proof */}
           <View style={styles.socialProof}>
-            <View style={styles.testimonial}>
+            <View style={[styles.testimonial, isDarkMode && styles.darkTestimonial]}>
+              <View style={styles.testimonialHeader}>
+                <View style={styles.avatarPlaceholder}>
+                  <Text style={styles.avatarText}>SM</Text>
+                </View>
+                <View style={styles.testimonialMeta}>
+                  <Text style={[styles.testimonialAuthor, isDarkMode && styles.darkText]}>
+                    Sarah M.
+                  </Text>
+                  <View style={styles.ratingContainer}>
+                    {[...Array(5)].map((_, i) => (
+                      <Text key={i} style={styles.star}>★</Text>
+                    ))}
+                  </View>
+                </View>
+              </View>
               <Text style={[styles.testimonialText, isDarkMode && styles.darkSubtitle]}>
-                "This app changed my running game completely!" ⭐⭐⭐⭐⭐
-              </Text>
-              <Text style={[styles.testimonialAuthor, isDarkMode && styles.darkSubtitle]}>
-                - Sarah M., Marathon Runner
+                "This app transformed how I approach running. The personalized plans and progress tracking keep me motivated every single day."
               </Text>
             </View>
             <Text style={[styles.userCount, isDarkMode && styles.darkSubtitle]}>
-              Join 10,000+ runners already crushing their goals
+              Trusted by 10,000+ active runners worldwide
             </Text>
           </View>
 
@@ -624,15 +636,22 @@ export function LoginScreen() {
 
             {/* Trust Indicators */}
             <View style={styles.trustIndicators}>
-              <Text style={[styles.trustText, isDarkMode && styles.darkSubtitle]}>
-                🔒 Bank-level encryption
-              </Text>
-              <Text style={[styles.trustText, isDarkMode && styles.darkSubtitle]}>
-                🛡️ Privacy guaranteed
-              </Text>
-              <Text style={[styles.trustText, isDarkMode && styles.darkSubtitle]}>
-                💯 30-day money-back guarantee
-              </Text>
+              <View style={styles.trustBadge}>
+                <View style={styles.trustIcon}>
+                  <Text style={styles.trustIconText}>🔒</Text>
+                </View>
+                <Text style={[styles.trustText, isDarkMode && styles.darkSubtitle]}>
+                  Bank-level security
+                </Text>
+              </View>
+              <View style={styles.trustBadge}>
+                <View style={styles.trustIcon}>
+                  <Text style={styles.trustIconText}>✓</Text>
+                </View>
+                <Text style={[styles.trustText, isDarkMode && styles.darkSubtitle]}>
+                  Privacy protected
+                </Text>
+              </View>
             </View>
           </View>
         </Animated.View>
@@ -730,7 +749,7 @@ const styles = StyleSheet.create({
   },
   heroSection: {
     alignItems: 'center',
-    marginBottom: 32,
+    marginBottom: 24,
   },
   title: {
     ...TYPOGRAPHY_STYLES.h2,
@@ -746,27 +765,62 @@ const styles = StyleSheet.create({
   },
   socialProof: {
     alignItems: 'center',
-    marginBottom: 32,
+    marginBottom: 28,
     paddingHorizontal: 16,
   },
   testimonial: {
     backgroundColor: '#f9fafb',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    maxWidth: 300,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+    maxWidth: 320,
+    borderWidth: 1,
+    borderColor: '#f3f4f6',
+  },
+  darkTestimonial: {
+    backgroundColor: '#1f2937',
+    borderColor: '#374151',
+  },
+  testimonialHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  avatarPlaceholder: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#f97316',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  avatarText: {
+    color: '#ffffff',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  testimonialMeta: {
+    flex: 1,
+  },
+  testimonialAuthor: {
+    ...TYPOGRAPHY_STYLES.body2Medium,
+    color: '#111827',
+    marginBottom: 2,
+  },
+  ratingContainer: {
+    flexDirection: 'row',
+  },
+  star: {
+    color: '#fbbf24',
+    fontSize: 12,
+    marginRight: 1,
   },
   testimonialText: {
     ...TYPOGRAPHY_STYLES.body2,
     color: '#374151',
-    textAlign: 'center',
+    lineHeight: 22,
     fontStyle: 'italic',
-    marginBottom: 4,
-  },
-  testimonialAuthor: {
-    ...TYPOGRAPHY_STYLES.caption1,
-    color: '#6b7280',
-    textAlign: 'center',
   },
   userCount: {
     ...TYPOGRAPHY_STYLES.caption1,
@@ -863,13 +917,31 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline',
   },
   trustIndicators: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginTop: 20,
+    paddingHorizontal: 20,
+  },
+  trustBadge: {
     alignItems: 'center',
-    gap: 4,
-    marginTop: 16,
+    flex: 1,
+  },
+  trustIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#f3f4f6',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 6,
+  },
+  trustIconText: {
+    fontSize: 16,
   },
   trustText: {
     ...TYPOGRAPHY_STYLES.caption1,
     color: '#6b7280',
+    textAlign: 'center',
   },
   errorText: {
     ...TYPOGRAPHY_STYLES.caption1,

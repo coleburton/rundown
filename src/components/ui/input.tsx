@@ -1,6 +1,7 @@
 import React from 'react';
-import { TextInput, TextInputProps, StyleSheet, ViewStyle, TextStyle } from 'react-native';
+import { TextInput, TextInputProps, StyleSheet, ViewStyle, TextStyle, Animated } from 'react-native';
 import { cva, type VariantProps } from "class-variance-authority";
+import { FONT_FAMILIES } from '../../constants/Typography';
 
 // Define input variants using CVA like shadcn
 const inputVariants = cva(
@@ -28,13 +29,13 @@ const inputVariants = cva(
 const styles = StyleSheet.create({
   base: {
     borderWidth: 1,
-    borderRadius: 6,
+    borderRadius: 12, // More modern, rounded feel
     backgroundColor: 'transparent',
     fontSize: 14,
-    fontWeight: '400',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    minHeight: 36,
+    fontFamily: FONT_FAMILIES.regular,
+    paddingHorizontal: 16, // More generous horizontal padding
+    paddingVertical: 12, // Better vertical spacing
+    minHeight: 48, // Taller for better touch target
     textAlignVertical: 'center',
   } as TextStyle,
   
@@ -42,7 +43,7 @@ const styles = StyleSheet.create({
   default: {
     borderColor: '#e5e7eb', // gray-200
     color: '#111827', // gray-900
-    backgroundColor: 'transparent',
+    backgroundColor: '#f9fafb', // Very subtle gray background
   } as ViewStyle,
   
   destructive: {
@@ -53,43 +54,36 @@ const styles = StyleSheet.create({
   
   // Size styles
   sizeDefault: {
-    minHeight: 36,
+    minHeight: 48,
     fontSize: 14,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    fontFamily: FONT_FAMILIES.regular,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   } as TextStyle,
   
   sizeSm: {
-    minHeight: 32,
+    minHeight: 40,
     fontSize: 13,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    fontFamily: FONT_FAMILIES.regular,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
   } as TextStyle,
   
   sizeLg: {
-    minHeight: 40,
+    minHeight: 56,
     fontSize: 16,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
+    fontFamily: FONT_FAMILIES.regular,
+    paddingHorizontal: 18,
+    paddingVertical: 14,
   } as TextStyle,
   
   // Focus styles (will be applied programmatically)
   focused: {
     borderColor: '#f97316', // orange-500
-    shadowColor: '#f97316',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-    elevation: 3,
   } as ViewStyle,
   
   focusedDestructive: {
     borderColor: '#ef4444', // red-500
-    shadowColor: '#ef4444',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-    elevation: 3,
   } as ViewStyle,
   
   // Dark mode styles
@@ -107,20 +101,10 @@ const styles = StyleSheet.create({
   
   darkFocused: {
     borderColor: '#f97316', // orange-500
-    shadowColor: '#f97316',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.4,
-    shadowRadius: 3,
-    elevation: 3,
   } as ViewStyle,
   
   darkFocusedDestructive: {
     borderColor: '#ef4444', // red-500
-    shadowColor: '#ef4444',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.4,
-    shadowRadius: 3,
-    elevation: 3,
   } as ViewStyle,
   
   disabled: {
@@ -143,6 +127,7 @@ export function Input({
   ...props
 }: InputProps) {
   const [isFocused, setIsFocused] = React.useState(false);
+  const scaleAnim = React.useRef(new Animated.Value(1)).current;
   
   // Quick fix: Disable iOS autofill for reliable simulator behavior
   const getPasswordProps = () => {
@@ -204,22 +189,36 @@ export function Input({
   };
 
   return (
-    <TextInput
-      style={getInputStyle()}
-      onFocus={(e: any) => {
-        setIsFocused(true);
-        props.onFocus?.(e);
-      }}
-      onBlur={(e: any) => {
-        setIsFocused(false);
-        props.onBlur?.(e);
-      }}
-      placeholderTextColor={getPlaceholderTextColor()}
-      {...getPasswordProps()}
-      // Additional iOS autofill disabling props
-      importantForAutofill="no"
-      {...props}
-    />
+    <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+      <TextInput
+        style={getInputStyle()}
+        onFocus={(e: any) => {
+          setIsFocused(true);
+          Animated.spring(scaleAnim, {
+            toValue: 1.02,
+            useNativeDriver: true,
+            tension: 300,
+            friction: 10,
+          }).start();
+          props.onFocus?.(e);
+        }}
+        onBlur={(e: any) => {
+          setIsFocused(false);
+          Animated.spring(scaleAnim, {
+            toValue: 1,
+            useNativeDriver: true,
+            tension: 300,
+            friction: 10,
+          }).start();
+          props.onBlur?.(e);
+        }}
+        placeholderTextColor={getPlaceholderTextColor()}
+        {...getPasswordProps()}
+        // Additional iOS autofill disabling props
+        importantForAutofill="no"
+        {...props}
+      />
+    </Animated.View>
   );
 }
 

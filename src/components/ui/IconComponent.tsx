@@ -125,6 +125,7 @@ export const ICON_MAP = {
   // Social & Interaction (Lucide)
   '👍': { library: 'Lucide' as const, name: 'ThumbsUp' },
   '🏆': { library: 'Lucide' as const, name: 'Trophy' },
+  '🤝': { library: 'Ionicons' as const, name: 'people' },
   
   // Alerts & Status
   '🚨': { library: 'Ionicons' as const, name: 'warning' },

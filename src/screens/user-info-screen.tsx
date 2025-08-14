@@ -15,6 +15,7 @@ import type { RootStackParamList } from '../../App';
 import { OnboardingStepper } from '../components/OnboardingStepper';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
+import { VectorIcon } from '../components/ui/IconComponent';
 import { ONBOARDING_BUTTON_STYLE, ONBOARDING_CONTAINER_STYLE } from '../constants/OnboardingStyles';
 import { TYPOGRAPHY_STYLES } from '../constants/Typography';
 import { useColorScheme } from '../hooks/useColorScheme';
@@ -44,7 +45,7 @@ const FITNESS_LEVELS = [
 ];
 
 const PRIMARY_GOALS = [
-  { id: 'consistency', label: 'Build Consistency', description: 'Create lasting habits', icon: '✅' },
+  { id: 'consistency', label: 'Build Consistency', description: 'Create lasting habits', icon: '✓' },
   { id: 'accountability', label: 'Stay Accountable', description: 'Regular check-ins', icon: '🤝' },
   { id: 'motivation', label: 'Stay Motivated', description: 'Positive reinforcement', icon: '🔥' },
   { id: 'habit_building', label: 'Form Good Habits', description: 'Sustainable progress', icon: '📈' },
@@ -155,6 +156,17 @@ export function UserInfoScreen() {
       case 4: return { fitness_level: userInfo.fitnessLevel };
       case 5: return { primary_goal: userInfo.primaryGoal };
       default: return {};
+    }
+  };
+
+  const getStepButtonText = () => {
+    switch (currentStep) {
+      case 1: return "Nice to meet you!";
+      case 2: return "Got it, thanks!";
+      case 3: return "Perfect timing!";
+      case 4: return "You've got this!";
+      case 5: return "Let's make it happen!";
+      default: return "Continue";
     }
   };
 
@@ -333,7 +345,12 @@ export function UserInfoScreen() {
                   ]}
                   onPress={() => setUserInfo({ ...userInfo, fitnessLevel: level.id as any })}
                 >
-                  <Text style={styles.optionIcon}>{level.icon}</Text>
+                  <VectorIcon 
+                    emoji={level.icon as any} 
+                    size={22} 
+                    color={userInfo.fitnessLevel === level.id ? '#ea580c' : (isDarkMode ? '#ffffff' : '#111827')} 
+                    style={{ marginBottom: 2 }}
+                  />
                   <Text style={[
                     styles.optionLabel,
                     isDarkMode && styles.darkText,
@@ -378,7 +395,12 @@ export function UserInfoScreen() {
                   ]}
                   onPress={() => setUserInfo({ ...userInfo, primaryGoal: goal.id as any })}
                 >
-                  <Text style={styles.optionIcon}>{goal.icon}</Text>
+                  <VectorIcon 
+                    emoji={goal.icon as any} 
+                    size={22} 
+                    color={userInfo.primaryGoal === goal.id ? '#ea580c' : (isDarkMode ? '#ffffff' : '#111827')} 
+                    style={{ marginBottom: 2 }}
+                  />
                   <Text style={[
                     styles.optionLabel,
                     isDarkMode && styles.darkText,
@@ -469,7 +491,7 @@ export function UserInfoScreen() {
           variant="default"
           size="lg"
           style={ONBOARDING_BUTTON_STYLE}
-          title={currentStep === totalSteps ? "Let's Go!" : "Continue"}
+          title={getStepButtonText()}
           darkMode={isDarkMode}
         />
       </View>
@@ -550,7 +572,8 @@ const styles = StyleSheet.create({
   },
   stepContainer: {
     paddingVertical: 12,
-    minHeight: 200,
+    flex: 1,
+    justifyContent: 'center',
   },
   stepTitle: {
     ...TYPOGRAPHY_STYLES.h3,
@@ -562,16 +585,16 @@ const styles = StyleSheet.create({
     ...TYPOGRAPHY_STYLES.body1,
     color: '#6b7280',
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: 24,
   },
   input: {
     marginBottom: 8,
-    fontSize: 18,
+    ...TYPOGRAPHY_STYLES.body1,
     textAlign: 'center',
   },
   optionsContainer: {
     gap: 4,
-    marginBottom: 18,
+    marginBottom: 8,
   },
   optionCard: {
     backgroundColor: '#f9fafb',
