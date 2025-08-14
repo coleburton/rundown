@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '../components/ui/button';
+import { IconComponent } from '../components/ui/IconComponent';
 import { ServiceLogo } from '../components/ServiceLogo';
 import { useAuth } from '../hooks/useAuth';
 import { ThemedView } from '../components/ThemedView';
@@ -464,7 +465,14 @@ export function SettingsScreen({ navigation }: Props) {
                 borderColor: '#d1fae5'
               }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
-                  <Text style={{ fontSize: 20, marginRight: 8 }}>🎯</Text>
+                  <View style={{ marginRight: 8 }}>
+                    <IconComponent
+                      library="Lucide"
+                      name="Target"
+                      size={20}
+                      color="#10b981"
+                    />
+                  </View>
                   <Text style={{ fontSize: 16, fontWeight: '600', color: '#065f46' }}>
                     Current Goal
                   </Text>
@@ -578,14 +586,22 @@ export function SettingsScreen({ navigation }: Props) {
                 borderLeftWidth: 3,
                 borderLeftColor: '#22c55e'
               }}>
-                <Text style={{
-                  fontSize: 12,
-                  color: '#15803d',
-                  textAlign: 'center',
-                  fontWeight: '500'
-                }}>
-                  📅 Messages will be sent {messageTiming.day} {messageTiming.timePeriod} if you miss your goal
-                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                  <IconComponent
+                    library="Lucide"
+                    name="Calendar"
+                    size={12}
+                    color="#15803d"
+                  />
+                  <Text style={{
+                    fontSize: 12,
+                    color: '#15803d',
+                    marginLeft: 4,
+                    fontWeight: '500'
+                  }}>
+                    Messages will be sent {messageTiming.day} {messageTiming.timePeriod} if you miss your goal
+                  </Text>
+                </View>
               </View>
             </View>
           )}

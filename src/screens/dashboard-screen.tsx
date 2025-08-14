@@ -19,7 +19,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { supabase } from '@/lib/supabase';
 import { DebugOnboardingPanel } from '@/components/DebugOnboardingPanel';
-import { VectorIcon } from '@/components/ui/IconComponent';
+import { VectorIcon, IconComponent } from '@/components/ui/IconComponent';
 
 // Create animated Circle component for react-native-svg
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
@@ -123,7 +123,12 @@ const ProgressRing = ({ progress, goal, isOnTrack, isBehind, goalType, goalDispl
           </Text>
           <View style={{ height: 36, marginTop: 4, justifyContent: 'center', alignItems: 'center' }}>
             {isOnTrack && (
-              <VectorIcon emoji="🔥" size={32} color="#f59e0b" />
+              <IconComponent
+                library="Lucide"
+                name="Flame"
+                size={32}
+                color="#f59e0b"
+              />
             )}
           </View>
         </View>
@@ -271,7 +276,7 @@ const WeeklyGoalHistory = ({ weeklyData, selectedWeekOffset, onWeekSelect }: { w
             <Text style={{ fontSize: 12, color: '#10b981', fontWeight: '600' }}>
               {streak === 1 
                 ? '1 week streak! Keep it up!' 
-                : `${streak} week streak! 🔥`}
+                : `${streak} week streak!`}
             </Text>
           </View>
         )}
@@ -935,7 +940,7 @@ export function DashboardScreen({ navigation }: Props) {
     isOnTrack: simpleProgress >= simpleGoal,
     isBehind: false,
     motivationalMessage: {
-      title: simpleProgress >= simpleGoal ? 'Nailed it! 🎯' : simpleProgress > 0 ? 'You\'re cooking! 🔥' : 'Hey there! 👋',
+      title: simpleProgress >= simpleGoal ? 'Nailed it!' : simpleProgress > 0 ? 'You\'re cooking!' : 'Hey there!',
       message: simpleProgress >= simpleGoal ? 'Goal crushed! Your accountability buddy is proud.' : simpleProgress > 0 ? `${simpleGoal - simpleProgress} more to go! You've got this.` : 'Ready to get moving this week?'
     },
     activities: [],
@@ -968,7 +973,12 @@ export function DashboardScreen({ navigation }: Props) {
                 marginTop: -4
               }}
             >
-              <VectorIcon emoji="⚙️" size={18} color="#6b7280" />
+              <IconComponent
+                library="Lucide"
+                name="Settings"
+                size={18}
+                color="#6b7280"
+              />
             </TouchableOpacity>
           </View>
           
@@ -1131,8 +1141,14 @@ export function DashboardScreen({ navigation }: Props) {
             padding: 16,
           }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+              <IconComponent
+                library="Lucide"
+                name="Calendar"
+                size={12}
+                color="#3b82f6"
+              />
               <Text style={{ fontSize: 12, color: '#6b7280', marginLeft: 8 }}>
-                📅 {selectedWeekOffset === 0 ? 'This Week' : `${selectedWeekOffset} week${selectedWeekOffset === 1 ? '' : 's'} ago`}
+                {selectedWeekOffset === 0 ? 'This Week' : `${selectedWeekOffset} week${selectedWeekOffset === 1 ? '' : 's'} ago`}
               </Text>
             </View>
             <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#111827' }}>
@@ -1148,7 +1164,13 @@ export function DashboardScreen({ navigation }: Props) {
             padding: 16,
           }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
-              <Text style={{ fontSize: 12, color: '#6b7280', marginLeft: 8 }}>📈 Streak</Text>
+              <IconComponent
+                library="Lucide"
+                name="TrendingUp"
+                size={12}
+                color="#10b981"
+              />
+              <Text style={{ fontSize: 12, color: '#6b7280', marginLeft: 8 }}>Streak</Text>
             </View>
             <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#111827' }}>
               {progress}
@@ -1164,9 +1186,17 @@ export function DashboardScreen({ navigation }: Props) {
           </Text>
 
           {!user ? (
-            <Text style={{ color: '#6b7280', textAlign: 'center', padding: 16 }}>
-              Please sign in to see your activities! 🏃‍♂️
-            </Text>
+            <View style={{ alignItems: 'center', padding: 16 }}>
+              <IconComponent
+                library="Lucide"
+                name="UserCheck"
+                size={20}
+                color="#3b82f6"
+              />
+              <Text style={{ color: '#6b7280', textAlign: 'center', marginTop: 8 }}>
+                Please sign in to see your activities!
+              </Text>
+            </View>
           ) : loading ? (
             <Text style={{ color: '#6b7280', textAlign: 'center', padding: 16 }}>
               Loading your Strava activities...
@@ -1176,9 +1206,19 @@ export function DashboardScreen({ navigation }: Props) {
               Failed to load activities: {error}
             </Text>
           ) : displayActivities.length === 0 ? (
-            <Text style={{ color: '#6b7280', textAlign: 'center', padding: 16 }}>
-              {selectedWeekOffset === 0 ? 'No activities found. Time to get moving! 💪' : 'No activities found for this week.'}
-            </Text>
+            <View style={{ alignItems: 'center', padding: 16 }}>
+              <Text style={{ color: '#6b7280', textAlign: 'center', marginBottom: 8 }}>
+                {selectedWeekOffset === 0 ? 'No activities found. Time to get moving!' : 'No activities found for this week.'}
+              </Text>
+              {selectedWeekOffset === 0 && (
+                <IconComponent
+                  library="Lucide"
+                  name="Zap"
+                  size={20}
+                  color="#f59e0b"
+                />
+              )}
+            </View>
           ) : (
             <View style={{ gap: 12 }}>
               {displayActivities.map((activity, index) => (
@@ -1260,10 +1300,18 @@ export function DashboardScreen({ navigation }: Props) {
         </View>
 
         {/* Motivational Footer */}
-        <View style={{ padding: 16 }}>
-          <Text style={{ textAlign: 'center', fontSize: 12, color: '#9ca3af' }}>
-            {isBehind ? "Don't make us blow up your phone... 📱" : 'Keep crushing those goals! 🎯'}
-          </Text>
+        <View style={{ padding: 16, alignItems: 'center' }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
+            <IconComponent
+              library="Lucide"
+              name={isBehind ? "Smartphone" : "Target"}
+              size={14}
+              color={isBehind ? "#ef4444" : "#10b981"}
+            />
+            <Text style={{ textAlign: 'center', fontSize: 12, color: '#9ca3af', marginLeft: 6 }}>
+              {isBehind ? "Don't make us blow up your phone..." : 'Keep crushing those goals!'}
+            </Text>
+          </View>
         </View>
       </View>
       </ScrollView>

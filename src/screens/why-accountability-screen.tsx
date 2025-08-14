@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { Button } from '@/components/ui/button';
+import { IconComponent } from '@/components/ui/IconComponent';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { OnboardingStepper } from '@/components/OnboardingStepper';
@@ -34,28 +35,38 @@ type Props = NativeStackScreenProps<RootStackParamList, 'WhyAccountability'>;
 
 interface Benefit {
   icon: string;
+  iconColor: string;
+  backgroundColor: string;
   title: string;
   description: string;
 }
 
 const benefits: Benefit[] = [
   {
-    icon: '👥',
+    icon: 'Users',
+    iconColor: '#3b82f6', // Blue icon
+    backgroundColor: '#f1f5f9', // Light gray background
     title: '65% more likely to succeed',
     description: 'Studies show accountability partners dramatically increase goal achievement'
   },
   {
-    icon: '🎯',
+    icon: 'Target',
+    iconColor: '#10b981', // Green icon
+    backgroundColor: '#f1f5f9', // Light gray background
     title: 'Stay consistent',
     description: 'Regular check-ins help you build lasting habits and routines'
   },
   {
-    icon: '📈',
+    icon: 'TrendingUp',
+    iconColor: '#8b5cf6', // Purple icon
+    backgroundColor: '#f1f5f9', // Light gray background
     title: 'Track progress together',
     description: 'Share wins, learn from setbacks, and celebrate milestones'
   },
   {
-    icon: '❤️',
+    icon: 'Heart',
+    iconColor: '#f59e0b', // Orange icon
+    backgroundColor: '#f1f5f9', // Light gray background
     title: 'Build stronger relationships',
     description: 'Strengthen bonds while pursuing your fitness goals together'
   }
@@ -205,13 +216,18 @@ export function WhyAccountabilityScreen({ navigation }: Props) {
                 width: 48,
                 height: 48,
                 borderRadius: 24,
-                backgroundColor: '#f97316',
+                backgroundColor: benefit.backgroundColor,
                 alignItems: 'center',
                 justifyContent: 'center',
                 marginRight: 16,
                 flexShrink: 0
               }}>
-                <Text style={{ fontSize: 20 }}>{benefit.icon}</Text>
+                <IconComponent
+                  library="Lucide"
+                  name={benefit.icon}
+                  size={20}
+                  color={benefit.iconColor}
+                />
               </View>
 
               {/* Content */}

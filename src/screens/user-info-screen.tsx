@@ -39,16 +39,16 @@ type UserInfoData = {
 };
 
 const FITNESS_LEVELS = [
-  { id: 'beginner', label: 'Beginner', description: 'New to running', icon: '🌱' },
-  { id: 'intermediate', label: 'Intermediate', description: 'Regular runner', icon: '🏃‍♂️' },
-  { id: 'advanced', label: 'Advanced', description: 'Experienced athlete', icon: '🏆' },
+  { id: 'beginner', label: 'Beginner', description: 'New to running', icon: '🌱', color: '#10b981' },
+  { id: 'intermediate', label: 'Intermediate', description: 'Regular runner', icon: '🏃‍♂️', color: '#3b82f6' },
+  { id: 'advanced', label: 'Advanced', description: 'Experienced athlete', icon: '🏆', color: '#f59e0b' },
 ];
 
 const PRIMARY_GOALS = [
-  { id: 'consistency', label: 'Build Consistency', description: 'Create lasting habits', icon: '✓' },
-  { id: 'accountability', label: 'Stay Accountable', description: 'Regular check-ins', icon: '🤝' },
-  { id: 'motivation', label: 'Stay Motivated', description: 'Positive reinforcement', icon: '🔥' },
-  { id: 'habit_building', label: 'Form Good Habits', description: 'Sustainable progress', icon: '📈' },
+  { id: 'consistency', label: 'Build Consistency', description: 'Create lasting habits', icon: '✓', color: '#10b981' },
+  { id: 'accountability', label: 'Stay Accountable', description: 'Regular check-ins', icon: '🤝', color: '#8b5cf6' },
+  { id: 'motivation', label: 'Stay Motivated', description: 'Positive reinforcement', icon: '🔥', color: '#ef4444' },
+  { id: 'habit_building', label: 'Form Good Habits', description: 'Sustainable progress', icon: '📈', color: '#3b82f6' },
 ];
 
 export function UserInfoScreen() {
@@ -348,7 +348,7 @@ export function UserInfoScreen() {
                   <VectorIcon 
                     emoji={level.icon as any} 
                     size={22} 
-                    color={userInfo.fitnessLevel === level.id ? '#ea580c' : (isDarkMode ? '#ffffff' : '#111827')} 
+                    color={userInfo.fitnessLevel === level.id ? '#ea580c' : level.color} 
                     style={{ marginBottom: 2 }}
                   />
                   <Text style={[
@@ -398,7 +398,7 @@ export function UserInfoScreen() {
                   <VectorIcon 
                     emoji={goal.icon as any} 
                     size={22} 
-                    color={userInfo.primaryGoal === goal.id ? '#ea580c' : (isDarkMode ? '#ffffff' : '#111827')} 
+                    color={userInfo.primaryGoal === goal.id ? '#ea580c' : goal.color} 
                     style={{ marginBottom: 2 }}
                   />
                   <Text style={[

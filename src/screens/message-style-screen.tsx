@@ -6,7 +6,7 @@ import { useMockAuth } from '@/hooks/useMockAuth';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React, { useEffect, useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
-import { VectorIcon } from '@/components/ui/IconComponent';
+import { VectorIcon, IconComponent } from '@/components/ui/IconComponent';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import analytics, { 
   ANALYTICS_EVENTS, 
@@ -37,44 +37,50 @@ interface StyleOption {
   title: string;
   description: string;
   example: string;
-  emoji: string;
+  icon: string;
+  color: string;
 }
 
-const STYLE_OPTIONS: StyleOption[] = [
+const getStyleOptions = (userName: string): StyleOption[] => [
   {
     id: 'supportive',
     title: 'Supportive Friend',
     description: 'Gentle nudges and encouragement',
-    example: 'Hey! Looks like Alex missed their run today. Maybe send them some encouragement?',
-    emoji: '🤗',
+    example: `Hey! Looks like ${userName} missed their run today. Maybe send them some encouragement?`,
+    icon: 'Heart',
+    color: '#f59e0b',
   },
   {
     id: 'snarky',
     title: 'Snarky Buddy',  
     description: 'Playful sass and teasing',
-    example: 'Your running buddy Alex is making excuses again. Time for some tough love!',
-    emoji: '😏',
+    example: `Your running buddy ${userName} is making excuses again. Time for some tough love!`,
+    icon: 'Smile',
+    color: '#8b5cf6',
   },
   {
     id: 'competitive',
     title: 'Competitive Coach',
     description: 'Challenge them to step up',
-    example: 'Alex skipped their run today. Think they can handle a challenge to get back on track?',
-    emoji: '⚡',
+    example: `${userName} skipped their run today. Think they can handle a challenge to get back on track?`,
+    icon: 'Zap',
+    color: '#3b82f6',
   },
   {
     id: 'achievement',
     title: 'Goal Tracker',
     description: 'Focus on milestones and progress',
-    example: 'Alex missed their run today and is 1 day behind their weekly goal. Help them get back on track?',
-    emoji: '🎯',
+    example: `${userName} missed their run today and is 1 day behind their weekly goal. Help them get back on track?`,
+    icon: 'Target',
+    color: '#10b981',
   },
   {
     id: 'chaotic',
     title: 'Chaotic Energy',
     description: 'Unpredictable and hilarious', 
-    example: 'EMERGENCY! Alex\'s running shoes are getting dusty! Intervention needed ASAP!',
-    emoji: '🤪',
+    example: `EMERGENCY! ${userName}'s running shoes are getting dusty! Intervention needed ASAP!`,
+    icon: 'Sparkles',
+    color: '#ef4444',
   },
 ];
 
@@ -99,6 +105,10 @@ export function MessageStyleScreen({ navigation }: Props) {
   const [selectedStyle, setSelectedStyle] = useState<MessageStyle>('supportive');
   const [recommendedStyle, setRecommendedStyle] = useState<MessageStyle>('supportive');
   const [screenStartTime] = useState(Date.now());
+  
+  // Get user's first name or fallback to "Alex"
+  const userName = user?.name?.split(' ')[0] || 'Alex';
+  const STYLE_OPTIONS = getStyleOptions(userName);
 
   // Track screen view on mount
   useEffect(() => {
@@ -329,12 +339,17 @@ export function MessageStyleScreen({ navigation }: Props) {
                 width: 32,
                 height: 32,
                 borderRadius: 16,
-                backgroundColor: selectedStyle === style.id ? '#f97316' : '#e5e7eb',
+                backgroundColor: selectedStyle === style.id ? style.color : '#f1f5f9',
                 alignItems: 'center',
                 justifyContent: 'center',
                 marginRight: 8
               }}>
-                <VectorIcon emoji={style.emoji} size={13} color="#ffffff" />
+                <IconComponent
+                  library="Lucide"
+                  name={style.icon}
+                  size={16}
+                  color={selectedStyle === style.id ? '#ffffff' : style.color}
+                />
               </View>
               
               <View style={{ flex: 1 }}>
@@ -375,14 +390,19 @@ export function MessageStyleScreen({ navigation }: Props) {
               
               {selectedStyle === style.id && (
                 <View style={{
-                  width: 16,
-                  height: 16,
-                  borderRadius: 8,
-                  backgroundColor: '#f97316',
+                  width: 20,
+                  height: 20,
+                  borderRadius: 10,
+                  backgroundColor: style.color,
                   alignItems: 'center',
                   justifyContent: 'center'
                 }}>
-                  <VectorIcon emoji="✓" size={9} color="#ffffff" />
+                  <IconComponent
+                    library="Lucide"
+                    name="Check"
+                    size={12}
+                    color="#ffffff"
+                  />
                 </View>
               )}
             </TouchableOpacity>
