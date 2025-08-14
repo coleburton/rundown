@@ -6,6 +6,7 @@ import { useMockAuth } from '@/hooks/useMockAuth';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { OnboardingStepper } from '@/components/OnboardingStepper';
+import { DebugSkipButton } from '@/components/DebugSkipButton';
 import { ContactRolePicker } from '@/components/ContactRolePicker';
 import { ONBOARDING_BUTTON_STYLE, ONBOARDING_CONTAINER_STYLE } from '@/constants/OnboardingStyles';
 import { formatPhoneNumber, isValidPhoneNumber } from '@/lib/utils';
@@ -367,6 +368,10 @@ export function ContactSetupScreen({ navigation }: Props) {
             }}
           />
         )}
+        <DebugSkipButton 
+          onSkip={() => navigation.navigate('MessageStyle')}
+          title="Debug Skip Contact Setup"
+        />
       </View>
     </KeyboardAvoidingView>
   );

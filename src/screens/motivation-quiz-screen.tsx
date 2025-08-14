@@ -6,6 +6,7 @@ import { useMockAuth } from '@/hooks/useMockAuth';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { OnboardingStepper } from '@/components/OnboardingStepper';
+import { DebugSkipButton } from '@/components/DebugSkipButton';
 import { ONBOARDING_BUTTON_STYLE, ONBOARDING_CONTAINER_STYLE } from '@/constants/OnboardingStyles';
 import analytics, { 
   ANALYTICS_EVENTS, 
@@ -388,6 +389,10 @@ export function MotivationQuizScreen({ navigation }: Props) {
             Skip for now
           </Text>
         </TouchableOpacity>
+        <DebugSkipButton 
+          onSkip={() => navigation.navigate('GoalSetup')}
+          title="Debug Skip Motivation"
+        />
       </View>
     </View>
   );

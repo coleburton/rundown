@@ -1,4 +1,5 @@
 import { OnboardingStepper } from '@/components/OnboardingStepper';
+import { DebugSkipButton } from '@/components/DebugSkipButton';
 import { Button } from '@/components/ui/button';
 import { ONBOARDING_BUTTON_STYLE, ONBOARDING_CONTAINER_STYLE } from '@/constants/OnboardingStyles';
 import { useMockAuth } from '@/hooks/useMockAuth';
@@ -397,6 +398,10 @@ export function MessageStyleScreen({ navigation }: Props) {
           size="lg"
           title="Let's Get Running!"
           style={ONBOARDING_BUTTON_STYLE}
+        />
+        <DebugSkipButton 
+          onSkip={() => navigation.navigate('Paywall')}
+          title="Debug Skip Message Style"
         />
       </View>
     </View>

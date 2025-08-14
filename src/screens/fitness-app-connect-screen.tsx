@@ -7,6 +7,7 @@ import StravaAuthService from '@/services/strava-auth';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { OnboardingStepper } from '@/components/OnboardingStepper';
+import { DebugSkipButton } from '@/components/DebugSkipButton';
 import { ONBOARDING_BUTTON_STYLE, ONBOARDING_CONTAINER_STYLE } from '@/constants/OnboardingStyles';
 import { TYPOGRAPHY_STYLES } from '@/constants/Typography';
 import analytics, { 
@@ -560,6 +561,10 @@ export function FitnessAppConnectScreen({ navigation }: Props) {
             shadowRadius: 3,
             elevation: 2
           }}
+        />
+        <DebugSkipButton 
+          onSkip={() => navigation.navigate('ContactSetup')}
+          title="Skip Fitness App Connection"
         />
       </View>
     </View>

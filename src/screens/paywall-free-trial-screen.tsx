@@ -97,7 +97,7 @@ export function PaywallFreeTrialScreen() {
     setIsLoading(true);
     try {
       await revenueCat.purchasePackage(monthlyPlan.rcPackage);
-      navigation.navigate('OnboardingSuccess');
+      navigation.navigate('PostPaywallOnboarding');
     } catch (error) {
       if (error instanceof Error && error.message === 'Purchase was cancelled') {
         return;
@@ -113,7 +113,7 @@ export function PaywallFreeTrialScreen() {
       const customerInfo = await revenueCat.restorePurchases();
       if (Object.keys(customerInfo.entitlements.active).length > 0) {
         Alert.alert('Restore Successful', 'Your purchases have been restored.');
-        navigation.navigate('OnboardingSuccess');
+        navigation.navigate('PostPaywallOnboarding');
       } else {
         Alert.alert('No Purchases Found', 'No previous purchases to restore.');
       }
