@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { OnboardingStepper } from '@/components/OnboardingStepper';
+import { DebugSkipButton } from '@/components/DebugSkipButton';
 import { EnhancedGoalPicker, Goal } from '@/components/EnhancedGoalPicker';
 import { ONBOARDING_BUTTON_STYLE, ONBOARDING_CONTAINER_STYLE } from '@/constants/OnboardingStyles';
 import analytics, { 
@@ -168,7 +169,7 @@ export function GoalSetupScreen({ navigation, route }: Props) {
       if (fromSettings) {
         navigation.goBack(); // Go back to settings
       } else {
-        navigation.navigate('MotivationQuiz'); // Continue onboarding
+        navigation.navigate('ValuePreview'); // Continue onboarding
       }
     } catch (error) {
       trackOnboardingError(error as Error, {
@@ -277,6 +278,10 @@ export function GoalSetupScreen({ navigation, route }: Props) {
           title={fromSettings ? 'Save Changes' : 'Continue →'}
           disabled={isSubmitting}
           style={ONBOARDING_BUTTON_STYLE}
+        />
+        <DebugSkipButton 
+          onSkip={() => navigation.navigate('ValuePreview')}
+          title="Debug Skip Goal Setup"
         />
       </View>
     </View>

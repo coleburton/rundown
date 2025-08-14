@@ -33,6 +33,8 @@ import { UserInfoScreen } from './src/screens/user-info-screen';
 import { ValuePreviewScreen } from './src/screens/value-preview-screen';
 import { WelcomeScreen } from './src/screens/welcome-screen';
 import { WhyAccountabilityScreen } from './src/screens/why-accountability-screen';
+import { PostPaywallOnboardingScreen } from './src/screens/post-paywall-onboarding-screen';
+import { isDebugMode } from './src/lib/debug-mode';
 
 export type RootStackParamList = {
   Onboarding: undefined;
@@ -52,6 +54,7 @@ export type RootStackParamList = {
   Settings: undefined;
   Paywall: undefined;
   PaywallFreeTrial: undefined;
+  PostPaywallOnboarding: undefined;
   ActivityDetail: { activityId: string };
 };
 
@@ -68,7 +71,14 @@ function AppContent() {
   }
 
   // Start with onboarding if no user, otherwise go to dashboard
-  const initialRoute: keyof RootStackParamList = user ? 'Dashboard' : 'Onboarding';
+  // In debug mode, you can override this by setting a query param or env var
+  let initialRoute: keyof RootStackParamList = user ? 'Dashboard' : 'Onboarding';
+  
+  // Debug override: Force onboarding flow even with existing user
+  if (isDebugMode() && user) {
+    // You can uncomment this line to always start with onboarding in debug mode:
+    // initialRoute = 'Onboarding';
+  }
 
   return (
     <AuthProvider auth={{
@@ -100,6 +110,7 @@ function AppContent() {
         <Stack.Screen name="MessageStyle" component={MessageStyleScreen} />
         <Stack.Screen name="Paywall" component={PaywallScreen} />
         <Stack.Screen name="PaywallFreeTrial" component={PaywallFreeTrialScreen} />
+        <Stack.Screen name="PostPaywallOnboarding" component={PostPaywallOnboardingScreen} />
         <Stack.Screen name="OnboardingSuccess" component={OnboardingSuccessScreen} />
         
         {/* App screens */}
