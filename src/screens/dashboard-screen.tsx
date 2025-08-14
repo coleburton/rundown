@@ -9,6 +9,7 @@ import { formatActivityDate, getWeekDateRange, isValidDate } from '@/lib/utils';
 import { calculateGoalProgress, calculateGoalProgressWithHistory, getGoalDisplayText, getMotivationalMessage } from '@/lib/goalUtils';
 import Svg, { Circle, Rect, Defs, LinearGradient, Stop } from 'react-native-svg';
 import { supabase } from '@/lib/supabase';
+import { VectorIcon } from '@/components/ui/IconComponent';
 
 type RootStackParamList = {
   Welcome: undefined;
@@ -82,9 +83,11 @@ const ProgressRing = ({ progress, goal, isOnTrack, isBehind, goalType, goalDispl
           <Text style={{ fontSize: 14, color: '#6b7280' }}>
             of {goalType.includes('miles') ? goal.toFixed(1) : goal} {goalDisplay.unit}
           </Text>
-          {isOnTrack && (
-            <Text style={{ fontSize: 32, marginTop: 4 }}>🔥</Text>
-          )}
+          <View style={{ height: 36, marginTop: 4, justifyContent: 'center', alignItems: 'center' }}>
+            {isOnTrack && (
+              <VectorIcon emoji="🔥" size={32} color="#f59e0b" />
+            )}
+          </View>
         </View>
       </View>
     </View>
@@ -434,7 +437,7 @@ export function DashboardScreen({ navigation }: Props) {
       // Calculate weekly distance from the weekly activities we already have
       const weeklyDistance = weeklyActivities
         .filter(activity => activity.type.toLowerCase().includes('run'))
-        .reduce((sum, activity) => sum + activity.distance, 0);
+        .reduce((sum, activity) => sum + (activity.distance / 1609.34), 0);
 
       // Generate motivational message
       let scenario: 'goal_met' | 'current_with_activity' | 'current_no_activity' | 'past_partial' | 'past_none';
@@ -604,7 +607,7 @@ export function DashboardScreen({ navigation }: Props) {
     ? stravaActivities.slice(0, 10).map(activity => ({
         id: activity.strava_activity_id.toString(),
         date: activity.start_date_local,
-        distance: (activity.distance / 1609.34).toFixed(1), // Convert to miles
+        distance: activity.distance.toFixed(1), // Already converted to miles in useStravaActivities hook
         duration: Math.round(activity.moving_time / 60), // Convert to minutes
         type: activity.type,
         name: activity.name || 'Activity',
@@ -652,7 +655,7 @@ export function DashboardScreen({ navigation }: Props) {
     switch (scenario) {
       case 'goal_met':
         return {
-          titles: ['Nailed it! 🎯', 'Crushed it! 💪', 'Goal smashed! 🔥', 'Victory! 🏆', 'Boom! Done! 🚀'],
+          titles: ['Nailed it!', 'Crushed it!', 'Goal smashed!', 'Victory!', 'Boom! Done!'],
           messages: [
             'Goal crushed! Your accountability buddy was proud.',
             'Absolutely nailed it this week. Chef\'s kiss.',
@@ -664,7 +667,7 @@ export function DashboardScreen({ navigation }: Props) {
       
       case 'current_with_activity':
         return {
-          titles: ['You\'re cooking! 🔥', 'On fire! 💪', 'Rolling! 🚀', 'Keep going! 💯', 'Momentum! ⚡'],
+          titles: ['You\'re cooking!', 'On fire!', 'Rolling!', 'Keep going!', 'Momentum!'],
           messages: [
             `${remaining} more to go! You've got this.`,
             `${remaining} left. Finish strong this week!`,
@@ -676,7 +679,7 @@ export function DashboardScreen({ navigation }: Props) {
       
       case 'current_no_activity':
         return {
-          titles: ['Time to start! 👟', 'Let\'s go! 🏃‍♂️', 'Week\'s waiting! ⏰', 'Ready to run? 🎯', 'Lace up! 💪'],
+          titles: ['Time to start!', 'Let\'s go!', 'Week\'s waiting!', 'Ready to run?', 'Lace up!'],
           messages: [
             `${goal} runs this week. Let's make it happen!`,
             `${goal} to go! Perfect time to start.`,
@@ -688,7 +691,7 @@ export function DashboardScreen({ navigation }: Props) {
       
       case 'past_partial':
         return {
-          titles: ['Close call! 😬', 'Almost! 😅', 'So close! 😭', 'Nearly there! 😤', 'Ouch! 😩'],
+          titles: ['Close call!', 'Almost!', 'So close!', 'Nearly there!', 'Ouch!'],
           messages: [
             `Missed by ${remaining}. They remember.`,
             `${remaining} short. The couch celebrated.`,
@@ -700,7 +703,7 @@ export function DashboardScreen({ navigation }: Props) {
       
       case 'past_none':
         return {
-          titles: ['Ghost week 👻', 'Invisible week 🫥', 'Couch week 🛋️', 'Mystery week 🕵️', 'Vanishing act 💨'],
+          titles: ['Ghost week', 'Invisible week', 'Couch week', 'Mystery week', 'Vanishing act'],
           messages: [
             'Zero runs. The couch remembers.',
             'Completely MIA. They noticed.',
@@ -712,7 +715,7 @@ export function DashboardScreen({ navigation }: Props) {
       
       default:
         return {
-          titles: ['Keep going! 💪'],
+          titles: ['Keep going!'],
           messages: ['You\'ve got this!']
         };
     }
@@ -754,29 +757,29 @@ export function DashboardScreen({ navigation }: Props) {
     return names[Math.floor(Math.random() * names.length)];
   };
 
-  const getActivityIcon = (activityType: string) => {
+  const getActivityIconConfig = (activityType: string) => {
     switch (activityType) {
       case 'Run':
       case 'VirtualRun':
-        return '🏃‍♂️';
+        return { emoji: '🏃‍♂️' as const };
       case 'Ride':
       case 'VirtualRide':
-        return '🚴‍♂️';
+        return { emoji: '🚴‍♂️' as const };
       case 'Swim':
-        return '🏊‍♂️';
+        return { emoji: '🏊‍♂️' as const };
       case 'Walk':
       case 'Hike':
-        return '🚶‍♂️';
+        return { emoji: '🚶‍♂️' as const };
       case 'Workout':
-        return '💪';
+        return { emoji: '💪' as const };
       case 'WeightTraining':
-        return '🏋️‍♂️';
+        return { emoji: '🏋️‍♂️' as const };
       case 'Yoga':
-        return '🧘‍♂️';
+        return { emoji: '🧘‍♂️' as const };
       case 'Crossfit':
-        return '🔥';
+        return { emoji: '🔥' as const };
       default:
-        return '🏃‍♂️';
+        return { emoji: '🏃‍♂️' as const };
     }
   };
 
@@ -825,7 +828,7 @@ export function DashboardScreen({ navigation }: Props) {
       case 'total_miles_running':
         return Math.round(thisWeekActivities
           .filter(a => a.type.toLowerCase().includes('run'))
-          .reduce((sum, activity) => sum + (activity.distance / 1609.34), 0) * 10) / 10;
+          .reduce((sum, activity) => sum + activity.distance, 0) * 10) / 10; // stravaActivities already converted to miles
       case 'total_rides_biking':
         return thisWeekActivities.filter(a => 
           a.type.toLowerCase().includes('bike') || 
@@ -839,7 +842,7 @@ export function DashboardScreen({ navigation }: Props) {
             a.type.toLowerCase().includes('cycling') ||
             a.type.toLowerCase().includes('ride')
           )
-          .reduce((sum, activity) => sum + (activity.distance / 1609.34), 0) * 10) / 10;
+          .reduce((sum, activity) => sum + activity.distance, 0) * 10) / 10; // stravaActivities already converted to miles
       default:
         return thisWeekActivities.length;
     }
@@ -865,7 +868,7 @@ export function DashboardScreen({ navigation }: Props) {
     
     return thisWeekActivities
       .filter(activity => activity.type.toLowerCase().includes('run'))
-      .reduce((sum, activity) => sum + (activity.distance / 1609.34), 0);
+      .reduce((sum, activity) => sum + activity.distance, 0); // stravaActivities already converted to miles
   };
 
   const simpleProgress = calculateSimpleProgress();
@@ -897,9 +900,11 @@ export function DashboardScreen({ navigation }: Props) {
         {/* Header */}
         <View style={{ marginBottom: 32 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#111827' }}>
-              Hey {user?.name?.split(' ')[0] || 'Runner'} 👋
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#111827' }}>
+                Hey, {user?.name?.split(' ')[0] || 'Runner'}
+              </Text>
+            </View>
             <TouchableOpacity
               onPress={() => navigation.navigate('Settings')}
               style={{ 
@@ -912,7 +917,7 @@ export function DashboardScreen({ navigation }: Props) {
                 marginTop: -4
               }}
             >
-              <Text style={{ fontSize: 18 }}>⚙️</Text>
+              <VectorIcon emoji="⚙️" size={18} color="#6b7280" />
             </TouchableOpacity>
           </View>
           
@@ -1146,9 +1151,11 @@ export function DashboardScreen({ navigation }: Props) {
                     justifyContent: 'center',
                     marginRight: 12,
                   }}>
-                    <Text style={{ fontSize: 16 }}>
-                      {getActivityIcon(activity.type)}
-                    </Text>
+                    <VectorIcon 
+                      emoji={getActivityIconConfig(activity.type).emoji} 
+                      size={16} 
+                      color="#6b7280" 
+                    />
                   </View>
                   
                   <View style={{ flex: 1, marginRight: 12 }}>
@@ -1179,7 +1186,7 @@ export function DashboardScreen({ navigation }: Props) {
                     </View>
                     <Text style={{ fontSize: 12, color: '#6b7280', numberOfLines: 1 }}>
                       {formatActivityDate(activity.date)} • {getActivityDisplayName(activity.type)}
-                      {activity.distance > 0 && ` • ${activity.distance}mi`}
+                      {activity.distance > 0 && ` • ${(activity.distance / 1609.34).toFixed(1)}mi`}
                       {(activity.type === 'Run' || activity.type === 'VirtualRun') && activity.pace && ` • ${activity.pace}`}
                     </Text>
                   </View>
@@ -1190,7 +1197,7 @@ export function DashboardScreen({ navigation }: Props) {
                     minWidth: 30,
                     textAlign: 'right' 
                   }}>
-                    {activity.duration}m
+                    {Math.round(activity.duration / 60)}m
                   </Text>
                 </TouchableOpacity>
               ))}

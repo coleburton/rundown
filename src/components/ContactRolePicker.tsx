@@ -7,6 +7,7 @@ import Animated, {
   interpolate,
   runOnJS,
 } from 'react-native-reanimated';
+import { VectorIcon } from './ui/IconComponent';
 
 interface ContactRolePickerProps {
   onSelect: (role: string) => void;
@@ -18,32 +19,32 @@ const ROLE_SUGGESTIONS = [
   {
     title: 'Family Member',
     description: 'Family knows how to keep you accountable',
-    emoji: '👨‍👩‍👧‍👦',
+    emoji: '👨‍👩‍👧‍👦' as const,
   },
   {
     title: 'Best Friend',
     description: 'They know all your excuses already',
-    emoji: '🤝',
+    emoji: '❤️' as const, // Using heart as fallback for handshake
   },
   {
     title: 'Gym Buddy',
     description: 'Your swolemate who keeps it real',
-    emoji: '💪',
+    emoji: '💪' as const,
   },
   {
     title: 'Partner',
     description: 'Love means keeping each other accountable',
-    emoji: '❤️',
+    emoji: '❤️' as const,
   },
   {
     title: 'Coach',
     description: 'Your personal drill sergeant',
-    emoji: '🏃‍♂️',
+    emoji: '🏃‍♂️' as const,
   },
   {
     title: 'Sibling',
     description: 'Built-in competition since day one',
-    emoji: '👥',
+    emoji: '👥' as const,
   },
 ];
 
@@ -121,7 +122,7 @@ export function ContactRolePicker({ onSelect, style, initialValue }: ContactRole
                   isSelected && styles.roleButtonSelected,
                 ]}
               >
-                <Text style={styles.roleEmoji}>{role.emoji}</Text>
+                <VectorIcon emoji={role.emoji} size={32} color="#6b7280" style={{ marginBottom: 8 }} />
                 <Text style={[
                   styles.roleTitle,
                   isSelected && styles.roleTitleSelected,

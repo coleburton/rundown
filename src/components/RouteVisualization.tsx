@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import Svg, { Polyline, Circle } from 'react-native-svg';
+import { VectorIcon } from './ui/IconComponent';
 
 interface RouteVisualizationProps {
   latlng?: number[][];
@@ -23,7 +24,7 @@ export function RouteVisualization({ latlng, width = 300, height = 200 }: RouteV
         borderColor: '#e5e7eb',
         borderStyle: 'dashed',
       }}>
-        <Text style={{ fontSize: 40, marginBottom: 8 }}>📍</Text>
+        <VectorIcon emoji="📍" size={40} color="#9ca3af" style={{ marginBottom: 8 }} />
         <Text style={{ fontSize: 16, fontWeight: '500', color: '#6b7280', textAlign: 'center' }}>
           No GPS data for this activity
         </Text>
@@ -66,7 +67,7 @@ export function RouteVisualization({ latlng, width = 300, height = 200 }: RouteV
         borderColor: '#e5e7eb',
         borderStyle: 'dashed',
       }}>
-        <Text style={{ fontSize: 40, marginBottom: 8 }}>📍</Text>
+        <VectorIcon emoji="📍" size={40} color="#9ca3af" style={{ marginBottom: 8 }} />
         <Text style={{ fontSize: 16, fontWeight: '500', color: '#6b7280', textAlign: 'center' }}>
           No GPS data for this activity
         </Text>
@@ -103,7 +104,7 @@ export function RouteVisualization({ latlng, width = 300, height = 200 }: RouteV
         borderColor: '#e5e7eb',
         borderStyle: 'dashed',
       }}>
-        <Text style={{ fontSize: 40, marginBottom: 8 }}>📍</Text>
+        <VectorIcon emoji="📍" size={40} color="#9ca3af" style={{ marginBottom: 8 }} />
         <Text style={{ fontSize: 16, fontWeight: '500', color: '#6b7280', textAlign: 'center' }}>
           No GPS data for this activity
         </Text>
@@ -153,7 +154,7 @@ export function RouteVisualization({ latlng, width = 300, height = 200 }: RouteV
         borderColor: '#e5e7eb',
         borderStyle: 'dashed',
       }}>
-        <Text style={{ fontSize: 40, marginBottom: 8 }}>📍</Text>
+        <VectorIcon emoji="📍" size={40} color="#9ca3af" style={{ marginBottom: 8 }} />
         <Text style={{ fontSize: 16, fontWeight: '500', color: '#6b7280', textAlign: 'center' }}>
           No GPS data for this activity
         </Text>

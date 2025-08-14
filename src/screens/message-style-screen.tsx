@@ -5,6 +5,7 @@ import { useMockAuth } from '@/hooks/useMockAuth';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React, { useEffect, useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { VectorIcon } from '@/components/ui/IconComponent';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import analytics, { 
   ANALYTICS_EVENTS, 
@@ -43,35 +44,35 @@ const STYLE_OPTIONS: StyleOption[] = [
     id: 'supportive',
     title: 'Supportive Friend',
     description: 'Gentle nudges and encouragement',
-    example: 'Hey! Looks like Alex missed their run today. Maybe send them some encouragement? 💪',
+    example: 'Hey! Looks like Alex missed their run today. Maybe send them some encouragement?',
     emoji: '🤗',
   },
   {
     id: 'snarky',
     title: 'Snarky Buddy',  
     description: 'Playful sass and teasing',
-    example: 'Your running buddy Alex is making excuses again. Time for some tough love! 😏',
+    example: 'Your running buddy Alex is making excuses again. Time for some tough love!',
     emoji: '😏',
   },
   {
     id: 'competitive',
     title: 'Competitive Coach',
     description: 'Challenge them to step up',
-    example: 'Alex skipped their run today. Think they can handle a challenge to get back on track? ⚡',
+    example: 'Alex skipped their run today. Think they can handle a challenge to get back on track?',
     emoji: '⚡',
   },
   {
     id: 'achievement',
     title: 'Goal Tracker',
     description: 'Focus on milestones and progress',
-    example: 'Alex missed their run today and is 1 day behind their weekly goal. Help them get back on track? 🎯',
+    example: 'Alex missed their run today and is 1 day behind their weekly goal. Help them get back on track?',
     emoji: '🎯',
   },
   {
     id: 'chaotic',
     title: 'Chaotic Energy',
     description: 'Unpredictable and hilarious', 
-    example: 'EMERGENCY! 🚨 Alex\'s running shoes are getting dusty! Intervention needed ASAP!',
+    example: 'EMERGENCY! Alex\'s running shoes are getting dusty! Intervention needed ASAP!',
     emoji: '🤪',
   },
 ];
@@ -293,7 +294,7 @@ export function MessageStyleScreen({ navigation }: Props) {
               textAlign: 'center',
               fontWeight: '500'
             }}>
-              🧠 Based on your motivation style, we suggest {STYLE_OPTIONS.find(s => s.id === recommendedStyle)?.title}
+              Based on your motivation style, we suggest {STYLE_OPTIONS.find(s => s.id === recommendedStyle)?.title}
             </Text>
           </View>
         )}
@@ -332,7 +333,7 @@ export function MessageStyleScreen({ navigation }: Props) {
                 justifyContent: 'center',
                 marginRight: 8
               }}>
-                <Text style={{ fontSize: 13 }}>{style.emoji}</Text>
+                <VectorIcon emoji={style.emoji} size={13} color="#ffffff" />
               </View>
               
               <View style={{ flex: 1 }}>
@@ -380,7 +381,7 @@ export function MessageStyleScreen({ navigation }: Props) {
                   alignItems: 'center',
                   justifyContent: 'center'
                 }}>
-                  <Text style={{ color: '#ffffff', fontSize: 9, fontWeight: 'bold' }}>✓</Text>
+                  <VectorIcon emoji="✓" size={9} color="#ffffff" />
                 </View>
               )}
             </TouchableOpacity>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { Button } from '@/components/ui/button';
+import { VectorIcon } from '@/components/ui/IconComponent';
 import { useMockAuth } from '@/hooks/useMockAuth';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -307,7 +308,7 @@ export function MotivationQuizScreen({ navigation }: Props) {
                 justifyContent: 'center',
                 marginRight: 12
               }}>
-                <Text style={{ fontSize: 16 }}>{option.emoji}</Text>
+                <VectorIcon emoji={option.emoji} size={16} color="#ffffff" />
               </View>
               
               <View style={{ flex: 1 }}>
@@ -337,7 +338,7 @@ export function MotivationQuizScreen({ navigation }: Props) {
                   alignItems: 'center',
                   justifyContent: 'center'
                 }}>
-                  <Text style={{ color: '#ffffff', fontSize: 12, fontWeight: 'bold' }}>✓</Text>
+                  <VectorIcon emoji="✓" size={12} color="#ffffff" />
                 </View>
               )}
             </TouchableOpacity>
@@ -359,7 +360,7 @@ export function MotivationQuizScreen({ navigation }: Props) {
             textAlign: 'center',
             fontWeight: '500'
           }}>
-            🧠 This helps us tailor your reminders and celebration style
+            This helps us tailor your reminders and celebration style
           </Text>
         </View>
       </ScrollView>

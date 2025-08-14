@@ -3,6 +3,7 @@ import { ONBOARDING_BUTTON_STYLE, ONBOARDING_CONTAINER_STYLE } from '@/constants
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React, { useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { VectorIcon } from '@/components/ui/IconComponent';
 import Animated, {
     useAnimatedStyle,
     useSharedValue,
@@ -169,7 +170,7 @@ export function OnboardingSuccessScreen({ navigation }: Props) {
       ))}
 
       <Animated.View style={[styles.iconContainer, iconStyle]}>
-        <Text style={styles.icon}>🎉</Text>
+        <VectorIcon emoji="🎉" size={64} color="#f97316" />
       </Animated.View>
 
       <View style={styles.content}>
@@ -182,15 +183,21 @@ export function OnboardingSuccessScreen({ navigation }: Props) {
         <View style={styles.nextSteps}>
           <Text style={styles.nextStepsTitle}>What happens next:</Text>
           <View style={styles.stepItem}>
-            <Text style={styles.stepEmoji}>📱</Text>
+            <View style={styles.stepIconContainer}>
+              <VectorIcon emoji="📱" size={16} color="#6b7280" />
+            </View>
             <Text style={styles.stepText}>Stay active and track your fitness activities</Text>
           </View>
           <View style={styles.stepItem}>
-            <Text style={styles.stepEmoji}>📊</Text>
+            <View style={styles.stepIconContainer}>
+              <VectorIcon emoji="📊" size={16} color="#6b7280" />
+            </View>
             <Text style={styles.stepText}>We'll monitor your progress automatically</Text>
           </View>
           <View style={styles.stepItem}>
-            <Text style={styles.stepEmoji}>💬</Text>
+            <View style={styles.stepIconContainer}>
+              <VectorIcon emoji="💬" size={16} color="#6b7280" />
+            </View>
             <Text style={styles.stepText}>Your buddy gets notified if you miss goals</Text>
           </View>
         </View>
@@ -198,7 +205,7 @@ export function OnboardingSuccessScreen({ navigation }: Props) {
         {/* Optional Midweek Reminder */}
         <View style={styles.reminderOption}>
           <Text style={styles.reminderText}>
-            💡 Want a midweek check-in? You can enable reminders in settings later.
+            Want a midweek check-in? You can enable reminders in settings later.
           </Text>
         </View>
       </View>
@@ -230,9 +237,6 @@ const styles = StyleSheet.create({
   iconContainer: {
     marginBottom: 32,
     marginTop: 20,
-  },
-  icon: {
-    fontSize: 64,
   },
   content: {
     alignItems: 'center',
@@ -274,10 +278,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 8,
   },
-  stepEmoji: {
-    fontSize: 16,
+  stepIconContainer: {
     marginRight: 12,
     width: 20,
+    alignItems: 'center',
   },
   stepText: {
     fontSize: 14,

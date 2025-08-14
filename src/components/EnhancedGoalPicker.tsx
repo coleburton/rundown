@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput } from 'react-native';
 import analytics, { ANALYTICS_EVENTS } from '../lib/analytics';
+import { VectorIcon } from './ui/IconComponent';
 
 export type GoalType = 'total_activities' | 'total_runs' | 'total_miles_running' | 'total_rides_biking' | 'total_miles_biking';
 
