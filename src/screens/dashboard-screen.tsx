@@ -5,11 +5,23 @@ import { useAuthContext } from '@/lib/auth-context';
 import { useStravaActivities } from '@/hooks/useStravaActivities';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import { formatActivityDate, getWeekDateRange, isValidDate } from '@/lib/utils';
 import { calculateGoalProgress, calculateGoalProgressWithHistory, getGoalDisplayText, getMotivationalMessage } from '@/lib/goalUtils';
 import Svg, { Circle, Rect, Defs, LinearGradient, Stop } from 'react-native-svg';
+import Animated, { 
+  useSharedValue, 
+  useAnimatedStyle, 
+  withTiming, 
+  interpolate,
+  useAnimatedProps,
+  runOnJS
+} from 'react-native-reanimated';
 import { supabase } from '@/lib/supabase';
 import { VectorIcon } from '@/components/ui/IconComponent';
+
+// Create animated Circle component for react-native-svg
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 type RootStackParamList = {
   Welcome: undefined;
@@ -20,24 +32,49 @@ type RootStackParamList = {
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Dashboard'>;
 
-// SVG-based progress ring component
-const ProgressRing = ({ progress, goal, isOnTrack, isBehind, goalType, goalDisplay }: { 
+// SVG-based progress ring component with animation
+const ProgressRing = ({ progress, goal, isOnTrack, isBehind, goalType, goalDisplay, animationTrigger }: { 
   progress: number; 
   goal: number; 
   isOnTrack: boolean; 
   isBehind: boolean; 
   goalType: string;
   goalDisplay: { unit: string; emoji: string; name: string };
+  animationTrigger?: number;
 }) => {
+  // Reanimated shared value for smooth animation
+  const animatedProgress = useSharedValue(0);
+  
   // Cap the progress percentage at 100% when progress exceeds goal
   const progressPercentage = Math.min((progress / goal) * 100, 100);
   const size = 192;
   const strokeWidth = 12;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = circumference - (progressPercentage / 100) * circumference;
   
   const progressColor = isOnTrack ? '#10b981' : isBehind ? '#f59e0b' : '#14b8a6';
+  
+  // Animate progress when component mounts or progress changes, or when animation is triggered
+  useEffect(() => {
+    // Reset to 0 first, then animate to target value for a smooth fill-up effect
+    animatedProgress.value = 0;
+    animatedProgress.value = withTiming(progressPercentage, {
+      duration: 1200,
+    });
+  }, [progressPercentage, animatedProgress, animationTrigger]);
+
+  // Animated props for the progress circle
+  const animatedProps = useAnimatedProps(() => {
+    const strokeDashoffset = interpolate(
+      animatedProgress.value,
+      [0, 100],
+      [circumference, 0]
+    );
+    
+    return {
+      strokeDashoffset,
+    };
+  });
   
   return (
     <View style={{ alignItems: 'center', marginBottom: 32 }}>
@@ -53,8 +90,8 @@ const ProgressRing = ({ progress, goal, isOnTrack, isBehind, goalType, goalDispl
             fill="transparent"
           />
           
-          {/* Progress Circle */}
-          <Circle
+          {/* Progress Circle - Animated */}
+          <AnimatedCircle
             cx={size / 2}
             cy={size / 2}
             r={radius}
@@ -62,8 +99,8 @@ const ProgressRing = ({ progress, goal, isOnTrack, isBehind, goalType, goalDispl
             strokeWidth={strokeWidth}
             fill="transparent"
             strokeDasharray={circumference}
-            strokeDashoffset={strokeDashoffset}
             strokeLinecap="round"
+            animatedProps={animatedProps}
           />
         </Svg>
         
@@ -265,6 +302,17 @@ export function DashboardScreen({ navigation }: Props) {
   const [selectedWeekOffset, setSelectedWeekOffset] = useState(0); // 0 = current week, 1 = last week, etc.
   const [weeklyData, setWeeklyData] = useState<WeeklyData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Trigger for progress ring animation when screen comes into focus
+  const [animationTrigger, setAnimationTrigger] = useState(0);
+  
+  // Reset animation when screen comes into focus (user navigates back to dashboard)
+  useFocusEffect(
+    useCallback(() => {
+      // Increment trigger to force re-animation when returning to screen
+      setAnimationTrigger(prev => prev + 1);
+    }, [])
+  );
   
   // Helper function to get week date range for any week offset
   const getWeekDateRangeForOffset = (weekOffset: number) => {
@@ -979,14 +1027,17 @@ export function DashboardScreen({ navigation }: Props) {
           isBehind={isBehind} 
           goalType={goalType}
           goalDisplay={goalDisplay}
+          animationTrigger={animationTrigger}
         />
 
         {/* Status Message */}
         <View style={{
           borderRadius: 16,
-          padding: 24,
+          paddingHorizontal: 24,
+          paddingVertical: 12, // Reduced from 16 to 12
           marginBottom: 24,
-          textAlign: 'center',
+          height: 80, // Fixed height instead of minHeight
+          justifyContent: 'center', // Center content vertically
           backgroundColor: (() => {
             if (selectedWeekOffset > 0) {
               return progress >= goal ? '#f0fdf4' : progress > 0 ? '#fff7ed' : '#f9fafb';
