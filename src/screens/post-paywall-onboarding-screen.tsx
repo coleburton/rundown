@@ -76,7 +76,7 @@ export function PostPaywallOnboardingScreen() {
   }));
 
   const handleContinue = () => {
-    navigation.navigate("OnboardingSuccess");
+    navigation.navigate("Dashboard");
   };
 
   return (
