@@ -24,7 +24,6 @@ import { LoginScreen } from './src/screens/login-screen';
 import { MessageStyleScreen } from './src/screens/message-style-screen';
 import { MotivationQuizScreen } from './src/screens/motivation-quiz-screen';
 import { OnboardingScreen } from './src/screens/onboarding-screen';
-import { OnboardingSuccessScreen } from './src/screens/onboarding-success-screen';
 import { PaywallScreen } from './src/screens/paywall-screen';
 import { PaywallFreeTrialScreen } from './src/screens/paywall-free-trial-screen';
 import { SettingsScreen } from './src/screens/settings-screen';
@@ -47,7 +46,6 @@ export type RootStackParamList = {
   FitnessAppConnect: undefined;
   ContactSetup: undefined;
   MessageStyle: undefined;
-  OnboardingSuccess: undefined;
   Dashboard: undefined;
   Settings: undefined;
   Paywall: undefined;
@@ -108,7 +106,6 @@ function AppContent() {
         <Stack.Screen name="Paywall" component={PaywallScreen} />
         <Stack.Screen name="PaywallFreeTrial" component={PaywallFreeTrialScreen} />
         <Stack.Screen name="PostPaywallOnboarding" component={PostPaywallOnboardingScreen} />
-        <Stack.Screen name="OnboardingSuccess" component={OnboardingSuccessScreen} />
         
         {/* App screens */}
         <Stack.Screen name="Dashboard" component={DashboardScreen} />

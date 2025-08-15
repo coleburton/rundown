@@ -44,7 +44,25 @@ const MockProgressRing = ({ progress, goal }: { progress: number; goal: number }
   const strokeWidth = 8;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = circumference - (progressPercentage / 100) * circumference;
+  
+  // Calculate the arc length to show based on progress
+  const progressArcLength = (progressPercentage / 100) * circumference;
+  const remainingArcLength = circumference - progressArcLength;
+  
+  // Debug logging
+  console.log('MockProgressRing:', {
+    progress,
+    goal,
+    progressPercentage,
+    progressArcLength,
+    remainingArcLength,
+    circumference
+  });
+  
+  
+  // Determine color based on progress
+  const isGoalMet = progress >= goal;
+  const strokeColor = isGoalMet ? '#10b981' : '#f59e0b'; // Green if goal met, orange/yellow if partial
   
   return (
     <View style={{ alignItems: 'center' }}>
@@ -63,14 +81,11 @@ const MockProgressRing = ({ progress, goal }: { progress: number; goal: number }
             cx={size / 2}
             cy={size / 2}
             r={radius}
-            stroke="#10b981"
+            stroke={strokeColor}
             strokeWidth={strokeWidth}
             fill="transparent"
-            strokeDasharray={circumference}
-            strokeDashoffset={animatedValue.interpolate({
-              inputRange: [0, 1],
-              outputRange: [circumference, strokeDashoffset],
-            })}
+            strokeDasharray={`${progressArcLength} ${remainingArcLength}`}
+            strokeDashoffset={0}
             strokeLinecap="round"
           />
         </Svg>
@@ -168,7 +183,7 @@ export function ValuePreviewScreen({ navigation }: Props) {
             </View>
           </View>
           
-          <MockProgressRing progress={2} goal={userGoal} />
+          <MockProgressRing progress={2} goal={3} />
           
           <View style={{
             backgroundColor: '#f0fdf4',
@@ -200,7 +215,7 @@ export function ValuePreviewScreen({ navigation }: Props) {
               color: '#16a34a',
               textAlign: 'center'
             }}>
-              {userGoal - 2} more {goalType === 'runs' ? 'runs' : 'workouts'} this week to hit your goal
+              1 more run this week to hit your goal
             </Text>
           </View>
         </View>

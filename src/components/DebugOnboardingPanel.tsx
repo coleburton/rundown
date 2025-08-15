@@ -27,7 +27,6 @@ const ONBOARDING_SCREENS: OnboardingScreen[] = [
   { name: 'Paywall', label: 'Paywall', emoji: '💳' },
   { name: 'PaywallFreeTrial', label: 'Free Trial', emoji: '🆓' },
   { name: 'PostPaywallOnboarding', label: 'Post-Paywall Welcome', emoji: '🎉' },
-  { name: 'OnboardingSuccess', label: 'Success', emoji: '✅' },
 ];
 
 export function DebugOnboardingPanel() {
