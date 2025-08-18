@@ -5,6 +5,63 @@ const STRAVA_CLIENT_ID = Deno.env.get('STRAVA_CLIENT_ID');
 const STRAVA_CLIENT_SECRET = Deno.env.get('STRAVA_CLIENT_SECRET');
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+const ENCRYPTION_KEY = Deno.env.get('TOKEN_ENCRYPTION_KEY') || 'default-dev-key-change-in-prod';
+
+// SECURITY: Token encryption utilities
+async function encryptToken(token: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(ENCRYPTION_KEY.padEnd(32, '0').slice(0, 32)),
+    { name: 'AES-GCM' },
+    false,
+    ['encrypt']
+  );
+  
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const encrypted = await crypto.subtle.encrypt(
+    { name: 'AES-GCM', iv },
+    keyMaterial,
+    encoder.encode(token)
+  );
+  
+  // Combine IV and encrypted data, then encode as base64
+  const combined = new Uint8Array(iv.length + encrypted.byteLength);
+  combined.set(iv);
+  combined.set(new Uint8Array(encrypted), iv.length);
+  
+  return btoa(String.fromCharCode(...combined));
+}
+
+async function decryptToken(encryptedToken: string): Promise<string> {
+  const decoder = new TextDecoder();
+  const encoder = new TextEncoder();
+  
+  const combined = new Uint8Array(
+    atob(encryptedToken)
+      .split('')
+      .map(char => char.charCodeAt(0))
+  );
+  
+  const iv = combined.slice(0, 12);
+  const encrypted = combined.slice(12);
+  
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(ENCRYPTION_KEY.padEnd(32, '0').slice(0, 32)),
+    { name: 'AES-GCM' },
+    false,
+    ['decrypt']
+  );
+  
+  const decrypted = await crypto.subtle.decrypt(
+    { name: 'AES-GCM', iv },
+    keyMaterial,
+    encrypted
+  );
+  
+  return decoder.decode(decrypted);
+}
 
 interface StravaTokenResponse {
   token_type: string;
@@ -137,13 +194,17 @@ serve(async (req) => {
 
       console.log('User found, updating Strava connection');
 
+      // SECURITY: Encrypt tokens before storing
+      const encryptedAccessToken = await encryptToken(stravaData.access_token);
+      const encryptedRefreshToken = await encryptToken(stravaData.refresh_token);
+
       // Update the existing user's Strava connection
       const { error: updateError } = await supabase
         .from('users')
         .update({
           strava_id: stravaData.athlete.id.toString(),
-          access_token: stravaData.access_token,
-          refresh_token: stravaData.refresh_token,
+          access_token: encryptedAccessToken,
+          refresh_token: encryptedRefreshToken,
           token_expires_at: new Date(stravaData.expires_at * 1000).toISOString(),
           name: existingUser.name || `${stravaData.athlete.firstname} ${stravaData.athlete.lastname}`,
         })

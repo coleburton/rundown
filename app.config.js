@@ -49,7 +49,7 @@ export default {
     ],
     extra: {
       stravaClientId: process.env.EXPO_PUBLIC_STRAVA_CLIENT_ID,
-      stravaClientSecret: process.env.EXPO_PUBLIC_STRAVA_CLIENT_SECRET,
+      // SECURITY: Client secret removed from frontend - handled by backend Edge Functions only
       backendUrl: process.env.EXPO_PUBLIC_BACKEND_URL,
       env: process.env.EXPO_PUBLIC_ENV || 'development'
     }
