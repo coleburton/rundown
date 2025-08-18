@@ -316,6 +316,7 @@ export function DashboardScreen({ navigation }: Props) {
   const [isSubscribed, setIsSubscribed] = useState(true);
   const [showCancelledModal, setShowCancelledModal] = useState(false);
   const [debugCancelledState, setDebugCancelledState] = useState(false);
+  const [hasCheckedSubscription, setHasCheckedSubscription] = useState(false);
   
   // Trigger for progress ring animation when screen comes into focus
   const [animationTrigger, setAnimationTrigger] = useState(0);
@@ -335,18 +336,24 @@ export function DashboardScreen({ navigation }: Props) {
   const checkSubscriptionStatus = useCallback(async () => {
     try {
       const subscribed = await revenueCat.isUserSubscribed();
-      setIsSubscribed(subscribed);
+      const previouslySubscribed = isSubscribed;
       
-      // Show modal on first login if cancelled
-      if (!subscribed) {
+      setIsSubscribed(subscribed);
+      setHasCheckedSubscription(true);
+      
+      // Only show modal if:
+      // 1. User is not subscribed, AND
+      // 2. Either this is first check OR they were previously subscribed (status change)
+      if (!subscribed && (!hasCheckedSubscription || previouslySubscribed)) {
         setShowCancelledModal(true);
       }
     } catch (error) {
       console.error('Failed to check subscription status:', error);
       // Default to subscribed on error
       setIsSubscribed(true);
+      setHasCheckedSubscription(true);
     }
-  }, [debugCancelledState]);
+  }, [debugCancelledState, isSubscribed, hasCheckedSubscription]);
   
   // Helper function to get week date range for any week offset
   const getWeekDateRangeForOffset = (weekOffset: number) => {

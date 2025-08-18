@@ -6,8 +6,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 WebBrowser.maybeCompleteAuthSession();
 
 const STRAVA_CLIENT_ID = Constants.expoConfig?.extra?.stravaClientId || process.env.EXPO_PUBLIC_STRAVA_CLIENT_ID;
-const STRAVA_CLIENT_SECRET = Constants.expoConfig?.extra?.stravaClientSecret || process.env.EXPO_PUBLIC_STRAVA_CLIENT_SECRET;
-const BACKEND_URL = Constants.expoConfig?.extra?.backendUrl || process.env.EXPO_PUBLIC_BACKEND_URL || 'http://localhost:8080';
+// SECURITY: Client secret removed from frontend - handled by backend Edge Functions only
+const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL || 'http://localhost:54321';
 
 const redirectUri = AuthSession.makeRedirectUri({
   scheme: 'rundown',
@@ -102,16 +102,16 @@ class StravaAuthService {
 
   private async exchangeCodeForTokens(code: string): Promise<StravaTokens | null> {
     try {
-      const response = await fetch('https://www.strava.com/oauth/token', {
+      // SECURITY: Use backend Edge Function instead of exposing client secret
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/strava-auth`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY}`,
         },
         body: JSON.stringify({
-          client_id: STRAVA_CLIENT_ID,
-          client_secret: STRAVA_CLIENT_SECRET,
           code,
-          grant_type: 'authorization_code',
+          user_id: 'temp', // This will need to be updated with actual user ID from auth context
         }),
       });
 
@@ -123,12 +123,16 @@ class StravaAuthService {
 
       const data = await response.json();
       
-      return {
-        access_token: data.access_token,
-        refresh_token: data.refresh_token,
-        expires_at: data.expires_at,
-        athlete: data.athlete,
-      };
+      if (data.success && data.athlete) {
+        return {
+          access_token: 'handled_by_backend', // Backend stores tokens securely
+          refresh_token: 'handled_by_backend',
+          expires_at: Date.now() / 1000 + 3600, // 1 hour from now
+          athlete: data.athlete,
+        };
+      }
+      
+      return null;
     } catch (error) {
       console.error('Error exchanging code for tokens:', error);
       return null;
@@ -137,40 +141,11 @@ class StravaAuthService {
 
   async refreshAccessToken(): Promise<StravaTokens | null> {
     try {
-      if (!this.tokens?.refresh_token) {
-        return null;
-      }
-
-      const response = await fetch('https://www.strava.com/oauth/token', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          client_id: STRAVA_CLIENT_ID,
-          client_secret: STRAVA_CLIENT_SECRET,
-          refresh_token: this.tokens.refresh_token,
-          grant_type: 'refresh_token',
-        }),
-      });
-
-      if (!response.ok) {
-        return null;
-      }
-
-      const data = await response.json();
+      // SECURITY: Token refresh now handled by backend to keep credentials secure
+      console.log('Token refresh now handled automatically by backend Edge Functions');
       
-      const newTokens: StravaTokens = {
-        access_token: data.access_token,
-        refresh_token: data.refresh_token,
-        expires_at: data.expires_at,
-        athlete: this.tokens.athlete,
-      };
-
-      this.tokens = newTokens;
-      await this.storeTokens(newTokens);
-      
-      return newTokens;
+      // Return existing tokens since backend handles refresh automatically
+      return this.tokens;
     } catch (error) {
       console.error('Error refreshing token:', error);
       return null;

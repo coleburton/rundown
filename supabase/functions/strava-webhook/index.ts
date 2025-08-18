@@ -5,6 +5,38 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
 const STRAVA_VERIFY_TOKEN = Deno.env.get('STRAVA_VERIFY_TOKEN');
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+const ENCRYPTION_KEY = Deno.env.get('TOKEN_ENCRYPTION_KEY') || 'default-dev-key-change-in-prod';
+
+// SECURITY: Token decryption utility (same as in strava-auth)
+async function decryptToken(encryptedToken: string): Promise<string> {
+  const decoder = new TextDecoder();
+  const encoder = new TextEncoder();
+  
+  const combined = new Uint8Array(
+    atob(encryptedToken)
+      .split('')
+      .map(char => char.charCodeAt(0))
+  );
+  
+  const iv = combined.slice(0, 12);
+  const encrypted = combined.slice(12);
+  
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(ENCRYPTION_KEY.padEnd(32, '0').slice(0, 32)),
+    { name: 'AES-GCM' },
+    false,
+    ['decrypt']
+  );
+  
+  const decrypted = await crypto.subtle.decrypt(
+    { name: 'AES-GCM', iv },
+    keyMaterial,
+    encrypted
+  );
+  
+  return decoder.decode(decrypted);
+}
 
 interface StravaWebhookEvent {
   object_type: string;
@@ -101,10 +133,18 @@ async function processNewActivity(supabase: any, user: any, activityId: number) 
   try {
     console.log('Processing new activity:', activityId);
     
+    // SECURITY: Decrypt token before use
+    let accessToken: string;
+    try {
+      accessToken = await decryptToken(user.access_token);
+    } catch (error) {
+      console.error('Failed to decrypt access token:', error);
+      return;
+    }
+
     // Check if token needs refresh
     const now = new Date();
     const expiresAt = new Date(user.token_expires_at);
-    let accessToken = user.access_token;
 
     if (expiresAt <= now) {
       console.log('Refreshing expired token');
@@ -193,7 +233,41 @@ async function processDeletedActivity(supabase: any, userId: string, activityId:
   }
 }
 
+// SECURITY: Token encryption utility (same as in strava-auth)
+async function encryptToken(token: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(ENCRYPTION_KEY.padEnd(32, '0').slice(0, 32)),
+    { name: 'AES-GCM' },
+    false,
+    ['encrypt']
+  );
+  
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const encrypted = await crypto.subtle.encrypt(
+    { name: 'AES-GCM', iv },
+    keyMaterial,
+    encoder.encode(token)
+  );
+  
+  // Combine IV and encrypted data, then encode as base64
+  const combined = new Uint8Array(iv.length + encrypted.byteLength);
+  combined.set(iv);
+  combined.set(new Uint8Array(encrypted), iv.length);
+  
+  return btoa(String.fromCharCode(...combined));
+}
+
 async function refreshToken(supabase: any, user: any): Promise<string> {
+  // SECURITY: Decrypt refresh token before use
+  let refreshToken: string;
+  try {
+    refreshToken = await decryptToken(user.refresh_token);
+  } catch (error) {
+    throw new Error('Failed to decrypt refresh token');
+  }
+
   const response = await fetch('https://www.strava.com/oauth/token', {
     method: 'POST',
     headers: {
@@ -202,7 +276,7 @@ async function refreshToken(supabase: any, user: any): Promise<string> {
     body: JSON.stringify({
       client_id: Deno.env.get('STRAVA_CLIENT_ID'),
       client_secret: Deno.env.get('STRAVA_CLIENT_SECRET'),
-      refresh_token: user.refresh_token,
+      refresh_token: refreshToken,
       grant_type: 'refresh_token',
     }),
   });
@@ -213,12 +287,16 @@ async function refreshToken(supabase: any, user: any): Promise<string> {
     throw new Error(`Failed to refresh token: ${data.message}`);
   }
 
+  // SECURITY: Encrypt tokens before storing
+  const encryptedAccessToken = await encryptToken(data.access_token);
+  const encryptedRefreshToken = await encryptToken(data.refresh_token);
+
   // Update user's tokens
   await supabase
     .from('users')
     .update({
-      access_token: data.access_token,
-      refresh_token: data.refresh_token,
+      access_token: encryptedAccessToken,
+      refresh_token: encryptedRefreshToken,
       token_expires_at: new Date(data.expires_at * 1000).toISOString(),
     })
     .eq('id', user.id);
