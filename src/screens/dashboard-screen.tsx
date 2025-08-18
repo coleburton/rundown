@@ -20,6 +20,9 @@ import Animated, {
 import { supabase } from '@/lib/supabase';
 import { DebugOnboardingPanel } from '@/components/DebugOnboardingPanel';
 import { VectorIcon, IconComponent } from '@/components/ui/IconComponent';
+import { SubscriptionCancelledModal } from '@/components/SubscriptionCancelledModal';
+import { revenueCat } from '@/services/RevenueCat';
+import { isDebugMode } from '@/lib/debug-mode';
 
 // Create animated Circle component for react-native-svg
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
@@ -309,6 +312,11 @@ export function DashboardScreen({ navigation }: Props) {
   const [weeklyData, setWeeklyData] = useState<WeeklyData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   
+  // Subscription state
+  const [isSubscribed, setIsSubscribed] = useState(true);
+  const [showCancelledModal, setShowCancelledModal] = useState(false);
+  const [debugCancelledState, setDebugCancelledState] = useState(false);
+  
   // Trigger for progress ring animation when screen comes into focus
   const [animationTrigger, setAnimationTrigger] = useState(0);
   
@@ -317,8 +325,28 @@ export function DashboardScreen({ navigation }: Props) {
     useCallback(() => {
       // Increment trigger to force re-animation when returning to screen
       setAnimationTrigger(prev => prev + 1);
+      
+      // Check subscription status on focus
+      checkSubscriptionStatus();
     }, [])
   );
+
+  // Check subscription status
+  const checkSubscriptionStatus = useCallback(async () => {
+    try {
+      const subscribed = await revenueCat.isUserSubscribed();
+      setIsSubscribed(subscribed);
+      
+      // Show modal on first login if cancelled
+      if (!subscribed) {
+        setShowCancelledModal(true);
+      }
+    } catch (error) {
+      console.error('Failed to check subscription status:', error);
+      // Default to subscribed on error
+      setIsSubscribed(true);
+    }
+  }, [debugCancelledState]);
   
   // Helper function to get week date range for any week offset
   const getWeekDateRangeForOffset = (weekOffset: number) => {
@@ -795,6 +823,19 @@ export function DashboardScreen({ navigation }: Props) {
     }
   };
 
+  // Handle modal actions
+  const handleCloseCancelledModal = () => {
+    setShowCancelledModal(false);
+  };
+
+  const handleResubscribe = () => {
+    setShowCancelledModal(false);
+    navigation.navigate('Paywall' as any);
+  };
+
+  // Determine effective subscription status (including debug override)
+  const effectiveIsSubscribed = isDebugMode() ? !debugCancelledState : isSubscribed;
+
   const formatDistance = (meters: number) => {
     const miles = meters / 1609.34;
     return `${miles.toFixed(1)} miles`;
@@ -950,7 +991,10 @@ export function DashboardScreen({ navigation }: Props) {
 
   return (
     <View style={{ flex: 1, backgroundColor: '#ffffff' }}>
-      <DebugOnboardingPanel />
+      <DebugOnboardingPanel 
+        debugCancelledState={debugCancelledState}
+        onToggleCancelledState={setDebugCancelledState}
+      />
       <ScrollView style={{ flex: 1 }}>
       <View style={{ padding: 24, paddingTop: 24 + insets.top }}>
         {/* Header */}
@@ -1044,93 +1088,196 @@ export function DashboardScreen({ navigation }: Props) {
         />
 
         {/* Status Message */}
-        <View style={{
-          borderRadius: 16,
-          paddingHorizontal: 24,
-          paddingVertical: 12, // Reduced from 16 to 12
-          marginBottom: 24,
-          height: 80, // Fixed height instead of minHeight
-          justifyContent: 'center', // Center content vertically
-          backgroundColor: (() => {
-            if (selectedWeekOffset > 0) {
-              return progress >= goal ? '#f0fdf4' : progress > 0 ? '#fff7ed' : '#f9fafb';
-            } else {
-              return progress >= goal ? '#f0fdf4' : progress > 0 ? '#f0fdfa' : '#f0fdfa';
-            }
-          })(),
-          borderWidth: 1,
-          borderColor: (() => {
-            if (selectedWeekOffset > 0) {
-              return progress >= goal ? '#bbf7d0' : progress > 0 ? '#fed7aa' : '#e5e7eb';
-            } else {
-              return progress >= goal ? '#bbf7d0' : progress > 0 ? '#a7f3d0' : '#a7f3d0';
-            }
-          })(),
-        }}>
-          {(() => {
-            let colorScheme: { title: string; message: string };
-
-            // Determine colors based on week type and progress
-            if (selectedWeekOffset > 0) {
-              // Past week scenarios
-              if (progress >= goal) {
-                colorScheme = { title: '#166534', message: '#16a34a' };
-              } else if (progress > 0) {
-                colorScheme = { title: '#9a3412', message: '#ea580c' };
-              } else {
-                colorScheme = { title: '#6b7280', message: '#9ca3af' };
-              }
-            } else {
-              // Current week scenarios
-              if (progress >= goal) {
-                colorScheme = { title: '#166534', message: '#16a34a' };
-              } else {
-                colorScheme = { title: '#134e4a', message: '#0f766e' };
-              }
-            }
-
-            return (
-              <>
-                <Text style={{
-                  fontSize: 18,
-                  fontWeight: 'bold',
-                  marginBottom: 8,
-                  textAlign: 'center',
-                  color: colorScheme.title,
-                }}>
-                  {motivationalMessage.title}
-                </Text>
-                <Text style={{
-                  fontSize: 14,
-                  textAlign: 'center',
-                  color: colorScheme.message,
-                }}>
-                  {motivationalMessage.message}
-                </Text>
-              </>
-            );
-          })()}
-        </View>
-
-        {/* Weekly Goal History */}
-        {shouldShowSimpleDashboard ? (
-          <View style={{ marginBottom: 24 }}>
-            <Text style={{ fontSize: 16, fontWeight: '600', color: '#111827', marginBottom: 12 }}>
-              Weekly Goal History
-            </Text>
-            <View style={{ backgroundColor: '#f9fafb', borderRadius: 16, padding: 16, alignItems: 'center' }}>
-              <Text style={{ fontSize: 14, color: '#6b7280', textAlign: 'center' }}>
-                Loading your activity history...
+        {!effectiveIsSubscribed ? (
+          // Subscription reminder for cancelled users
+          <TouchableOpacity 
+            onPress={handleResubscribe}
+            style={{
+              borderRadius: 16,
+              paddingHorizontal: 24,
+              paddingVertical: 16,
+              marginBottom: 24,
+              backgroundColor: '#fef3c7',
+              borderWidth: 2,
+              borderColor: '#f59e0b',
+              flexDirection: 'row',
+              alignItems: 'center',
+            }}
+            activeOpacity={0.8}
+          >
+            <View style={{
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              backgroundColor: '#f59e0b',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginRight: 16,
+            }}>
+              <IconComponent
+                library="Lucide"
+                name="CreditCard"
+                size={20}
+                color="#ffffff"
+              />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={{
+                fontSize: 16,
+                fontWeight: '600',
+                color: '#92400e',
+                marginBottom: 4,
+              }}>
+                Your subscription is cancelled
+              </Text>
+              <Text style={{
+                fontSize: 14,
+                color: '#a16207',
+                lineHeight: 18,
+              }}>
+                Tap to resubscribe and get back to crushing your goals with accountability!
               </Text>
             </View>
-          </View>
+            <IconComponent
+              library="Lucide"
+              name="ChevronRight"
+              size={20}
+              color="#a16207"
+            />
+          </TouchableOpacity>
         ) : (
-          <WeeklyGoalHistory 
-            weeklyData={weeklyData}
-            selectedWeekOffset={selectedWeekOffset} 
-            onWeekSelect={setSelectedWeekOffset}
-          />
+          // Regular motivational message for subscribed users
+          <View style={{
+            borderRadius: 16,
+            paddingHorizontal: 24,
+            paddingVertical: 12,
+            marginBottom: 24,
+            height: 80,
+            justifyContent: 'center',
+            backgroundColor: (() => {
+              if (selectedWeekOffset > 0) {
+                return progress >= goal ? '#f0fdf4' : progress > 0 ? '#fff7ed' : '#f9fafb';
+              } else {
+                return progress >= goal ? '#f0fdf4' : progress > 0 ? '#f0fdfa' : '#f0fdfa';
+              }
+            })(),
+            borderWidth: 1,
+            borderColor: (() => {
+              if (selectedWeekOffset > 0) {
+                return progress >= goal ? '#bbf7d0' : progress > 0 ? '#fed7aa' : '#e5e7eb';
+              } else {
+                return progress >= goal ? '#bbf7d0' : progress > 0 ? '#a7f3d0' : '#a7f3d0';
+              }
+            })(),
+          }}>
+            {(() => {
+              let colorScheme: { title: string; message: string };
+
+              // Determine colors based on week type and progress
+              if (selectedWeekOffset > 0) {
+                // Past week scenarios
+                if (progress >= goal) {
+                  colorScheme = { title: '#166534', message: '#16a34a' };
+                } else if (progress > 0) {
+                  colorScheme = { title: '#9a3412', message: '#ea580c' };
+                } else {
+                  colorScheme = { title: '#6b7280', message: '#9ca3af' };
+                }
+              } else {
+                // Current week scenarios
+                if (progress >= goal) {
+                  colorScheme = { title: '#166534', message: '#16a34a' };
+                } else {
+                  colorScheme = { title: '#134e4a', message: '#0f766e' };
+                }
+              }
+
+              return (
+                <>
+                  <Text style={{
+                    fontSize: 18,
+                    fontWeight: 'bold',
+                    marginBottom: 8,
+                    textAlign: 'center',
+                    color: colorScheme.title,
+                  }}>
+                    {motivationalMessage.title}
+                  </Text>
+                  <Text style={{
+                    fontSize: 14,
+                    textAlign: 'center',
+                    color: colorScheme.message,
+                  }}>
+                    {motivationalMessage.message}
+                  </Text>
+                </>
+              );
+            })()}
+          </View>
         )}
+
+        {/* Weekly Goal History */}
+        <View style={{ 
+          position: 'relative',
+        }}>
+          {/* Content wrapper with conditional blur */}
+          <View style={{
+            ...((!effectiveIsSubscribed) && {
+              opacity: 0.4,
+            })
+          }}>
+            {shouldShowSimpleDashboard ? (
+              <View style={{ marginBottom: 24 }}>
+                <Text style={{ fontSize: 16, fontWeight: '600', color: '#111827', marginBottom: 12 }}>
+                  Weekly Goal History
+                </Text>
+                <View style={{ backgroundColor: '#f9fafb', borderRadius: 16, padding: 16, alignItems: 'center' }}>
+                  <Text style={{ fontSize: 14, color: '#6b7280', textAlign: 'center' }}>
+                    Loading your activity history...
+                  </Text>
+                </View>
+              </View>
+            ) : (
+              <WeeklyGoalHistory 
+                weeklyData={weeklyData}
+                selectedWeekOffset={selectedWeekOffset} 
+                onWeekSelect={setSelectedWeekOffset}
+              />
+            )}
+          </View>
+          
+          {/* Blur overlay for cancelled subscriptions */}
+          {!effectiveIsSubscribed && (
+            <View style={{
+              position: 'absolute',
+              top: 44, // Below the title
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(255, 255, 255, 0.8)',
+              borderRadius: 16,
+              justifyContent: 'center',
+              alignItems: 'center',
+              paddingHorizontal: 24,
+            }}>
+              <IconComponent
+                library="Lucide"
+                name="Lock"
+                size={24}
+                color="#6b7280"
+              />
+              <Text style={{
+                fontSize: 14,
+                color: '#6b7280',
+                textAlign: 'center',
+                marginTop: 8,
+                fontWeight: '500',
+              }}>
+                Unlock goal history with subscription
+              </Text>
+            </View>
+          )}
+        </View>
 
         {/* Quick Stats */}
         <View style={{ flexDirection: 'row', gap: 16, marginBottom: 24 }}>
@@ -1180,121 +1327,164 @@ export function DashboardScreen({ navigation }: Props) {
         </View>
 
         {/* Recent Activity */}
-        <View style={{ marginBottom: 24 }}>
+        <View style={{ 
+          position: 'relative',
+          marginBottom: 24 
+        }}>
+          {/* Keep section title visible */}
           <Text style={{ fontSize: 16, fontWeight: '600', color: '#111827', marginBottom: 16 }}>
             {selectedWeekOffset === 0 ? 'Recent Activity' : `Activities from ${selectedWeekOffset} week${selectedWeekOffset === 1 ? '' : 's'} ago`}
           </Text>
 
-          {!user ? (
-            <View style={{ alignItems: 'center', padding: 16 }}>
-              <IconComponent
-                library="Lucide"
-                name="UserCheck"
-                size={20}
-                color="#3b82f6"
-              />
-              <Text style={{ color: '#6b7280', textAlign: 'center', marginTop: 8 }}>
-                Please sign in to see your activities!
-              </Text>
-            </View>
-          ) : loading ? (
-            <Text style={{ color: '#6b7280', textAlign: 'center', padding: 16 }}>
-              Loading your Strava activities...
-            </Text>
-          ) : error ? (
-            <Text style={{ color: '#ef4444', textAlign: 'center', padding: 16 }}>
-              Failed to load activities: {error}
-            </Text>
-          ) : displayActivities.length === 0 ? (
-            <View style={{ alignItems: 'center', padding: 16 }}>
-              <Text style={{ color: '#6b7280', textAlign: 'center', marginBottom: 8 }}>
-                {selectedWeekOffset === 0 ? 'No activities found. Time to get moving!' : 'No activities found for this week.'}
-              </Text>
-              {selectedWeekOffset === 0 && (
+          {/* Content wrapper with conditional blur */}
+          <View style={{
+            ...((!effectiveIsSubscribed) && {
+              opacity: 0.4,
+            })
+          }}>
+            {!user ? (
+              <View style={{ alignItems: 'center', padding: 16 }}>
                 <IconComponent
                   library="Lucide"
-                  name="Zap"
+                  name="UserCheck"
                   size={20}
-                  color="#f59e0b"
+                  color="#3b82f6"
                 />
-              )}
-            </View>
-          ) : (
-            <View style={{ gap: 12 }}>
-              {displayActivities.map((activity, index) => (
-                <TouchableOpacity
-                  key={activity.id}
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    backgroundColor: activity.countsTowardGoal ? '#f0fdf4' : '#f9fafb',
-                    borderRadius: 12,
-                    padding: 16,
-                    borderWidth: 1,
-                    borderColor: activity.countsTowardGoal ? '#bbf7d0' : '#e5e7eb',
-                  }}
-                  onPress={() => navigation.navigate('ActivityDetail', { activityId: activity.id })}
-                  activeOpacity={0.7}
-                >
-                  <View style={{
-                    width: 32,
-                    height: 32,
-                    backgroundColor: activity.countsTowardGoal ? '#dcfce7' : '#f3f4f6',
-                    borderRadius: 16,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    marginRight: 12,
-                  }}>
-                    <VectorIcon 
-                      emoji={getActivityIconConfig(activity.type).emoji} 
-                      size={16} 
-                      color="#6b7280" 
-                    />
-                  </View>
-                  
-                  <View style={{ flex: 1, marginRight: 12 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
-                      <Text 
-                        style={{ 
-                          fontSize: 14, 
-                          fontWeight: '500', 
-                          color: '#111827',
-                          flex: 1,
-                          marginRight: 8 
-                        }}
-                        numberOfLines={1}
-                        ellipsizeMode="tail"
-                      >
-                        {activity.name}
-                      </Text>
-                      <View style={{
-                        backgroundColor: activity.countsTowardGoal ? '#10b981' : '#9ca3af',
-                        borderRadius: 6,
-                        paddingHorizontal: 6,
-                        paddingVertical: 2,
-                      }}>
-                        <Text style={{ fontSize: 9, color: '#ffffff', fontWeight: '600' }}>
-                          {activity.countsTowardGoal ? 'GOAL' : 'OTHER'}
-                        </Text>
-                      </View>
+                <Text style={{ color: '#6b7280', textAlign: 'center', marginTop: 8 }}>
+                  Please sign in to see your activities!
+                </Text>
+              </View>
+            ) : loading ? (
+              <Text style={{ color: '#6b7280', textAlign: 'center', padding: 16 }}>
+                Loading your Strava activities...
+              </Text>
+            ) : error ? (
+              <Text style={{ color: '#ef4444', textAlign: 'center', padding: 16 }}>
+                Failed to load activities: {error}
+              </Text>
+            ) : displayActivities.length === 0 ? (
+              <View style={{ alignItems: 'center', padding: 16 }}>
+                <Text style={{ color: '#6b7280', textAlign: 'center', marginBottom: 8 }}>
+                  {selectedWeekOffset === 0 ? 'No activities found. Time to get moving!' : 'No activities found for this week.'}
+                </Text>
+                {selectedWeekOffset === 0 && (
+                  <IconComponent
+                    library="Lucide"
+                    name="Zap"
+                    size={20}
+                    color="#f59e0b"
+                  />
+                )}
+              </View>
+            ) : (
+              <View style={{ gap: 12 }}>
+                {displayActivities.map((activity, index) => (
+                  <TouchableOpacity
+                    key={activity.id}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      backgroundColor: activity.countsTowardGoal ? '#f0fdf4' : '#f9fafb',
+                      borderRadius: 12,
+                      padding: 16,
+                      borderWidth: 1,
+                      borderColor: activity.countsTowardGoal ? '#bbf7d0' : '#e5e7eb',
+                    }}
+                    onPress={() => navigation.navigate('ActivityDetail', { activityId: activity.id })}
+                    activeOpacity={0.7}
+                  >
+                    <View style={{
+                      width: 32,
+                      height: 32,
+                      backgroundColor: activity.countsTowardGoal ? '#dcfce7' : '#f3f4f6',
+                      borderRadius: 16,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginRight: 12,
+                    }}>
+                      <VectorIcon 
+                        emoji={getActivityIconConfig(activity.type).emoji} 
+                        size={16} 
+                        color="#6b7280" 
+                      />
                     </View>
-                    <Text style={{ fontSize: 12, color: '#6b7280', numberOfLines: 1 }}>
-                      {formatActivityDate(activity.date)} • {getActivityDisplayName(activity.type)}
-                      {activity.distance > 0 && ` • ${(activity.distance / 1609.34).toFixed(1)}mi`}
-                      {(activity.type === 'Run' || activity.type === 'VirtualRun') && activity.pace && ` • ${activity.pace}`}
+                    
+                    <View style={{ flex: 1, marginRight: 12 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
+                        <Text 
+                          style={{ 
+                            fontSize: 14, 
+                            fontWeight: '500', 
+                            color: '#111827',
+                            flex: 1,
+                            marginRight: 8 
+                          }}
+                          numberOfLines={1}
+                          ellipsizeMode="tail"
+                        >
+                          {activity.name}
+                        </Text>
+                        <View style={{
+                          backgroundColor: activity.countsTowardGoal ? '#10b981' : '#9ca3af',
+                          borderRadius: 6,
+                          paddingHorizontal: 6,
+                          paddingVertical: 2,
+                        }}>
+                          <Text style={{ fontSize: 9, color: '#ffffff', fontWeight: '600' }}>
+                            {activity.countsTowardGoal ? 'GOAL' : 'OTHER'}
+                          </Text>
+                        </View>
+                      </View>
+                      <Text style={{ fontSize: 12, color: '#6b7280', numberOfLines: 1 }}>
+                        {formatActivityDate(activity.date)} • {getActivityDisplayName(activity.type)}
+                        {activity.distance > 0 && ` • ${(activity.distance / 1609.34).toFixed(1)}mi`}
+                        {(activity.type === 'Run' || activity.type === 'VirtualRun') && activity.pace && ` • ${activity.pace}`}
+                      </Text>
+                    </View>
+                    
+                    <Text style={{ 
+                      fontSize: 12, 
+                      color: '#6b7280',
+                      minWidth: 30,
+                      textAlign: 'right' 
+                    }}>
+                      {Math.round(activity.duration / 60)}m
                     </Text>
-                  </View>
-                  
-                  <Text style={{ 
-                    fontSize: 12, 
-                    color: '#6b7280',
-                    minWidth: 30,
-                    textAlign: 'right' 
-                  }}>
-                    {Math.round(activity.duration / 60)}m
-                  </Text>
-                </TouchableOpacity>
-              ))}
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+          </View>
+          
+          {/* Blur overlay for cancelled subscriptions */}
+          {!effectiveIsSubscribed && (
+            <View style={{
+              position: 'absolute',
+              top: 48, // Below the title
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(255, 255, 255, 0.8)',
+              borderRadius: 16,
+              justifyContent: 'center',
+              alignItems: 'center',
+              paddingHorizontal: 24,
+            }}>
+              <IconComponent
+                library="Lucide"
+                name="Lock"
+                size={24}
+                color="#6b7280"
+              />
+              <Text style={{
+                fontSize: 14,
+                color: '#6b7280',
+                textAlign: 'center',
+                marginTop: 8,
+                fontWeight: '500',
+              }}>
+                Unlock activity details with subscription
+              </Text>
             </View>
           )}
         </View>
@@ -1315,6 +1505,13 @@ export function DashboardScreen({ navigation }: Props) {
         </View>
       </View>
       </ScrollView>
+      
+      {/* Subscription Cancelled Modal */}
+      <SubscriptionCancelledModal
+        visible={showCancelledModal}
+        onClose={handleCloseCancelledModal}
+        onResubscribe={handleResubscribe}
+      />
     </View>
   );
 } 
