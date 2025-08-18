@@ -13,6 +13,11 @@ interface OnboardingScreen {
   emoji: string;
 }
 
+interface DebugOnboardingPanelProps {
+  debugCancelledState?: boolean;
+  onToggleCancelledState?: (cancelled: boolean) => void;
+}
+
 const ONBOARDING_SCREENS: OnboardingScreen[] = [
   { name: 'Onboarding', label: 'Welcome Carousel', emoji: '👋' },
   { name: 'UserInfo', label: 'User Info', emoji: '👤' },
@@ -29,7 +34,10 @@ const ONBOARDING_SCREENS: OnboardingScreen[] = [
   { name: 'PostPaywallOnboarding', label: 'Post-Paywall Welcome', emoji: '🎉' },
 ];
 
-export function DebugOnboardingPanel() {
+export function DebugOnboardingPanel({ 
+  debugCancelledState = false, 
+  onToggleCancelledState 
+}: DebugOnboardingPanelProps = {}) {
   const [isExpanded, setIsExpanded] = useState(false);
   const navigation = useNavigation<Navigation>();
 
@@ -55,7 +63,27 @@ export function DebugOnboardingPanel() {
 
       {isExpanded && (
         <ScrollView style={styles.panel} showsVerticalScrollIndicator={false}>
-          <Text style={styles.panelTitle}>Jump to Onboarding Screen:</Text>
+          <Text style={styles.panelTitle}>Debug Controls:</Text>
+          
+          {/* Subscription State Toggle */}
+          {onToggleCancelledState && (
+            <TouchableOpacity
+              style={[
+                styles.screenButton,
+                { backgroundColor: debugCancelledState ? '#fef2f2' : '#f0fdf4' }
+              ]}
+              onPress={() => onToggleCancelledState(!debugCancelledState)}
+            >
+              <Text style={[
+                styles.screenButtonText,
+                { color: debugCancelledState ? '#dc2626' : '#16a34a', fontWeight: '600' }
+              ]}>
+                {debugCancelledState ? '❌ Subscription: CANCELLED' : '✅ Subscription: ACTIVE'}
+              </Text>
+            </TouchableOpacity>
+          )}
+          
+          <Text style={[styles.panelTitle, { marginTop: 16 }]}>Jump to Onboarding Screen:</Text>
           {ONBOARDING_SCREENS.map((screen) => (
             <TouchableOpacity
               key={screen.name}
