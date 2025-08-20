@@ -2,12 +2,13 @@ import { OnboardingStepper } from '@/components/OnboardingStepper';
 import { DebugSkipButton } from '@/components/DebugSkipButton';
 import { Button } from '@/components/ui/button';
 import { ONBOARDING_BUTTON_STYLE, ONBOARDING_CONTAINER_STYLE } from '@/constants/OnboardingStyles';
-import { useMockAuth } from '@/hooks/useMockAuth';
+import { useAuth } from '@/hooks/useAuth';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React, { useEffect, useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { VectorIcon, IconComponent } from '@/components/ui/IconComponent';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { MESSAGE_TEMPLATES, formatMessage } from '../lib/message-templates';
 import analytics, { 
   ANALYTICS_EVENTS, 
   ONBOARDING_SCREENS, 
@@ -46,7 +47,10 @@ const getStyleOptions = (userName: string): StyleOption[] => [
     id: 'supportive',
     title: 'Supportive Friend',
     description: 'Gentle nudges and encouragement',
-    example: `Hey! Looks like ${userName} missed their run today. Maybe send them some encouragement?`,
+    example: formatMessage(
+      MESSAGE_TEMPLATES.supportive['missed-goal'][1], 
+      { user: userName, goalType: 'running' }
+    ),
     icon: 'Heart',
     color: '#f59e0b',
   },
@@ -54,7 +58,10 @@ const getStyleOptions = (userName: string): StyleOption[] => [
     id: 'snarky',
     title: 'Snarky Buddy',  
     description: 'Playful sass and teasing',
-    example: `Your running buddy ${userName} is making excuses again. Time for some tough love!`,
+    example: formatMessage(
+      MESSAGE_TEMPLATES.snarky['missed-goal'][0], 
+      { user: userName, goalType: 'running' }
+    ),
     icon: 'Smile',
     color: '#8b5cf6',
   },
@@ -62,7 +69,10 @@ const getStyleOptions = (userName: string): StyleOption[] => [
     id: 'competitive',
     title: 'Competitive Coach',
     description: 'Challenge them to step up',
-    example: `${userName} skipped their run today. Think they can handle a challenge to get back on track?`,
+    example: formatMessage(
+      MESSAGE_TEMPLATES.competitive['missed-goal'][0], 
+      { user: userName, goalType: 'running' }
+    ),
     icon: 'Zap',
     color: '#3b82f6',
   },
@@ -70,7 +80,10 @@ const getStyleOptions = (userName: string): StyleOption[] => [
     id: 'achievement',
     title: 'Goal Tracker',
     description: 'Focus on milestones and progress',
-    example: `${userName} missed their run today and is 1 day behind their weekly goal. Help them get back on track?`,
+    example: formatMessage(
+      MESSAGE_TEMPLATES.achievement['missed-goal'][0], 
+      { user: userName, goalType: 'running' }
+    ),
     icon: 'Target',
     color: '#10b981',
   },
@@ -78,7 +91,10 @@ const getStyleOptions = (userName: string): StyleOption[] => [
     id: 'chaotic',
     title: 'Chaotic Energy',
     description: 'Unpredictable and hilarious', 
-    example: `EMERGENCY! ${userName}'s running shoes are getting dusty! Intervention needed ASAP!`,
+    example: formatMessage(
+      MESSAGE_TEMPLATES.chaotic['missed-goal'][0], 
+      { user: userName, goalType: 'running' }
+    ),
     icon: 'Sparkles',
     color: '#ef4444',
   },
@@ -100,14 +116,14 @@ const getRecommendedStyle = (motivationType: string | null): MessageStyle => {
 };
 
 export function MessageStyleScreen({ navigation }: Props) {
-  const { user, updateUser } = useMockAuth();
+  const { user, updateUser } = useAuth();
   const insets = useSafeAreaInsets();
   const [selectedStyle, setSelectedStyle] = useState<MessageStyle>('supportive');
   const [recommendedStyle, setRecommendedStyle] = useState<MessageStyle>('supportive');
   const [screenStartTime] = useState(Date.now());
   
-  // Get user's first name or fallback to "Alex"
-  const userName = user?.name?.split(' ')[0] || 'Alex';
+  // Get user's first name with multiple fallback options
+  const userName = user?.first_name || user?.name?.split(' ')[0] || 'Alex';
   const STYLE_OPTIONS = getStyleOptions(userName);
 
   // Track screen view on mount
@@ -387,24 +403,6 @@ export function MessageStyleScreen({ navigation }: Props) {
                   {style.description}
                 </Text>
               </View>
-              
-              {selectedStyle === style.id && (
-                <View style={{
-                  width: 20,
-                  height: 20,
-                  borderRadius: 10,
-                  backgroundColor: style.color,
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
-                  <IconComponent
-                    library="Lucide"
-                    name="Check"
-                    size={12}
-                    color="#ffffff"
-                  />
-                </View>
-              )}
             </TouchableOpacity>
           ))}
         </View>

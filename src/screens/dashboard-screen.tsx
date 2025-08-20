@@ -23,6 +23,7 @@ import { VectorIcon, IconComponent } from '@/components/ui/IconComponent';
 import { SubscriptionCancelledModal } from '@/components/SubscriptionCancelledModal';
 import { revenueCat } from '@/services/RevenueCat';
 import { isDebugMode } from '@/lib/debug-mode';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Create animated Circle component for react-native-svg
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
@@ -321,6 +322,14 @@ export function DashboardScreen({ navigation }: Props) {
   // Trigger for progress ring animation when screen comes into focus
   const [animationTrigger, setAnimationTrigger] = useState(0);
   
+  // Clear session flag on component mount (new session)
+  useEffect(() => {
+    const clearSessionFlag = async () => {
+      await AsyncStorage.removeItem('hasShownCancelledModalThisSession');
+    };
+    clearSessionFlag();
+  }, []);
+
   // Reset animation when screen comes into focus (user navigates back to dashboard)
   useFocusEffect(
     useCallback(() => {
@@ -341,11 +350,17 @@ export function DashboardScreen({ navigation }: Props) {
       setIsSubscribed(subscribed);
       setHasCheckedSubscription(true);
       
+      // Check if we've already shown the cancelled modal this session
+      const hasShownModalThisSession = await AsyncStorage.getItem('hasShownCancelledModalThisSession');
+      
       // Only show modal if:
       // 1. User is not subscribed, AND
-      // 2. Either this is first check OR they were previously subscribed (status change)
-      if (!subscribed && (!hasCheckedSubscription || previouslySubscribed)) {
+      // 2. We haven't shown it this session, AND
+      // 3. Either this is first check OR they were previously subscribed (status change)
+      if (!subscribed && !hasShownModalThisSession && (!hasCheckedSubscription || previouslySubscribed)) {
         setShowCancelledModal(true);
+        // Mark that we've shown the modal this session
+        await AsyncStorage.setItem('hasShownCancelledModalThisSession', 'true');
       }
     } catch (error) {
       console.error('Failed to check subscription status:', error);
@@ -664,6 +679,9 @@ export function DashboardScreen({ navigation }: Props) {
   // Get current week data from preloaded data
   const currentWeekData = weeklyData.find(week => week.weekOffset === selectedWeekOffset);
   
+  // Check if user is truly new (no activities ever) vs just loading
+  const isNewUser = !loading && stravaActivities.length === 0;
+  
   // Fallback data if not loaded yet
   const fallbackData = {
     progress: 0,
@@ -672,7 +690,9 @@ export function DashboardScreen({ navigation }: Props) {
     goalDisplay: getGoalDisplayText('total_activities'),
     isOnTrack: false,
     isBehind: false,
-    motivationalMessage: { title: 'Loading...', message: 'Getting your data ready!' },
+    motivationalMessage: isNewUser 
+      ? { title: 'Welcome to Rundown!', message: 'Complete your first activity to start tracking your progress' }
+      : { title: 'Loading...', message: 'Getting your data ready!' },
     activities: [],
     weeklyDistance: 0
   };
@@ -1240,8 +1260,17 @@ export function DashboardScreen({ navigation }: Props) {
                 </Text>
                 <View style={{ backgroundColor: '#f9fafb', borderRadius: 16, padding: 16, alignItems: 'center' }}>
                   <Text style={{ fontSize: 14, color: '#6b7280', textAlign: 'center' }}>
-                    Loading your activity history...
+                    {isNewUser ? 'Activity history will appear here once you complete your first workout' : 'Loading your activity history...'}
                   </Text>
+                  {isNewUser && (
+                    <IconComponent
+                      library="Lucide"
+                      name="TrendingUp"
+                      size={16}
+                      color="#10b981"
+                      style={{ marginTop: 8 }}
+                    />
+                  )}
                 </View>
               </View>
             ) : (
@@ -1362,9 +1391,24 @@ export function DashboardScreen({ navigation }: Props) {
                 </Text>
               </View>
             ) : loading ? (
-              <Text style={{ color: '#6b7280', textAlign: 'center', padding: 16 }}>
-                Loading your Strava activities...
-              </Text>
+              <View style={{ alignItems: 'center', padding: 16 }}>
+                <Text style={{ color: '#6b7280', textAlign: 'center', marginBottom: 8 }}>
+                  {isNewUser ? 'Waiting for your first activity...' : 'Loading your Strava activities...'}
+                </Text>
+                {isNewUser && (
+                  <View style={{ alignItems: 'center', marginTop: 8 }}>
+                    <IconComponent
+                      library="Lucide"
+                      name="Activity"
+                      size={20}
+                      color="#10b981"
+                    />
+                    <Text style={{ fontSize: 12, color: '#10b981', textAlign: 'center', marginTop: 4 }}>
+                      Go for a run and check back!
+                    </Text>
+                  </View>
+                )}
+              </View>
             ) : error ? (
               <Text style={{ color: '#ef4444', textAlign: 'center', padding: 16 }}>
                 Failed to load activities: {error}
@@ -1495,6 +1539,25 @@ export function DashboardScreen({ navigation }: Props) {
             </View>
           )}
         </View>
+
+        {/* Strava Attribution - Only show if user has activities */}
+        {user && displayActivities.length > 0 && (
+          <View style={{ 
+            backgroundColor: '#f8f9fa',
+            borderRadius: 6,
+            padding: 8,
+            marginBottom: 16,
+            alignItems: 'center'
+          }}>
+            <Text style={{ 
+              fontSize: 10, 
+              color: '#6b7280',
+              textAlign: 'center' 
+            }}>
+              Powered by Strava
+            </Text>
+          </View>
+        )}
 
         {/* Motivational Footer */}
         <View style={{ padding: 16, alignItems: 'center' }}>

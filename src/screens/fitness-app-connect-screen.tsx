@@ -289,58 +289,6 @@ export function FitnessAppConnectScreen({ navigation }: Props) {
           </Text>
         </View>
 
-        {/* Privacy Assurance */}
-        <View style={{
-          backgroundColor: '#f8fafc',
-          borderRadius: 8,
-          padding: 12,
-          marginBottom: 20,
-          borderWidth: 1,
-          borderColor: '#e2e8f0',
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 1 },
-          shadowOpacity: 0.05,
-          shadowRadius: 2,
-          elevation: 1
-        }}>
-          <Text style={[TYPOGRAPHY_STYLES.caption1Medium, {
-            color: '#475569',
-            marginBottom: 6,
-            textAlign: 'center'
-          }]}>
-            Privacy & Data Usage
-          </Text>
-          <Text style={[TYPOGRAPHY_STYLES.caption1, {
-            color: '#64748b',
-            marginBottom: 3
-          }]}>
-            • Read-only access to workout completion data
-          </Text>
-          <Text style={[TYPOGRAPHY_STYLES.caption1, {
-            color: '#64748b',
-            marginBottom: 3
-          }]}>
-            • No data sharing with external parties
-          </Text>
-          <Text style={{
-            fontSize: 13,
-            color: '#64748b',
-            lineHeight: 18,
-            marginBottom: 6
-          }}>
-            • Disconnect anytime in account settings
-          </Text>
-          <TouchableOpacity onPress={openPrivacyPolicy}>
-            <Text style={{
-              fontSize: 12,
-              color: '#6366f1',
-              textAlign: 'center',
-              textDecorationLine: 'underline'
-            }}>
-              Privacy Policy
-            </Text>
-          </TouchableOpacity>
-        </View>
 
         {/* Fitness App Selection */}
         <View style={{ marginBottom: 24 }}>
@@ -447,23 +395,6 @@ export function FitnessAppConnectScreen({ navigation }: Props) {
           ))}
         </View>
 
-        {/* Authorization Info */}
-        <View style={{
-          backgroundColor: '#fefbf8',
-          borderRadius: 6,
-          padding: 14,
-          marginBottom: 20,
-          borderWidth: 1,
-          borderColor: '#f3e8d0'
-        }}>
-          <Text style={{
-            fontSize: 13,
-            color: '#a16207',
-            lineHeight: 18
-          }}>
-            You'll be redirected to {FITNESS_APPS.find(app => app.id === selectedApp)?.name || 'your fitness app'} for secure authorization. This provides read-only access to verify workout completion.
-          </Text>
-        </View>
 
         {/* Connection Status */}
         {isConnecting && (
@@ -540,6 +471,83 @@ export function FitnessAppConnectScreen({ navigation }: Props) {
                 Try Again
               </Text>
             </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Platform-specific disclosures */}
+        {selectedApp === 'strava' && (
+          <View>
+            {/* Authorization Info */}
+            <View style={{
+              backgroundColor: '#fefbf8',
+              borderRadius: 6,
+              padding: 14,
+              marginBottom: 16,
+              borderWidth: 1,
+              borderColor: '#f3e8d0'
+            }}>
+              <Text style={{
+                fontSize: 13,
+                color: '#a16207',
+                lineHeight: 18
+              }}>
+                You'll be redirected to Strava for secure authorization. This provides read-only access to verify workout completion.
+              </Text>
+            </View>
+
+            {/* Privacy & Data Usage */}
+            <View style={{
+              backgroundColor: '#f8fafc',
+              borderRadius: 8,
+              padding: 12,
+              marginBottom: 20,
+              borderWidth: 1,
+              borderColor: '#e2e8f0'
+            }}>
+              <Text style={[TYPOGRAPHY_STYLES.caption1Medium, {
+                color: '#475569',
+                marginBottom: 6,
+                textAlign: 'center'
+              }]}>
+                Strava Data Usage
+              </Text>
+              <Text style={[TYPOGRAPHY_STYLES.caption1, {
+                color: '#64748b',
+                marginBottom: 3
+              }]}>
+                • Read-only access to workout completion data
+              </Text>
+              <Text style={[TYPOGRAPHY_STYLES.caption1, {
+                color: '#64748b',
+                marginBottom: 3
+              }]}>
+                • Data stored for up to 7 days for goal tracking
+              </Text>
+              <Text style={[TYPOGRAPHY_STYLES.caption1, {
+                color: '#64748b',
+                marginBottom: 3
+              }]}>
+                • No data sharing with external parties
+              </Text>
+              <Text style={{
+                fontSize: 13,
+                color: '#64748b',
+                lineHeight: 18,
+                marginBottom: 6
+              }}>
+                • Disconnect anytime in account settings
+              </Text>
+              <TouchableOpacity onPress={openPrivacyPolicy}>
+                <Text style={{
+                  fontSize: 12,
+                  color: '#6366f1',
+                  textAlign: 'center',
+                  textDecorationLine: 'underline'
+                }}>
+                  Privacy Policy
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         )}
       </ScrollView>

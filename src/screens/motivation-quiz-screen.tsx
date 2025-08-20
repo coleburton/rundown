@@ -329,19 +329,6 @@ export function MotivationQuizScreen({ navigation }: Props) {
                   {option.description}
                 </Text>
               </View>
-              
-              {selectedMotivation === option.id && (
-                <View style={{
-                  width: 20,
-                  height: 20,
-                  borderRadius: 10,
-                  backgroundColor: '#f97316',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
-                  <VectorIcon emoji="✓" size={12} color="#ffffff" />
-                </View>
-              )}
             </TouchableOpacity>
           ))}
         </View>
