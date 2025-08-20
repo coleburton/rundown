@@ -267,14 +267,14 @@ export function ActivityDetailScreen({ navigation, route }: Props) {
             onPress={openInStrava}
             style={{ 
               backgroundColor: '#fc5200',
-              borderRadius: 20, 
-              paddingHorizontal: 16,
-              paddingVertical: 8,
+              borderRadius: 6, 
+              paddingHorizontal: 12,
+              paddingVertical: 6,
               marginLeft: 8
             }}
           >
-            <Text style={{ fontSize: 12, color: '#ffffff', fontWeight: '600' }}>
-              View in Strava
+            <Text style={{ fontSize: 12, color: '#ffffff', fontWeight: 'bold', textDecorationLine: 'underline' }}>
+              View on Strava
             </Text>
           </TouchableOpacity>
         </View>
@@ -714,7 +714,7 @@ export function ActivityDetailScreen({ navigation, route }: Props) {
         </View>
 
         {/* Route Visualization */}
-        <View style={{ marginBottom: 40 }}>
+        <View style={{ marginBottom: 24 }}>
           <Text style={{ fontSize: 18, fontWeight: '600', color: '#111827', marginBottom: 20 }}>
             Route
           </Text>
@@ -724,6 +724,23 @@ export function ActivityDetailScreen({ navigation, route }: Props) {
             width={300} 
             height={200} 
           />
+        </View>
+
+        {/* Strava Attribution */}
+        <View style={{ 
+          backgroundColor: '#f8f9fa',
+          borderRadius: 8,
+          padding: 12,
+          marginBottom: 40,
+          alignItems: 'center'
+        }}>
+          <Text style={{ 
+            fontSize: 11, 
+            color: '#6b7280',
+            textAlign: 'center' 
+          }}>
+            Powered by Strava
+          </Text>
         </View>
       </View>
     </ScrollView>

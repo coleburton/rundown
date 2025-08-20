@@ -423,12 +423,37 @@ export function SettingsScreen({ navigation }: Props) {
               </View>
               
               {user?.strava_id ? (
-                <Button
-                  variant="outline"
-                  title="Disconnect Strava"
-                  onPress={handleDisconnectStrava}
-                  style={{ marginTop: 4 }}
-                />
+                <View>
+                  <Button
+                    variant="outline"
+                    title="Disconnect Strava"
+                    onPress={handleDisconnectStrava}
+                    style={{ marginTop: 4 }}
+                  />
+                  <View style={{ 
+                    backgroundColor: '#f8f9fa',
+                    borderRadius: 6,
+                    padding: 8,
+                    marginTop: 8,
+                    alignItems: 'center'
+                  }}>
+                    <Text style={{ 
+                      fontSize: 10, 
+                      color: '#6b7280',
+                      textAlign: 'center',
+                      marginBottom: 2
+                    }}>
+                      Compatible with Strava
+                    </Text>
+                    <Text style={{ 
+                      fontSize: 9, 
+                      color: '#9ca3af',
+                      textAlign: 'center'
+                    }}>
+                      Data stored for 7 days max • You can request deletion anytime
+                    </Text>
+                  </View>
+                </View>
               ) : (
                 <Button
                   title="Connect Strava"
