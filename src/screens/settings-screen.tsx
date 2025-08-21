@@ -21,6 +21,8 @@ type RootStackParamList = {
   Dashboard: undefined;
   Settings: undefined;
   GoalSetup: undefined;
+  MessageHistory: undefined;
+  ActivityHistory: undefined;
 };
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Settings'>;
@@ -699,6 +701,58 @@ export function SettingsScreen({ navigation }: Props) {
           onClose={() => setShowAddContactModal(false)}
           onContactAdded={fetchContacts}
         />
+
+        {/* Message History Section */}
+        <View style={{ marginBottom: 20 }}>
+          <ThemedText style={{ fontSize: 18, fontWeight: '600', marginBottom: 10 }}>
+            Message History
+          </ThemedText>
+          
+          {renderSectionCard(
+            <View>
+              <ThemedText style={{ fontSize: 14, color: '#6b7280', marginBottom: 12 }}>
+                View all messages sent to your accountability contacts and scheduled messages.
+              </ThemedText>
+              <Button
+                variant="outline"
+                title="View Message History"
+                onPress={() => navigation.navigate('MessageHistory')}
+                style={{ 
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  borderColor: '#3b82f6',
+                  borderWidth: 1
+                }}
+              />
+            </View>
+          )}
+        </View>
+
+        {/* Activity History Section */}
+        <View style={{ marginBottom: 20 }}>
+          <ThemedText style={{ fontSize: 18, fontWeight: '600', marginBottom: 10 }}>
+            Activity History
+          </ThemedText>
+          
+          {renderSectionCard(
+            <View>
+              <ThemedText style={{ fontSize: 14, color: '#6b7280', marginBottom: 12 }}>
+                View your complete fitness activity history with detailed stats and progress tracking.
+              </ThemedText>
+              <Button
+                variant="outline"
+                title="View Activity History"
+                onPress={() => navigation.navigate('ActivityHistory')}
+                style={{ 
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  borderColor: '#10b981',
+                  borderWidth: 1
+                }}
+              />
+            </View>
+          )}
+        </View>
 
         {/* Account Section */}
         <View style={{ marginBottom: 20 }}>

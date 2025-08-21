@@ -8,6 +8,7 @@ import { OnboardingStepper } from '@/components/OnboardingStepper';
 import { DebugSkipButton } from '@/components/DebugSkipButton';
 import { EnhancedGoalPicker, Goal } from '@/components/EnhancedGoalPicker';
 import { ONBOARDING_BUTTON_STYLE, ONBOARDING_CONTAINER_STYLE } from '@/constants/OnboardingStyles';
+import { Tooltip } from '@/components/ui/tooltip';
 import analytics, { 
   ANALYTICS_EVENTS, 
   ONBOARDING_SCREENS, 
@@ -240,16 +241,23 @@ export function GoalSetupScreen({ navigation, route }: Props) {
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 16 }}>
         {/* Header */}
         <View style={{ alignItems: 'center', marginBottom: 16, marginTop: fromSettings ? 0 : 12 }}>
-          <Text style={{ 
-            fontSize: 24, 
-            fontWeight: 'bold', 
-            color: '#111827', 
-            textAlign: 'center',
-            marginBottom: 6
-          }}>
-            {fromSettings ? 'Update Your Goal' : 'How do you want to build '}
-            {!fromSettings && <Text style={{ color: '#f97316' }}>consistency?</Text>}
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
+            <Text style={{ 
+              fontSize: 24, 
+              fontWeight: 'bold', 
+              color: '#111827', 
+              textAlign: 'center'
+            }}>
+              {fromSettings ? 'Update Your Goal' : 'How do you want to build '}
+              {!fromSettings && <Text style={{ color: '#f97316' }}>consistency?</Text>}
+            </Text>
+            {!fromSettings && (
+              <Tooltip 
+                text="Start with a goal you can achieve consistently. You can always adjust it later in settings."
+                style={{ marginLeft: 8 }}
+              />
+            )}
+          </View>
           <Text style={{ 
             fontSize: 14, 
             color: '#6b7280',

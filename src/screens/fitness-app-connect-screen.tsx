@@ -10,6 +10,7 @@ import { OnboardingStepper } from '@/components/OnboardingStepper';
 import { DebugSkipButton } from '@/components/DebugSkipButton';
 import { ONBOARDING_BUTTON_STYLE, ONBOARDING_CONTAINER_STYLE } from '@/constants/OnboardingStyles';
 import { TYPOGRAPHY_STYLES } from '@/constants/Typography';
+import { Tooltip } from '@/components/ui/tooltip';
 import analytics, { 
   ANALYTICS_EVENTS, 
   ONBOARDING_SCREENS, 

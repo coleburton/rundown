@@ -32,6 +32,8 @@ import { UserInfoScreen } from './src/screens/user-info-screen';
 import { ValuePreviewScreen } from './src/screens/value-preview-screen';
 import { WhyAccountabilityScreen } from './src/screens/why-accountability-screen';
 import { PostPaywallOnboardingScreen } from './src/screens/post-paywall-onboarding-screen';
+import { MessageHistoryScreen } from './src/screens/message-history-screen';
+import { ActivityHistoryScreen } from './src/screens/activity-history-screen';
 import { isDebugMode } from './src/lib/debug-mode';
 
 export type RootStackParamList = {
@@ -48,6 +50,8 @@ export type RootStackParamList = {
   MessageStyle: undefined;
   Dashboard: undefined;
   Settings: undefined;
+  MessageHistory: undefined;
+  ActivityHistory: undefined;
   Paywall: undefined;
   PaywallFreeTrial: undefined;
   PostPaywallOnboarding: undefined;
@@ -110,6 +114,8 @@ function AppContent() {
         {/* App screens */}
         <Stack.Screen name="Dashboard" component={DashboardScreen} />
         <Stack.Screen name="Settings" component={SettingsScreen} />
+        <Stack.Screen name="MessageHistory" component={MessageHistoryScreen} />
+        <Stack.Screen name="ActivityHistory" component={ActivityHistoryScreen} />
         <Stack.Screen name="ActivityDetail" component={ActivityDetailScreen} />
       </Stack.Navigator>
     </AuthProvider>

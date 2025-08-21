@@ -105,6 +105,17 @@ export function isValidPhoneNumber(phoneNumber: string): boolean {
   // Remove all non-digit characters
   const digits = phoneNumber.replace(/\D/g, '');
   
-  // US phone numbers should be exactly 10 digits
-  return digits.length === 10;
+  // Accept US numbers (10 digits) or international numbers (10-15 digits with country code)
+  // Most international numbers are 10-15 digits including country code
+  if (digits.length === 10) {
+    // US number without country code
+    return true;
+  }
+  
+  if (digits.length >= 10 && digits.length <= 15) {
+    // International number with country code
+    return true;
+  }
+  
+  return false;
 } 

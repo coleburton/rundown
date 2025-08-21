@@ -11,3 +11,7 @@ verify_jwt = false
 # Keep JWT verification enabled for webhook manager (internal use only)
 [functions.strava-webhook-manager]
 verify_jwt = true
+
+# Allow webhook management for debugging
+[functions.webhook-manager]
+verify_jwt = false
