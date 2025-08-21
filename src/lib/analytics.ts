@@ -14,8 +14,8 @@ export const initMixpanel = async () => {
   if (mixpanelInstance) return mixpanelInstance;
   
   try {
-    // Replace with your actual Mixpanel token
-    const MIXPANEL_TOKEN = 'YOUR_MIXPANEL_TOKEN';
+    // Get Mixpanel token from environment or use development token
+    const MIXPANEL_TOKEN = process.env.EXPO_PUBLIC_MIXPANEL_TOKEN || 'dev-token-placeholder';
     
     // Create a new instance with the token and automatic events tracking disabled
     mixpanelInstance = new Mixpanel(MIXPANEL_TOKEN, false);
@@ -131,6 +131,28 @@ export const ANALYTICS_EVENTS = {
   MESSAGE_STYLE_STARTED: 'Message Style Started',
   MESSAGE_STYLE_RECOMMENDED: 'Message Style Recommended',
   MESSAGE_STYLE_SELECTED: 'Message Style Selected',
+  
+  // Revenue & subscription events
+  PAYWALL_VIEWED: 'Paywall Viewed',
+  SUBSCRIPTION_PLAN_SELECTED: 'Subscription Plan Selected',
+  PURCHASE_INITIATED: 'Purchase Initiated',
+  PURCHASE_COMPLETED: 'Purchase Completed',
+  PURCHASE_FAILED: 'Purchase Failed',
+  PURCHASE_CANCELLED: 'Purchase Cancelled',
+  SUBSCRIPTION_RESTORED: 'Subscription Restored',
+  FREE_TRIAL_STARTED: 'Free Trial Started',
+  
+  // Core app functionality events
+  STRAVA_CONNECTION_ATTEMPTED: 'Strava Connection Attempted',
+  STRAVA_CONNECTION_COMPLETED: 'Strava Connection Completed',
+  STRAVA_CONNECTION_FAILED: 'Strava Connection Failed',
+  ACTIVITY_SYNCED: 'Activity Synced',
+  GOAL_PROGRESS_UPDATED: 'Goal Progress Updated',
+  
+  // Message system events
+  MESSAGE_SCHEDULED: 'Message Scheduled',
+  MESSAGE_SENT_SUCCESS: 'Message Sent Success',
+  MESSAGE_SENT_FAILED: 'Message Sent Failed',
   
   // Legacy events (keeping for backward compatibility)
   GOAL_CREATED: 'Goal Created',

@@ -9,6 +9,7 @@ import { OnboardingStepper } from '@/components/OnboardingStepper';
 import { DebugSkipButton } from '@/components/DebugSkipButton';
 import { ContactRolePicker } from '@/components/ContactRolePicker';
 import { ONBOARDING_BUTTON_STYLE, ONBOARDING_CONTAINER_STYLE } from '@/constants/OnboardingStyles';
+import { Tooltip } from '@/components/ui/tooltip';
 import { formatPhoneNumber, isValidPhoneNumber } from '@/lib/utils';
 import analytics, { 
   ANALYTICS_EVENTS, 
@@ -85,7 +86,7 @@ export function ContactSetupScreen({ navigation }: Props) {
       }
       
       if (!isValidPhoneNumber(newContact.phone)) {
-        setError('Please enter a valid 10-digit phone number');
+        setError('Please enter a valid phone number (10-15 digits)');
         return;
       }
       
@@ -177,9 +178,15 @@ export function ContactSetupScreen({ navigation }: Props) {
         contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 16, paddingBottom: 24 }}
       >
         <View style={{ marginBottom: 20 }}>
-          <Text style={{ fontSize: 28, fontWeight: 'bold', color: '#111827', marginBottom: 6 }}>
-            Add your accountability buddy
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
+            <Text style={{ fontSize: 28, fontWeight: 'bold', color: '#111827', flex: 1 }}>
+              Add your accountability buddy
+            </Text>
+            <Tooltip 
+              text="Choose someone who will motivate you - a coach, friend, or family member who cares about your goals."
+              style={{ marginLeft: 8 }}
+            />
+          </View>
           <Text style={{ fontSize: 16, color: '#6b7280', marginBottom: 12 }}>
             Who should we text when you're slacking?
           </Text>

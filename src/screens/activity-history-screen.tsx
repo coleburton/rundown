@@ -1,250 +1,508 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, RefreshControl } from 'react-native';
-import { Button } from '@/components/ui/button';
-import { useAuthContext } from '@/lib/auth-context';
-import { supabase } from '@/lib/supabase';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ThemedView } from '../components/ThemedView';
+import { ThemedText } from '../components/ThemedText';
+import { VectorIcon, IconComponent } from '../components/ui/IconComponent';
+import { useAuth } from '../hooks/useAuth';
+import { supabase } from '../lib/supabase';
+import { Database } from '../types/supabase';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { Database } from '@/types/supabase';
+import { TYPOGRAPHY_STYLES } from '../constants/Typography';
+import { formatActivityDate } from '../lib/utils';
+
+type Activity = Database['public']['Tables']['activities']['Row'];
 
 type RootStackParamList = {
-  Dashboard: undefined;
+  Settings: undefined;
   ActivityHistory: undefined;
   ActivityDetail: { activityId: string };
 };
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ActivityHistory'>;
-type RunLog = Database['public']['Tables']['run_logs']['Row'];
-type Message = Database['public']['Tables']['messages']['Row'];
 
-interface WeekSummary {
-  startDate: Date;
-  endDate: Date;
-  runs: RunLog[];
-  messages: Message[];
-  goalMet: boolean;
-}
+// Helper functions from dashboard
+const getActivityIconConfig = (activityType: string) => {
+  switch (activityType) {
+    case 'Run':
+    case 'VirtualRun':
+      return { emoji: '🏃‍♂️' as const };
+    case 'Ride':
+    case 'VirtualRide':
+      return { emoji: '🚴‍♂️' as const };
+    case 'Swim':
+      return { emoji: '🏊‍♂️' as const };
+    case 'Walk':
+    case 'Hike':
+      return { emoji: '🚶‍♂️' as const };
+    case 'Workout':
+      return { emoji: '💪' as const };
+    case 'WeightTraining':
+      return { emoji: '🏋️‍♂️' as const };
+    case 'Yoga':
+      return { emoji: '🧘‍♂️' as const };
+    case 'Crossfit':
+      return { emoji: '🔥' as const };
+    default:
+      return { emoji: '🏃‍♂️' as const };
+  }
+};
+
+const getActivityDisplayName = (activityType: string) => {
+  switch (activityType) {
+    case 'VirtualRun':
+      return 'Virtual Run';
+    case 'VirtualRide':
+      return 'Virtual Ride';
+    case 'WeightTraining':
+      return 'Weight Training';
+    default:
+      return activityType;
+  }
+};
+
+// Helper function to determine if an activity counts toward the goal
+const checkActivityCountsTowardGoal = (activity: Activity, goalType: string) => {
+  const activityType = activity.type.toLowerCase();
+  
+  switch (goalType) {
+    case 'total_activities':
+      return true; // All activities count
+      
+    case 'total_runs':
+      return activityType.includes('run');
+      
+    case 'total_miles_running':
+      return activityType.includes('run');
+      
+    case 'total_rides_biking':
+      return activityType.includes('ride') || activityType.includes('bike');
+      
+    case 'total_miles_biking':
+      return activityType.includes('ride') || activityType.includes('bike');
+      
+    default:
+      return true;
+  }
+};
 
 export function ActivityHistoryScreen({ navigation }: Props) {
-  const { user } = useAuthContext();
+  const insets = useSafeAreaInsets();
+  const { user } = useAuth();
+  const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
-  const [weeks, setWeeks] = useState<WeekSummary[]>([]);
+  const [refreshing, setRefreshing] = useState(false);
+  const [selectedPeriod, setSelectedPeriod] = useState<'week' | 'month' | 'quarter' | 'all'>('month');
 
-  const fetchHistory = async () => {
+  const fetchActivities = useCallback(async () => {
+    if (!user) return;
+
     try {
-      setLoading(true);
+      let startDate: Date;
+      const now = new Date();
 
-      // Get start of 4 weeks ago
-      const startDate = new Date();
-      startDate.setDate(startDate.getDate() - startDate.getDay() + (startDate.getDay() === 0 ? -6 : 1) - 21);
-      startDate.setHours(0, 0, 0, 0);
-
-      // Fetch runs
-      const { data: runs, error: runsError } = await supabase
-        .from('run_logs')
-        .select('*')
-        .eq('user_id', user!.id)
-        .gte('date', startDate.toISOString())
-        .order('date', { ascending: false });
-
-      if (runsError) throw runsError;
-
-      // Fetch messages
-      const { data: messages, error: messagesError } = await supabase
-        .from('messages')
-        .select('*')
-        .eq('user_id', user!.id)
-        .gte('sent_at', startDate.toISOString())
-        .order('sent_at', { ascending: false });
-
-      if (messagesError) throw messagesError;
-
-      // Group by week
-      const weekSummaries: WeekSummary[] = [];
-      for (let i = 0; i < 4; i++) {
-        const weekStart = new Date(startDate);
-        weekStart.setDate(weekStart.getDate() + (i * 7));
-        const weekEnd = new Date(weekStart);
-        weekEnd.setDate(weekEnd.getDate() + 6);
-        weekEnd.setHours(23, 59, 59, 999);
-
-        const weekRuns = runs.filter(
-          (run) => {
-            const runDate = new Date(run.date);
-            return runDate >= weekStart && runDate <= weekEnd;
-          }
-        );
-
-        const weekMessages = messages.filter(
-          (msg) => {
-            const msgDate = new Date(msg.sent_at);
-            return msgDate >= weekStart && msgDate <= weekEnd;
-          }
-        );
-
-        weekSummaries.push({
-          startDate: weekStart,
-          endDate: weekEnd,
-          runs: weekRuns,
-          messages: weekMessages,
-          goalMet: weekRuns.length >= (user?.goal_per_week ?? 3),
-        });
+      switch (selectedPeriod) {
+        case 'week':
+          startDate = new Date(now);
+          startDate.setDate(now.getDate() - 7);
+          break;
+        case 'month':
+          startDate = new Date(now);
+          startDate.setMonth(now.getMonth() - 1);
+          break;
+        case 'quarter':
+          startDate = new Date(now);
+          startDate.setMonth(now.getMonth() - 3);
+          break;
+        case 'all':
+        default:
+          startDate = new Date(2020, 0, 1); // Far back date to get all activities
+          break;
       }
 
-      setWeeks(weekSummaries);
+      const { data, error } = await supabase
+        .from('activities')
+        .select('*')
+        .eq('user_id', user.id)
+        .gte('start_date_local', startDate.toISOString())
+        .order('start_date_local', { ascending: false });
+
+      if (error) throw error;
+      setActivities(data || []);
     } catch (error) {
-      console.error('Error fetching history:', error);
+      console.error('Error fetching activities:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, selectedPeriod]);
 
   useEffect(() => {
-    fetchHistory();
-  }, []);
+    fetchActivities();
+  }, [fetchActivities]);
 
-  const formatDate = (date: Date) => {
-    // Add validation to ensure date is valid
-    if (!date || isNaN(date.getTime())) {
-      return 'Invalid Date';
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchActivities();
+    setRefreshing(false);
+  }, [fetchActivities]);
+
+  const formatDuration = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    
+    if (hours > 0) {
+      return `${hours}h ${minutes}m`;
     }
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-    });
+    return `${minutes}m`;
   };
 
   const formatDistance = (meters: number) => {
-    const miles = meters / 1609.34;
-    return `${miles.toFixed(1)} miles`;
+    const miles = meters * 0.000621371;
+    return miles.toFixed(1);
   };
 
-  return (
-    <ScrollView
-      className="flex-1 bg-white dark:bg-gray-900"
-      refreshControl={
-        <RefreshControl refreshing={loading} onRefresh={fetchHistory} />
-      }
-    >
-      <View className="p-6">
-        {/* Header */}
-        <View className="flex-row items-center justify-between mb-8">
-          <View className="flex-1">
-            <Text className="text-2xl font-bold text-gray-900 dark:text-white">
-              Activity History
-            </Text>
-            <Text className="text-gray-500 dark:text-gray-400">
-              Last 4 weeks
-            </Text>
-          </View>
-          <Button
+  const getActivityStats = () => {
+    const totalActivities = activities.length;
+    const totalDistance = activities.reduce((sum, activity) => sum + (activity.distance || 0), 0);
+    const totalTime = activities.reduce((sum, activity) => sum + (activity.moving_time || 0), 0);
+    const goalActivities = activities.filter(activity => 
+      checkActivityCountsTowardGoal(activity, user?.goal_type || 'total_activities')
+    ).length;
+
+    return {
+      totalActivities,
+      totalDistance: formatDistance(totalDistance),
+      totalTime: formatDuration(totalTime),
+      goalActivities
+    };
+  };
+
+  const stats = getActivityStats();
+
+  const periodLabels = {
+    week: 'Last 7 Days',
+    month: 'Last 30 Days', 
+    quarter: 'Last 3 Months',
+    all: 'All Time'
+  };
+
+  if (loading) {
+    return (
+      <ThemedView style={{ flex: 1, paddingTop: insets.top }}>
+        <View style={{ 
+          flexDirection: 'row', 
+          alignItems: 'center', 
+          marginBottom: 20,
+          paddingHorizontal: 20,
+          paddingTop: 20
+        }}>
+          <TouchableOpacity
             onPress={() => navigation.goBack()}
-            variant="ghost"
-            className="rounded-full"
-            title="Back"
-          />
+            style={{ 
+              padding: 8, 
+              marginRight: 12,
+              borderRadius: 8,
+              backgroundColor: '#f3f4f6'
+            }}
+          >
+            <Text style={{ fontSize: 18 }}>←</Text>
+          </TouchableOpacity>
+          <ThemedText style={[TYPOGRAPHY_STYLES.h3, { fontWeight: '600' }]}>
+            Activity History
+          </ThemedText>
+        </View>
+        
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ThemedText>Loading activities...</ThemedText>
+        </View>
+      </ThemedView>
+    );
+  }
+
+  return (
+    <ThemedView style={{ flex: 1, paddingTop: insets.top }}>
+      <ScrollView 
+        contentContainerStyle={{ padding: 20 }}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
+        {/* Header with back button */}
+        <View style={{ 
+          flexDirection: 'row', 
+          alignItems: 'center', 
+          marginBottom: 20,
+          paddingHorizontal: 4
+        }}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={{ 
+              padding: 8, 
+              marginRight: 12,
+              borderRadius: 8,
+              backgroundColor: '#f3f4f6'
+            }}
+          >
+            <Text style={{ fontSize: 18 }}>←</Text>
+          </TouchableOpacity>
+          <ThemedText style={[TYPOGRAPHY_STYLES.h3, { fontWeight: '600' }]}>
+            Activity History
+          </ThemedText>
         </View>
 
-        {/* Weeks */}
-        <View className="space-y-8">
-          {weeks.map((week, index) => (
-            <View key={week.startDate.toISOString()} className="space-y-4">
-              {/* Week Header */}
-              <View className="flex-row items-center justify-between">
-                <Text className="font-semibold text-gray-900 dark:text-white">
-                  {formatDate(week.startDate)} - {formatDate(week.endDate)}
-                </Text>
-                <View
-                  className={`px-2 py-1 rounded-full ${
-                    week.goalMet
-                      ? 'bg-lime-100 dark:bg-lime-900/20'
-                      : 'bg-orange-100 dark:bg-orange-900/20'
-                  }`}
+        {/* Period Selector */}
+        <View style={{ marginBottom: 20 }}>
+          <Text style={{ fontSize: 14, fontWeight: '500', color: '#6b7280', marginBottom: 8 }}>
+            Time Period
+          </Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -4 }}>
+            {(Object.keys(periodLabels) as Array<keyof typeof periodLabels>).map((period) => {
+              const isSelected = period === selectedPeriod;
+              return (
+                <TouchableOpacity
+                  key={period}
+                  onPress={() => setSelectedPeriod(period)}
+                  style={{
+                    paddingHorizontal: 16,
+                    paddingVertical: 8,
+                    marginHorizontal: 4,
+                    borderRadius: 8,
+                    backgroundColor: isSelected ? '#f97316' : '#f3f4f6',
+                    borderWidth: 1,
+                    borderColor: isSelected ? '#f97316' : 'transparent',
+                  }}
                 >
-                  <Text
-                    className={`text-xs font-medium ${
-                      week.goalMet
-                        ? 'text-lime-700 dark:text-lime-300'
-                        : 'text-orange-700 dark:text-orange-300'
-                    }`}
+                  <Text style={{
+                    fontSize: 14,
+                    fontWeight: '500',
+                    color: isSelected ? '#ffffff' : '#374151',
+                  }}>
+                    {periodLabels[period]}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </View>
+
+        {/* Stats Cards */}
+        <View style={{ marginBottom: 24 }}>
+          <Text style={{ fontSize: 16, fontWeight: '600', color: '#111827', marginBottom: 12 }}>
+            {periodLabels[selectedPeriod]} Summary
+          </Text>
+          
+          <View style={{ flexDirection: 'row', gap: 12, marginBottom: 12 }}>
+            <View style={{
+              flex: 1,
+              backgroundColor: '#f0fdf4',
+              borderRadius: 12,
+              padding: 16,
+              borderLeftWidth: 4,
+              borderLeftColor: '#10b981'
+            }}>
+              <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#059669' }}>
+                {stats.totalActivities}
+              </Text>
+              <Text style={{ fontSize: 12, color: '#065f46', fontWeight: '500' }}>
+                Total Activities
+              </Text>
+            </View>
+            
+            <View style={{
+              flex: 1,
+              backgroundColor: '#fef3e2',
+              borderRadius: 12,
+              padding: 16,
+              borderLeftWidth: 4,
+              borderLeftColor: '#f59e0b'
+            }}>
+              <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#d97706' }}>
+                {stats.goalActivities}
+              </Text>
+              <Text style={{ fontSize: 12, color: '#92400e', fontWeight: '500' }}>
+                Goal Activities
+              </Text>
+            </View>
+          </View>
+
+          <View style={{ flexDirection: 'row', gap: 12 }}>
+            <View style={{
+              flex: 1,
+              backgroundColor: '#f0f9ff',
+              borderRadius: 12,
+              padding: 16,
+              borderLeftWidth: 4,
+              borderLeftColor: '#3b82f6'
+            }}>
+              <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#1d4ed8' }}>
+                {stats.totalDistance}
+              </Text>
+              <Text style={{ fontSize: 12, color: '#1e40af', fontWeight: '500' }}>
+                Miles
+              </Text>
+            </View>
+            
+            <View style={{
+              flex: 1,
+              backgroundColor: '#fdf2f8',
+              borderRadius: 12,
+              padding: 16,
+              borderLeftWidth: 4,
+              borderLeftColor: '#ec4899'
+            }}>
+              <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#be185d' }}>
+                {stats.totalTime}
+              </Text>
+              <Text style={{ fontSize: 12, color: '#be185d', fontWeight: '500' }}>
+                Total Time
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Activities List */}
+        <View style={{ marginBottom: 20 }}>
+          <Text style={{ fontSize: 16, fontWeight: '600', color: '#111827', marginBottom: 12 }}>
+            Activities ({activities.length})
+          </Text>
+          
+          {activities.length === 0 ? (
+            <View style={{
+              backgroundColor: '#f9fafb',
+              borderRadius: 12,
+              padding: 24,
+              alignItems: 'center'
+            }}>
+              <IconComponent
+                library="Lucide"
+                name="Activity"
+                size={48}
+                color="#9ca3af"
+              />
+              <Text style={{ 
+                fontSize: 16, 
+                fontWeight: '600', 
+                color: '#6b7280', 
+                marginTop: 12,
+                marginBottom: 4 
+              }}>
+                No activities found
+              </Text>
+              <Text style={{ 
+                fontSize: 14, 
+                color: '#9ca3af',
+                textAlign: 'center',
+                lineHeight: 20
+              }}>
+                {selectedPeriod === 'all' 
+                  ? 'Connect your Strava account to see your activities here.'
+                  : `No activities found for ${periodLabels[selectedPeriod].toLowerCase()}.`
+                }
+              </Text>
+            </View>
+          ) : (
+            <View style={{ gap: 12 }}>
+              {activities.map((activity) => {
+                const countsTowardGoal = checkActivityCountsTowardGoal(activity, user?.goal_type || 'total_activities');
+                
+                return (
+                  <TouchableOpacity
+                    key={activity.id}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      backgroundColor: countsTowardGoal ? '#f0fdf4' : '#f9fafb',
+                      borderRadius: 12,
+                      padding: 16,
+                      borderWidth: 1,
+                      borderColor: countsTowardGoal ? '#bbf7d0' : '#e5e7eb',
+                    }}
+                    onPress={() => navigation.navigate('ActivityDetail', { activityId: activity.strava_activity_id.toString() })}
+                    activeOpacity={0.7}
                   >
-                    {week.goalMet ? 'Goal Met' : 'Goal Missed'}
-                  </Text>
-                </View>
-              </View>
-
-              {/* Runs */}
-              <View className="space-y-2">
-                {week.runs.length === 0 ? (
-                  <Text className="text-gray-500 dark:text-gray-400 text-center py-2">
-                    No runs this week
-                  </Text>
-                ) : (
-                  week.runs.map((run) => (
-                    <TouchableOpacity
-                      key={run.id}
-                      className="flex-row items-center justify-between bg-gray-50 dark:bg-gray-800 rounded-xl p-4"
-                      onPress={() => navigation.navigate('ActivityDetail', { activityId: run.activity_id })}
-                      activeOpacity={0.7}
-                    >
-                      <View className="flex-row items-center space-x-3">
-                        <View className="w-2 h-2 bg-lime-500 rounded-full" />
-                        <View>
-                          <Text className="font-medium text-gray-900 dark:text-white">
-                            {(() => {
-                              const runDate = new Date(run.date);
-                              if (isNaN(runDate.getTime())) {
-                                return 'Invalid Date';
-                              }
-                              return runDate.toLocaleDateString('en-US', {
-                                weekday: 'short',
-                              }) + ' Run';
-                            })()}
-                          </Text>
-                          <Text className="text-sm text-gray-500">
-                            {formatDistance(run.distance)}
-                          </Text>
-                        </View>
-                      </View>
-                    </TouchableOpacity>
-                  ))
-                )}
-              </View>
-
-              {/* Messages */}
-              {week.messages.length > 0 && (
-                <View className="space-y-2">
-                  <Text className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Accountability Messages
-                  </Text>
-                  {week.messages.map((message) => (
-                    <View
-                      key={message.id}
-                      className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4"
-                    >
-                      <Text className="text-gray-900 dark:text-white">
-                        {message.message_text}
+                    <View style={{
+                      width: 32,
+                      height: 32,
+                      backgroundColor: countsTowardGoal ? '#dcfce7' : '#f3f4f6',
+                      borderRadius: 16,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginRight: 12,
+                    }}>
+                      <VectorIcon 
+                        emoji={getActivityIconConfig(activity.type).emoji} 
+                        size={16} 
+                        color="#6b7280" 
+                      />
+                    </View>
+                    
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ 
+                        fontSize: 16, 
+                        fontWeight: '600', 
+                        color: '#111827',
+                        marginBottom: 2
+                      }}>
+                        {activity.name}
                       </Text>
-                      <Text className="text-xs text-gray-500 mt-1">
-                        {(() => {
-                          const messageDate = new Date(message.sent_at);
-                          if (isNaN(messageDate.getTime())) {
-                            return 'Invalid Date';
-                          }
-                          return messageDate.toLocaleDateString('en-US', {
-                            weekday: 'short',
-                            month: 'short',
-                            day: 'numeric',
-                          });
-                        })()}
+                      
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                        <Text style={{ fontSize: 14, color: '#6b7280' }}>
+                          {getActivityDisplayName(activity.type)}
+                        </Text>
+                        
+                        <Text style={{ fontSize: 14, color: '#6b7280' }}>
+                          {formatDistance(activity.distance || 0)} mi
+                        </Text>
+                        
+                        <Text style={{ fontSize: 14, color: '#6b7280' }}>
+                          {formatDuration(activity.moving_time || 0)}
+                        </Text>
+                      </View>
+                      
+                      <Text style={{ fontSize: 12, color: '#9ca3af', marginTop: 2 }}>
+                        {formatActivityDate(activity.start_date_local)}
                       </Text>
                     </View>
-                  ))}
-                </View>
-              )}
+                    
+                    {countsTowardGoal && (
+                      <View style={{
+                        backgroundColor: '#dcfce7',
+                        borderRadius: 6,
+                        paddingHorizontal: 8,
+                        paddingVertical: 4,
+                      }}>
+                        <Text style={{ fontSize: 10, color: '#16a34a', fontWeight: '500' }}>
+                          GOAL
+                        </Text>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
             </View>
-          ))}
+          )}
         </View>
-      </View>
-    </ScrollView>
+
+        {/* Strava Attribution */}
+        {activities.length > 0 && (
+          <View style={{ 
+            backgroundColor: '#f8f9fa',
+            borderRadius: 6,
+            padding: 8,
+            marginBottom: 16,
+            alignItems: 'center'
+          }}>
+            <Text style={{ 
+              fontSize: 10, 
+              color: '#6b7280',
+              textAlign: 'center' 
+            }}>
+              Powered by Strava
+            </Text>
+          </View>
+        )}
+      </ScrollView>
+    </ThemedView>
   );
 } 

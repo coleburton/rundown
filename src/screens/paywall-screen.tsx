@@ -15,6 +15,7 @@ import type { RootStackParamList } from '../../App';
 import { Button } from '../components/ui/button';
 import { useColorScheme } from '../hooks/useColorScheme';
 import { revenueCat, SubscriptionPlan } from '../services/RevenueCat';
+import analytics, { ANALYTICS_EVENTS } from '../lib/analytics';
 
 const PLAN_FEATURES = {
   monthly: ['Unlimited accountability', 'Custom shame messages', 'Progress tracking'],
@@ -43,6 +44,11 @@ export function PaywallScreen() {
   const scaleAnimation = useSharedValue(0.9);
 
   useEffect(() => {
+    // Track paywall viewed
+    analytics.trackEvent(ANALYTICS_EVENTS.PAYWALL_VIEWED, {
+      timestamp: new Date().toISOString()
+    });
+    
     // Load RevenueCat offerings
     loadOfferings();
     
@@ -83,6 +89,13 @@ export function PaywallScreen() {
 
   const handlePlanSelect = (planId: string) => {
     setSelectedPlan(planId);
+    
+    // Track plan selection
+    analytics.trackEvent(ANALYTICS_EVENTS.SUBSCRIPTION_PLAN_SELECTED, {
+      plan_id: planId,
+      plan_type: planId === 'yearly' ? 'annual' : 'monthly',
+      timestamp: new Date().toISOString()
+    });
   };
 
   const handlePurchase = async () => {
@@ -99,15 +112,46 @@ export function PaywallScreen() {
       return;
     }
 
+    // Track purchase initiated
+    analytics.trackEvent(ANALYTICS_EVENTS.PURCHASE_INITIATED, {
+      plan_id: selectedPlan,
+      plan_type: selectedPlan === 'yearly' ? 'annual' : 'monthly',
+      price: selectedPlanData.price,
+      timestamp: new Date().toISOString()
+    });
+
     setIsLoading(true);
     try {
       await revenueCat.purchasePackage(selectedPlanData.rcPackage);
+      
+      // Track successful purchase
+      analytics.trackEvent(ANALYTICS_EVENTS.PURCHASE_COMPLETED, {
+        plan_id: selectedPlan,
+        plan_type: selectedPlan === 'yearly' ? 'annual' : 'monthly',
+        price: selectedPlanData.price,
+        timestamp: new Date().toISOString()
+      });
+      
       navigation.navigate('PostPaywallOnboarding');
     } catch (error) {
       if (error instanceof Error && error.message === 'Purchase was cancelled') {
-        // User cancelled, don't show error
+        // User cancelled, track cancellation
+        analytics.trackEvent(ANALYTICS_EVENTS.PURCHASE_CANCELLED, {
+          plan_id: selectedPlan,
+          plan_type: selectedPlan === 'yearly' ? 'annual' : 'monthly',
+          timestamp: new Date().toISOString()
+        });
         return;
       }
+      
+      // Track purchase failure
+      analytics.trackEvent(ANALYTICS_EVENTS.PURCHASE_FAILED, {
+        plan_id: selectedPlan,
+        plan_type: selectedPlan === 'yearly' ? 'annual' : 'monthly',
+        error_message: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString()
+      });
+      
       Alert.alert('Purchase Failed', 'Please try again later.');
     } finally {
       setIsLoading(false);

@@ -15,25 +15,12 @@ export default function ScreenTracker({ screenName, properties }: ScreenTrackerP
   const navigation = useNavigation();
 
   useEffect(() => {
-    // Track screen view
+    // Track initial screen view only
     analytics.trackEvent(ANALYTICS_EVENTS.SCREEN_VIEW, {
       screen_name: screenName,
       ...properties
     });
-    
-    // You can also track focus/blur events if needed
-    const unsubscribeFocus = navigation.addListener('focus', () => {
-      analytics.trackEvent(ANALYTICS_EVENTS.SCREEN_VIEW, {
-        screen_name: screenName,
-        event_type: 'focus',
-        ...properties
-      });
-    });
-
-    return () => {
-      unsubscribeFocus();
-    };
-  }, [screenName, navigation, properties]);
+  }, [screenName, properties]);
 
   // This component doesn't render anything
   return null;

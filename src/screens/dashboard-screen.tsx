@@ -24,6 +24,7 @@ import { SubscriptionCancelledModal } from '@/components/SubscriptionCancelledMo
 import { revenueCat } from '@/services/RevenueCat';
 import { isDebugMode } from '@/lib/debug-mode';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import analytics, { ANALYTICS_EVENTS } from '@/lib/analytics';
 
 // Create animated Circle component for react-native-svg
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
