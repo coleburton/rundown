@@ -13,7 +13,7 @@ if (typeof global.structuredClone === 'undefined') {
 import { useAuth } from './src/hooks/useAuth';
 import { AuthProvider } from './src/lib/auth-context';
 import MixpanelDebug from './src/lib/MixpanelDebug';
-import MixpanelProvider from './src/lib/MixpanelProvider';
+import AnalyticsProvider from './src/lib/AnalyticsProvider';
 import { MockDataProvider } from './src/lib/mock-data-context';
 import { ActivityDetailScreen } from './src/screens/activity-detail-screen';
 import { ContactSetupScreen } from './src/screens/contact-setup-screen';
@@ -139,11 +139,11 @@ function App() {
     <SafeAreaProvider>
       <NavigationContainer>
         <MockDataProvider>
-          <MixpanelProvider>
+          <AnalyticsProvider>
             <AppContent />
             {/* Show debug overlay in development mode */}
             {__DEV__ && <MixpanelDebug />}
-          </MixpanelProvider>
+          </AnalyticsProvider>
         </MockDataProvider>
       </NavigationContainer>
     </SafeAreaProvider>
