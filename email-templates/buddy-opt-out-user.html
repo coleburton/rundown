@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>{{contactName}} opted out</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        background-color: #0f172a;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      }
+      .wrapper {
+        width: 100%;
+        padding: 40px 16px;
+      }
+      .card {
+        max-width: 520px;
+        margin: 0 auto;
+        background-color: #ffffff;
+        border-radius: 24px;
+        padding: 32px;
+        box-shadow: 0 20px 45px rgba(15, 23, 42, 0.35);
+      }
+      h1 {
+        margin: 0 0 12px;
+        font-size: 26px;
+        color: #0f172a;
+      }
+      p {
+        margin: 0 0 14px;
+        color: #475569;
+        line-height: 1.7;
+        font-size: 15px;
+      }
+      .highlight {
+        border-radius: 16px;
+        padding: 18px;
+        background-color: #fef3c7;
+        color: #92400e;
+        font-size: 15px;
+        margin-bottom: 20px;
+      }
+      .cta {
+        text-align: center;
+        margin-top: 28px;
+      }
+      .cta a {
+        display: inline-block;
+        padding: 14px 28px;
+        border-radius: 999px;
+        background-color: #f97316;
+        color: #ffffff !important;
+        text-decoration: none;
+        font-weight: 600;
+      }
+      .footer {
+        text-align: center;
+        margin-top: 18px;
+        font-size: 12px;
+        color: #94a3b8;
+      }
+      @media (max-width: 480px) {
+        .card {
+          padding: 24px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrapper">
+      <div class="card">
+        <h1>{{contactName}} opted out</h1>
+        <div class="highlight">
+          We won’t send accountability emails to {{contactName}} anymore. They clicked the opt-out link at {{optOutTime}}.
+        </div>
+        <p>
+          Keeping a buddy in the loop doubles your odds of hitting weekly goals. Add someone new (or invite {{contactName}} again later) so Rundown can continue nudging the right person when you need it.
+        </p>
+        <div class="cta">
+          <a href="{{manageContactsUrl}}" target="_blank" rel="noopener">Manage accountability contacts</a>
+        </div>
+        <div class="footer">
+          Rundown · Accountability for consistent fitness<br />
+          Need help? Reply to this email or reach {{supportEmail}}
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

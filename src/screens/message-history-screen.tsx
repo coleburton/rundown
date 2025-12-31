@@ -49,7 +49,7 @@ export function MessageHistoryScreen({ navigation }: Props) {
           contacts (
             id,
             name,
-            phone_number,
+            email,
             relationship
           )
         `)
@@ -66,7 +66,7 @@ export function MessageHistoryScreen({ navigation }: Props) {
           contacts (
             id,
             name,
-            phone_number,
+            email,
             relationship
           )
         `)
@@ -168,7 +168,7 @@ export function MessageHistoryScreen({ navigation }: Props) {
             {message.contacts.name}
           </Text>
           <Text style={{ fontSize: 14, color: '#6b7280' }}>
-            {message.contacts.relationship || 'Contact'} • {message.contacts.phone_number}
+            {message.contacts.relationship || 'Contact'} • {message.contacts.email}
           </Text>
         </View>
         

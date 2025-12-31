@@ -86,6 +86,48 @@ export type Database = {
         }
         Relationships: []
       }
+      buddy_events: {
+        Row: {
+          contact_id: string
+          created_at: string | null
+          event_type: string
+          id: string
+          metadata: Json | null
+          user_id: string
+        }
+        Insert: {
+          contact_id: string
+          created_at?: string | null
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          user_id: string
+        }
+        Update: {
+          contact_id?: string
+          created_at?: string | null
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "buddy_events_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "buddy_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contacts: {
         Row: {
           created_at: string | null
@@ -94,6 +136,8 @@ export type Database = {
           last_notified_at: string | null
           name: string
           notification_preference: string | null
+          opt_out_token: string | null
+          opted_out_at: string | null
           email: string
           relationship: string | null
           updated_at: string | null
@@ -108,6 +152,8 @@ export type Database = {
           last_notified_at?: string | null
           name: string
           notification_preference?: string | null
+          opt_out_token?: string | null
+          opted_out_at?: string | null
           email: string
           relationship?: string | null
           updated_at?: string | null
@@ -122,6 +168,8 @@ export type Database = {
           last_notified_at?: string | null
           name?: string
           notification_preference?: string | null
+          opt_out_token?: string | null
+          opted_out_at?: string | null
           email?: string
           relationship?: string | null
           updated_at?: string | null
@@ -451,6 +499,7 @@ export type Database = {
           notification_enabled: boolean | null
           primary_goal: string | null
           refresh_token: string | null
+          push_token: string | null
           reminder_time: string | null
           send_day: string
           send_time: string
@@ -480,6 +529,7 @@ export type Database = {
           notification_enabled?: boolean | null
           primary_goal?: string | null
           refresh_token?: string | null
+          push_token?: string | null
           reminder_time?: string | null
           send_day?: string
           send_time?: string
@@ -509,6 +559,7 @@ export type Database = {
           notification_enabled?: boolean | null
           primary_goal?: string | null
           refresh_token?: string | null
+          push_token?: string | null
           reminder_time?: string | null
           send_day?: string
           send_time?: string

@@ -18,7 +18,7 @@ interface UserSettingsUpdate {
 
 interface ContactData {
   name: string;
-  phone_number: string;
+  email: string;
   relationship?: string;
   notification_preference?: 'missed_goals' | 'weekly_summary' | 'both' | 'none';
   is_active?: boolean;
@@ -161,9 +161,9 @@ async function handlePost(supabase: any, userId: string, path?: string, req?: Re
       const contactData: ContactData = body;
       
       // Basic validation
-      if (!contactData.name || !contactData.phone_number) {
+      if (!contactData.name || !contactData.email) {
         return new Response(
-          JSON.stringify({ error: 'Name and phone number are required' }),
+          JSON.stringify({ error: 'Name and email are required' }),
           { status: 400 }
         );
       }

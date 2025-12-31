@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>You were invited to support {{userName}}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        background-color: #f5f6f8;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        color: #0f172a;
+      }
+      .wrapper {
+        width: 100%;
+        padding: 32px 16px;
+        background-color: #f5f6f8;
+      }
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        background-color: #ffffff;
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+      }
+      .hero {
+        background: linear-gradient(135deg, #f97316, #fda048);
+        padding: 40px 32px;
+        color: #ffffff;
+        text-align: left;
+      }
+      .hero h1 {
+        margin: 0 0 10px;
+        font-size: 28px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+      .hero p {
+        margin: 0;
+        font-size: 16px;
+        line-height: 1.6;
+        color: rgba(255, 255, 255, 0.9);
+      }
+      .content {
+        padding: 32px;
+      }
+      .card {
+        border: 1px solid #e2e8f0;
+        border-radius: 18px;
+        padding: 20px;
+        margin-bottom: 20px;
+      }
+      .card h2 {
+        margin: 0 0 12px;
+        font-size: 18px;
+        color: #0f172a;
+      }
+      .checklist {
+        padding-left: 18px;
+        margin: 0;
+        color: #475569;
+      }
+      .cta {
+        margin: 28px 0;
+        text-align: center;
+      }
+      .cta a {
+        display: inline-block;
+        padding: 14px 28px;
+        border-radius: 999px;
+        background-color: #0f172a;
+        color: #ffffff !important;
+        text-decoration: none;
+        font-weight: 600;
+      }
+      .opt-out {
+        text-align: center;
+        margin-top: 20px;
+        font-size: 13px;
+        color: #94a3b8;
+      }
+      .opt-out a {
+        color: #f97316;
+        text-decoration: none;
+        font-weight: 600;
+      }
+      .footer {
+        padding: 0 32px 32px;
+        text-align: center;
+        font-size: 12px;
+        color: #94a3b8;
+      }
+      @media (max-width: 520px) {
+        .content,
+        .hero,
+        .footer {
+          padding: 24px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <span style="display:none;visibility:hidden;opacity:0;max-height:0;">
+      {{userName}} asked Rundown to keep them accountable each week—here’s how you can help.
+    </span>
+    <div class="wrapper">
+      <table role="presentation" cellpadding="0" cellspacing="0" width="100%" class="container">
+        <tr>
+          <td class="hero">
+            <h1>Thanks for backing {{userName}}</h1>
+            <p>They’re using Rundown to stay consistent with their routine and listed you as their accountability contact.</p>
+          </td>
+        </tr>
+        <tr>
+          <td class="content">
+            <p style="font-size: 15px; line-height: 1.7; color: #475569; margin-top: 0;">
+              Hi {{contactName}}, {{userName}} trusts you to nudge them when their training slips. When Rundown notices they’re behind, we’ll send you a short heads-up email so you can drop them a quick note.
+            </p>
+
+            <div class="card">
+              <h2>How it works</h2>
+              <ul class="checklist">
+                <li>We only email you when {{userName}} misses a weekly consistency goal.</li>
+                <li>You’ll see a quick snapshot of their goal vs. progress.</li>
+                <li>You can respond however you want—text, call, or send a meme.</li>
+              </ul>
+            </div>
+
+            <div class="card" style="background-color:#f8fafc;">
+              <h2 style="margin-bottom:6px;">Need a break?</h2>
+              <p style="margin:0; color:#475569; font-size:14px;">
+                If being a buddy ever stops working for you, just click “opt out” and you won’t receive future emails.
+              </p>
+            </div>
+
+            <div class="cta">
+              <a href="{{learnMoreUrl}}" target="_blank" rel="noopener">See how Rundown supports {{userName}}</a>
+            </div>
+
+            <div class="opt-out">
+              Prefer not to receive these updates? <a href="{{optOutUrl}}" target="_blank" rel="noopener">Opt out instantly</a>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td class="footer">
+            Rundown · Accountability for consistent fitness<br />
+            You’re getting this because {{userName}} listed you as their accountability buddy.<br />
+            Questions? Reply or email {{supportEmail}}
+          </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

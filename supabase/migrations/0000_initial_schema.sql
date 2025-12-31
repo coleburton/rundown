@@ -5,6 +5,7 @@ CREATE TABLE users (
   name TEXT,
   strava_id TEXT UNIQUE,
   access_token TEXT,
+  push_token TEXT,
   goal_per_week INT NOT NULL DEFAULT 3,
   streak_count INT NOT NULL DEFAULT 0,
   message_style TEXT NOT NULL DEFAULT 'supportive',
@@ -19,8 +20,10 @@ CREATE TABLE contacts (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
-  phone_number TEXT NOT NULL,
+  email TEXT NOT NULL,
   relationship TEXT,
+  opt_out_token UUID DEFAULT uuid_generate_v4(),
+  opted_out_at TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW())
 );
 
@@ -52,6 +55,17 @@ CREATE INDEX idx_users_strava_id ON users(strava_id);
 CREATE INDEX idx_run_logs_user_id_date ON run_logs(user_id, date);
 CREATE INDEX idx_messages_user_id_sent_at ON messages(user_id, sent_at);
 CREATE INDEX idx_contacts_user_id ON contacts(user_id);
+CREATE TABLE buddy_events (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  contact_id UUID NOT NULL REFERENCES contacts(id) ON DELETE CASCADE,
+  event_type TEXT NOT NULL,
+  metadata JSONB,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW())
+);
+CREATE INDEX idx_buddy_events_user ON buddy_events(user_id);
+CREATE INDEX idx_buddy_events_contact ON buddy_events(contact_id);
+CREATE INDEX idx_contacts_opt_out_token ON contacts(opt_out_token);
 
 -- Create RLS policies
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;

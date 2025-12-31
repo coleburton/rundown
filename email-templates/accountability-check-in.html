@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Rundown Accountability Check-In</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      color-scheme: light only;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #f5f6f8;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      color: #0f172a;
+    }
+    .wrapper {
+      width: 100%;
+      background-color: #f5f6f8;
+      padding: 32px 16px;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: #ffffff;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+    }
+    .header {
+      background: linear-gradient(135deg, #f97316, #fda048);
+      padding: 36px 32px;
+      color: #fff;
+      text-align: center;
+    }
+    .header h1 {
+      margin: 0 0 8px;
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+    .header p {
+      margin: 0;
+      font-size: 15px;
+      line-height: 1.5;
+      color: rgba(255,255,255,0.9);
+    }
+    .content {
+      padding: 32px;
+    }
+    .card {
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .card h2 {
+      margin: 0 0 12px;
+      font-size: 18px;
+      color: #0f172a;
+    }
+    .metric-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .metric {
+      flex: 1;
+      border-radius: 12px;
+      background-color: #f8fafc;
+      padding: 14px 16px;
+    }
+    .metric-label {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #94a3b8;
+      margin-bottom: 6px;
+    }
+    .metric-value {
+      font-size: 24px;
+      font-weight: 600;
+      color: #0f172a;
+    }
+    .cta {
+      text-align: center;
+      margin: 32px 0 12px;
+    }
+    .cta a {
+      display: inline-block;
+      background-color: #f97316;
+      color: #ffffff !important;
+      text-decoration: none;
+      padding: 14px 28px;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 15px;
+    }
+    .footer {
+      padding: 0 32px 32px;
+      text-align: center;
+      font-size: 12px;
+      color: #94a3b8;
+      line-height: 1.6;
+    }
+    @media (max-width: 520px) {
+      .content, .header, .footer { padding: 24px; }
+      .metric-row { flex-direction: column; }
+      .cta a { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <span style="display:none;visibility:hidden;opacity:0;max-height:0;">
+    {{contactName}}, {{userName}} missed their weekly goal—could you drop them a quick nudge?
+  </span>
+  <div class="wrapper">
+    <table class="container" role="presentation" cellpadding="0" cellspacing="0" width="100%">
+      <tr>
+        <td class="header">
+          <h1>Accountability Check-In</h1>
+          <p>{{userName}} could use a boost—thanks for being on their team.</p>
+        </td>
+      </tr>
+      <tr>
+        <td class="content">
+          <p style="font-size:15px; line-height:1.6; margin-top:0;">
+            Hey {{contactName}},
+          </p>
+          <p style="font-size:15px; line-height:1.7; color:#475569;">
+            Rundown noticed {{userName}} didn’t quite hit their weekly consistency target. 
+            A quick message from you can be the spark they need to get back on track.
+          </p>
+
+          <div class="card">
+            <h2>This Week at a Glance</h2>
+            <div class="metric-row">
+              <div class="metric">
+                <div class="metric-label">Goal</div>
+                <div class="metric-value">{{weeklyGoal}}</div>
+                <div style="font-size:13px; color:#64748b;">activities planned</div>
+              </div>
+              <div class="metric">
+                <div class="metric-label">Completed</div>
+                <div class="metric-value">{{actualActivities}}</div>
+                <div style="font-size:13px; color:#64748b;">activities logged</div>
+              </div>
+            </div>
+            <div style="border-top:1px solid #e2e8f0; padding-top:14px; font-size:14px; color:#475569;">
+              {{userName}}’s typical training window: <strong>{{preferredDay}}</strong> {{preferredTime}}. 
+              If you hear from them soon, they’re more likely to rebound this week.
+            </div>
+          </div>
+
+          <div class="card" style="background-color:#fef3e2; border-color:#fed7aa;">
+            <h2 style="color:#c2410c;">Suggested Nudge</h2>
+            <p style="margin:0; font-size:15px; color:#9a3412;">
+              “Hey {{userName}}, saw you’re one workout away from the plan. Want to lock in a session together or share your next run when it’s done? You’ve got this.”
+            </p>
+          </div>
+
+          <div class="cta">
+            <a href="{{ctaUrl}}" target="_blank" rel="noopener">
+              Send a quick encouragement
+            </a>
+          </div>
+          <p style="text-align:center; font-size:13px; color:#94a3b8; margin:0;">
+            Rundown will keep you in the loop on their weekly progress. Opt out anytime below.
+          </p>
+        </td>
+      </tr>
+      <tr>
+        <td class="footer">
+          Rundown · Accountability for consistent fitness<br/>
+          You’re receiving this because {{userName}} listed you as their accountability contact.<br/>
+          <a href="{{unsubscribeUrl}}" style="color:#f97316; text-decoration:none;">Unsubscribe</a>
+        </td>
+      </tr>
+    </table>
+  </div>
+</body>
+</html>

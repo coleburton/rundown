@@ -103,7 +103,7 @@ export function AddContactModal({ visible, onClose, onContactAdded }: AddContact
       }
 
       // Add contact to database
-      const { error: insertError } = await supabase
+      const { data: insertedContact, error: insertError } = await supabase
         .from('contacts')
         .insert({
           user_id: user.id,
@@ -111,12 +111,29 @@ export function AddContactModal({ visible, onClose, onContactAdded }: AddContact
           email: formatEmail(contact.email),
           relationship: contact.relationship,
           is_active: true
-        });
+        })
+        .select()
+        .single();
 
       if (insertError) throw insertError;
 
+      let inviteError: string | null = null;
+      if (insertedContact) {
+        try {
+          await supabase.functions.invoke('buddy-management', {
+            body: {
+              action: 'invite',
+              contact_id: insertedContact.id
+            }
+          });
+        } catch (err) {
+          console.error('Error sending buddy invite:', err);
+          inviteError = 'Contact added but we could not send their welcome email. You can resend from Settings later.';
+        }
+      }
+
       // Success! Close modal and refresh parent
-      Alert.alert('Success', 'Contact added successfully!');
+      Alert.alert('Success', inviteError ?? 'Contact added successfully!');
       onContactAdded();
       onClose();
 

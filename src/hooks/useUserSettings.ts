@@ -21,7 +21,7 @@ export interface UserProfile {
 export interface Contact {
   id: string;
   name: string;
-  phone_number: string;
+  email: string;
   relationship?: string;
   notification_preference: 'missed_goals' | 'weekly_summary' | 'both' | 'none';
   is_active: boolean;
