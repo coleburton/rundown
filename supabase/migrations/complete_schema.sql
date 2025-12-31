@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS users (
   access_token TEXT, -- Encrypted in edge functions before storage
   refresh_token TEXT, -- Encrypted in edge functions before storage
   token_expires_at TIMESTAMP WITH TIME ZONE,
+  push_token TEXT,
   -- SECURITY NOTE: Tokens are encrypted using AES-GCM in edge functions
   -- Consider migrating to Supabase Vault for enhanced security in future
 
@@ -59,8 +60,10 @@ CREATE TABLE IF NOT EXISTS contacts (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
-  phone_number TEXT NOT NULL,
+  email TEXT NOT NULL,
   relationship TEXT,
+  opt_out_token UUID DEFAULT uuid_generate_v4(),
+  opted_out_at TIMESTAMP WITH TIME ZONE,
 
   -- Verification
   verification_code TEXT,
@@ -280,6 +283,20 @@ CREATE INDEX IF NOT EXISTS idx_users_strava_id ON users(strava_id);
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 
 CREATE INDEX IF NOT EXISTS idx_contacts_user_id ON contacts(user_id);
+CREATE INDEX IF NOT EXISTS idx_contacts_opt_out_token ON contacts(opt_out_token);
+
+-- Buddy event audit trail
+CREATE TABLE IF NOT EXISTS buddy_events (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  contact_id UUID NOT NULL REFERENCES contacts(id) ON DELETE CASCADE,
+  event_type TEXT NOT NULL,
+  metadata JSONB,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW())
+);
+
+CREATE INDEX IF NOT EXISTS idx_buddy_events_user ON buddy_events(user_id);
+CREATE INDEX IF NOT EXISTS idx_buddy_events_contact ON buddy_events(contact_id);
 CREATE INDEX IF NOT EXISTS idx_contacts_user_active ON contacts(user_id, is_active);
 
 CREATE INDEX IF NOT EXISTS idx_activities_user_id ON activities(user_id);
@@ -438,7 +455,7 @@ RETURNS TABLE(
   message_id UUID,
   user_id UUID,
   contact_id UUID,
-  phone_number TEXT,
+  email TEXT,
   message_text TEXT,
   priority INT
 )
@@ -470,7 +487,7 @@ BEGIN
     mq.id as message_id,
     mq.user_id,
     mq.contact_id,
-    c.phone_number,
+    c.email,
     mq.message_text,
     mq.priority
   FROM message_queue mq

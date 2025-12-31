@@ -15,6 +15,7 @@ CREATE TABLE users (
     name VARCHAR(255),
     strava_id VARCHAR(255) UNIQUE,
     access_token TEXT, -- Encrypted Strava access token
+    push_token TEXT,
     goal_per_week INTEGER DEFAULT 3, -- Weekly running goal
     streak_count INTEGER DEFAULT 0, -- Current streak count
     message_style VARCHAR(20) DEFAULT 'supportive' CHECK (message_style IN ('supportive', 'snarky', 'chaotic')),
@@ -29,8 +30,10 @@ CREATE TABLE contacts (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
-    phone_number VARCHAR(20) NOT NULL,
+    email VARCHAR(255) NOT NULL,
     relationship VARCHAR(100), -- e.g., 'friend', 'family', 'coach'
+    opt_out_token UUID DEFAULT uuid_generate_v4(),
+    opted_out_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -61,6 +64,7 @@ CREATE TABLE messages (
 
 -- Create indexes for better query performance
 CREATE INDEX idx_contacts_user_id ON contacts(user_id);
+CREATE INDEX idx_contacts_opt_out_token ON contacts(opt_out_token);
 CREATE INDEX idx_run_logs_user_id ON run_logs(user_id);
 CREATE INDEX idx_run_logs_date ON run_logs(date);
 CREATE INDEX idx_run_logs_user_date ON run_logs(user_id, date);
@@ -183,6 +187,19 @@ CREATE TABLE message_rate_limits (
     UNIQUE(time_slot)
 );
 
+-- Buddy events audit table
+CREATE TABLE buddy_events (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    contact_id UUID NOT NULL REFERENCES contacts(id) ON DELETE CASCADE,
+    event_type VARCHAR(50) NOT NULL,
+    metadata JSONB,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX idx_buddy_events_user ON buddy_events(user_id);
+CREATE INDEX idx_buddy_events_contact ON buddy_events(contact_id);
+
 -- User notification preferences (expanded)
 CREATE TABLE notification_preferences (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -295,7 +312,7 @@ RETURNS TABLE(
     message_id UUID,
     user_id UUID,
     contact_id UUID,
-    phone_number VARCHAR(20),
+    email VARCHAR(255),
     message_text TEXT,
     scheduled_for TIMESTAMP WITH TIME ZONE
 ) AS $$
@@ -326,7 +343,7 @@ BEGIN
         mq.id as message_id,
         mq.user_id,
         mq.contact_id,
-        c.phone_number,
+        c.email,
         mq.message_text,
         mq.scheduled_for
     FROM message_queue mq

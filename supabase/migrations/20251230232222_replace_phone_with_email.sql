@@ -1,16 +1,30 @@
 -- Migration: Replace phone_number with email in contacts table
 -- Replace phone number collection with email collection for accountability buddies
 
--- Step 1: Rename phone_number column to email
-ALTER TABLE contacts
-  RENAME COLUMN phone_number TO email;
+-- Step 1: Rename phone_number column to email (if it still exists)
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_name = 'contacts'
+      AND column_name = 'phone_number'
+  ) THEN
+    ALTER TABLE contacts
+      RENAME COLUMN phone_number TO email;
+  END IF;
+END;
+$$;
 
 -- Step 2: Add email validation constraint
+ALTER TABLE contacts
+  DROP CONSTRAINT IF EXISTS valid_email_format;
 ALTER TABLE contacts
   ADD CONSTRAINT valid_email_format
   CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$');
 
 -- Step 3: Update database function: get_messages_to_send
+DROP FUNCTION IF EXISTS get_messages_to_send(integer, integer);
 CREATE OR REPLACE FUNCTION get_messages_to_send(
   batch_size INT DEFAULT 50,
   max_per_time_slot INT DEFAULT 100
