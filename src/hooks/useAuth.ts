@@ -101,13 +101,14 @@ export function useAuth() {
         const code = new URL(result.url).searchParams.get('code');
         if (code) {
           console.log('Strava auth code received, exchanging for token');
-          
+
           // Exchange code for token using Supabase Edge Function
+          // The session token is automatically included by Supabase client
           const { data, error } = await supabase.functions.invoke('strava-auth', {
-            body: { 
+            body: {
               code,
               user_id: session.user.id
-            },
+            }
           });
 
           if (error) {
@@ -116,9 +117,22 @@ export function useAuth() {
           }
 
           console.log('Strava auth successful, refreshing user data');
-          
+
           // Refresh user data to get updated Strava connection
           await fetchUser(session.user.id);
+
+          // Trigger initial activity sync
+          console.log('Triggering initial Strava activity sync...');
+          const { error: syncError } = await supabase.functions.invoke('strava-sync', {
+            body: {} // Function uses JWT token to identify user
+          });
+
+          if (syncError) {
+            console.error('Error syncing Strava activities:', syncError);
+            // Don't throw - connection was successful, sync can be retried
+          } else {
+            console.log('Strava activities synced successfully');
+          }
         }
       }
     } catch (error) {

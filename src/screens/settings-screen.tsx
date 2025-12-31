@@ -208,6 +208,46 @@ export function SettingsScreen({ navigation }: Props) {
     }
   };
 
+  const handleSyncActivities = async () => {
+    if (!user?.strava_id) {
+      Alert.alert('Error', 'Please connect Strava first');
+      return;
+    }
+
+    try {
+      console.log('Starting manual Strava sync for user:', user.id);
+      const response = await supabase.functions.invoke('strava-sync', {
+        body: {} // Function uses JWT token to identify user
+      });
+
+      console.log('Full response:', JSON.stringify(response, null, 2));
+
+      if (response.error) {
+        console.error('Error syncing activities:', response.error);
+        console.error('Error details:', {
+          message: response.error.message,
+          status: response.error.context?.status,
+          statusText: response.error.context?.statusText,
+          body: response.error.context?.body
+        });
+
+        // Try to parse error from data
+        if (response.data) {
+          console.error('Error data:', response.data);
+        }
+
+        Alert.alert('Sync Failed', `Failed to sync activities: ${response.error.message}`);
+      } else {
+        console.log('Activities synced successfully:', response.data);
+        Alert.alert('Success', `Your Strava activities have been synced! Count: ${response.data?.count || 0}`);
+      }
+    } catch (error: any) {
+      console.error('Error during sync:', error);
+      console.error('Error stack:', error.stack);
+      Alert.alert('Error', 'An error occurred while syncing. Please try again.');
+    }
+  };
+
 
   const handleTimingChange = (field: 'day' | 'timePeriod', value: string) => {
     setPendingTiming({ field, value });
@@ -427,10 +467,16 @@ export function SettingsScreen({ navigation }: Props) {
               {user?.strava_id ? (
                 <View>
                   <Button
+                    variant="default"
+                    title="Sync Activities"
+                    onPress={handleSyncActivities}
+                    style={{ marginTop: 4 }}
+                  />
+                  <Button
                     variant="outline"
                     title="Disconnect Strava"
                     onPress={handleDisconnectStrava}
-                    style={{ marginTop: 4 }}
+                    style={{ marginTop: 8 }}
                   />
                   <View style={{ 
                     backgroundColor: '#f8f9fa',

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { Button } from '@/components/ui/button';
 import { useAuthContext } from '@/lib/auth-context';
 import { useStravaActivities } from '@/hooks/useStravaActivities';
@@ -313,6 +313,7 @@ export function DashboardScreen({ navigation }: Props) {
   const [selectedWeekOffset, setSelectedWeekOffset] = useState(0); // 0 = current week, 1 = last week, etc.
   const [weeklyData, setWeeklyData] = useState<WeeklyData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   
   // Subscription state
   const [isSubscribed, setIsSubscribed] = useState(true);
@@ -370,7 +371,22 @@ export function DashboardScreen({ navigation }: Props) {
       setHasCheckedSubscription(true);
     }
   }, [debugCancelledState, isSubscribed, hasCheckedSubscription]);
-  
+
+  // Handle pull-to-refresh
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      // Refresh activities from Strava
+      await refresh();
+      // Clear weekly data to trigger reload
+      setWeeklyData([]);
+    } catch (error) {
+      console.error('Error refreshing:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refresh]);
+
   // Helper function to get week date range for any week offset
   const getWeekDateRangeForOffset = (weekOffset: number) => {
     const now = new Date();
@@ -1023,7 +1039,17 @@ export function DashboardScreen({ navigation }: Props) {
         debugCancelledState={debugCancelledState}
         onToggleCancelledState={setDebugCancelledState}
       />
-      <ScrollView style={{ flex: 1 }}>
+      <ScrollView
+        style={{ flex: 1 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#10b981"
+            colors={['#10b981']}
+          />
+        }
+      >
       <View style={{ padding: 24, paddingTop: 24 + insets.top }}>
         {/* Header */}
         <View style={{ marginBottom: 32 }}>

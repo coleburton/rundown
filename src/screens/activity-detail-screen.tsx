@@ -42,24 +42,12 @@ export function ActivityDetailScreen({ navigation, route }: Props) {
         setActivity(foundActivity);
         setDetailedActivity(foundActivity);
         
-        // Try to get additional details from Strava API for route visualization
-        try {
-          const detailed = await stravaAuth.getActivityById(foundActivity.strava_activity_id);
-          
-          // If we have GPS data, fetch route streams
-          if (detailed && detailed.start_latlng) {
-            try {
-              const streams = await stravaAuth.getActivityStreams(foundActivity.strava_activity_id, ['latlng', 'distance', 'altitude']);
-              setRouteStreams(streams);
-            } catch (streamsError) {
-              console.warn('Failed to fetch route streams:', streamsError);
-              // Don't fail the whole request if streams fail
-            }
-          }
-        } catch (detailError) {
-          console.warn('Failed to fetch additional activity details from Strava:', detailError);
-          // Don't fail if we can't get additional details - we have the basic data
-        }
+        // NOTE: Additional Strava API calls disabled - all data comes from Supabase sync
+        // Route visualization would require an edge function to proxy Strava API requests
+        // For now, we just use the data already synced to the database
+
+        // TODO: If route visualization is needed, create an edge function to fetch streams
+        // using the server-side tokens stored in the database
       } else {
         setError('Activity not found');
       }
