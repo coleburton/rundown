@@ -12,7 +12,7 @@ import {
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { ContactRolePicker } from './ContactRolePicker';
-import { formatPhoneNumber, isValidPhoneNumber } from '@/lib/utils';
+import { formatEmail, isValidEmail } from '@/lib/utils';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -24,33 +24,33 @@ interface AddContactModalProps {
 
 type Contact = {
   name: string;
-  phone: string;
+  email: string;
   relationship: string;
 };
 
 export function AddContactModal({ visible, onClose, onContactAdded }: AddContactModalProps) {
   const { user } = useAuth();
-  const [contact, setContact] = useState<Contact>({ 
-    name: '', 
-    phone: '', 
-    relationship: 'Coach' 
+  const [contact, setContact] = useState<Contact>({
+    name: '',
+    email: '',
+    relationship: 'Coach'
   });
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const isValid = contact.name.trim() && isValidPhoneNumber(contact.phone);
+  const isValid = contact.name.trim() && isValidEmail(contact.email);
 
   // Clear error when form inputs change
   useEffect(() => {
     if (error) {
       setError(null);
     }
-  }, [contact.name, contact.phone, contact.relationship]);
+  }, [contact.name, contact.email, contact.relationship]);
 
   // Reset form when modal opens
   useEffect(() => {
     if (visible) {
-      setContact({ name: '', phone: '', relationship: 'Coach' });
+      setContact({ name: '', email: '', relationship: 'Coach' });
       setError(null);
       setIsSubmitting(false);
     }
@@ -73,26 +73,26 @@ export function AddContactModal({ visible, onClose, onContactAdded }: AddContact
         return;
       }
 
-      if (!isValidPhoneNumber(contact.phone)) {
-        setError('Please enter a valid 10-digit phone number');
+      if (!isValidEmail(contact.email)) {
+        setError('Please enter a valid email address');
         return;
       }
 
-      // Check for duplicate phone numbers
-      const phoneDigits = contact.phone.replace(/\D/g, '');
+      // Check for duplicate emails
+      const emailLower = contact.email.toLowerCase();
       const { data: existingContacts, error: fetchError } = await supabase
         .from('contacts')
-        .select('phone_number')
+        .select('email')
         .eq('user_id', user.id);
 
       if (fetchError) throw fetchError;
 
-      const isDuplicate = existingContacts?.some(c => 
-        c.phone_number.replace(/\D/g, '') === phoneDigits
+      const isDuplicate = existingContacts?.some(c =>
+        c.email.toLowerCase() === emailLower
       );
 
       if (isDuplicate) {
-        setError('This phone number has already been added');
+        setError('This email address has already been added');
         return;
       }
 
@@ -108,7 +108,7 @@ export function AddContactModal({ visible, onClose, onContactAdded }: AddContact
         .insert({
           user_id: user.id,
           name: contact.name.trim(),
-          phone_number: formatPhoneNumber(contact.phone),
+          email: formatEmail(contact.email),
           relationship: contact.relationship,
           is_active: true
         });
@@ -208,14 +208,17 @@ export function AddContactModal({ visible, onClose, onContactAdded }: AddContact
               }}
             />
             <Input
-              placeholder="Phone number"
-              value={contact.phone}
+              placeholder="Email address"
+              value={contact.email}
               onChangeText={(text) => {
-                const formatted = formatPhoneNumber(text);
-                setContact({ ...contact, phone: formatted });
+                const formatted = formatEmail(text);
+                setContact({ ...contact, email: formatted });
               }}
-              keyboardType="phone-pad"
-              style={{ 
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoComplete="email"
+              autoCorrect={false}
+              style={{
                 borderRadius: 12, 
                 height: 52, 
                 fontSize: 16,

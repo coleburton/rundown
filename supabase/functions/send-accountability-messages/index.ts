@@ -1,6 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
-import { Twilio } from 'https://esm.sh/twilio@4.19.0';
+import { Resend } from 'https://esm.sh/resend@2.0.0';
 
 type MessageStyle = 'supportive' | 'snarky' | 'chaotic' | 'competitive' | 'achievement';
 type MessageType = 'missed-goal' | 'weekly-summary';
@@ -14,11 +14,65 @@ interface MessageBank {
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-const TWILIO_ACCOUNT_SID = Deno.env.get('TWILIO_ACCOUNT_SID');
-const TWILIO_AUTH_TOKEN = Deno.env.get('TWILIO_AUTH_TOKEN');
-const TWILIO_PHONE_NUMBER = Deno.env.get('TWILIO_PHONE_NUMBER');
+const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
+const FROM_EMAIL = Deno.env.get('FROM_EMAIL') || 'notifications@rundownapp.com';
 
-const twilio = new Twilio(TWILIO_ACCOUNT_SID!, TWILIO_AUTH_TOKEN!);
+const resend = new Resend(RESEND_API_KEY!);
+
+/**
+ * Extract or generate email subject from message text
+ */
+function getEmailSubject(messageText: string): string {
+  const firstSentence = messageText.split(/[.!?]/)[0];
+  if (firstSentence.length > 60) {
+    return 'Accountability Check-In';
+  }
+  return firstSentence.trim();
+}
+
+/**
+ * Convert plain text message to HTML email format
+ */
+function formatEmailHtml(messageText: string): string {
+  const paragraphs = messageText.split('\n\n').filter(p => p.trim());
+  const htmlParagraphs = paragraphs.map(p => {
+    const withBreaks = p.replace(/\n/g, '<br>');
+    return `<p style="margin: 16px 0; line-height: 1.5;">${withBreaks}</p>`;
+  }).join('');
+
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Accountability Check-In</title>
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f9fafb; margin: 0; padding: 0;">
+  <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+    <div style="background-color: #ffffff; border-radius: 12px; padding: 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+      <div style="border-left: 4px solid #f97316; padding-left: 20px; margin-bottom: 24px;">
+        <h2 style="margin: 0; color: #111827; font-size: 20px; font-weight: 600;">Accountability Check-In</h2>
+      </div>
+      <div style="color: #374151; font-size: 16px;">
+        ${htmlParagraphs}
+      </div>
+      <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #e5e7eb;">
+        <p style="margin: 0; color: #6b7280; font-size: 14px; line-height: 1.5;">
+          This is an automated accountability message from Rundown. Your friend signed up to receive these check-ins to help them stay on track with their fitness goals.
+        </p>
+      </div>
+    </div>
+    <div style="text-align: center; margin-top: 24px;">
+      <p style="margin: 0; color: #9ca3af; font-size: 12px;">
+        Rundown - Accountability for your fitness goals
+      </p>
+    </div>
+  </div>
+</body>
+</html>
+  `.trim();
+}
 
 const MESSAGE_TEMPLATES: MessageBank = {
   supportive: {
@@ -407,7 +461,7 @@ serve(async (req) => {
         contacts (
           id,
           name,
-          phone_number
+          email
         )
       `)
       .eq('send_day', new Date().toLocaleDateString('en-US', { weekday: 'long' }))
@@ -493,11 +547,12 @@ serve(async (req) => {
         });
 
         try {
-          // Send message via Twilio
-          await twilio.messages.create({
-            body: message,
-            to: contact.phone_number,
-            from: TWILIO_PHONE_NUMBER,
+          // Send email via Resend
+          await resend.emails.send({
+            from: FROM_EMAIL,
+            to: contact.email,
+            subject: getEmailSubject(message),
+            html: formatEmailHtml(message),
           });
 
           // Log message in database

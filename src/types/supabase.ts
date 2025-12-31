@@ -94,7 +94,7 @@ export type Database = {
           last_notified_at: string | null
           name: string
           notification_preference: string | null
-          phone_number: string
+          email: string
           relationship: string | null
           updated_at: string | null
           user_id: string
@@ -108,7 +108,7 @@ export type Database = {
           last_notified_at?: string | null
           name: string
           notification_preference?: string | null
-          phone_number: string
+          email: string
           relationship?: string | null
           updated_at?: string | null
           user_id: string
@@ -122,7 +122,7 @@ export type Database = {
           last_notified_at?: string | null
           name?: string
           notification_preference?: string | null
-          phone_number?: string
+          email?: string
           relationship?: string | null
           updated_at?: string | null
           user_id?: string

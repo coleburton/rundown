@@ -80,7 +80,7 @@ serve(async (req) => {
         contacts (
           id,
           name,
-          phone_number,
+          email,
           relationship
         )
       `)

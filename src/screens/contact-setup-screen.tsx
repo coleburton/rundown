@@ -10,7 +10,7 @@ import { DebugSkipButton } from '@/components/DebugSkipButton';
 import { ContactRolePicker } from '@/components/ContactRolePicker';
 import { ONBOARDING_BUTTON_STYLE, ONBOARDING_CONTAINER_STYLE } from '@/constants/OnboardingStyles';
 import { Tooltip } from '@/components/ui/tooltip';
-import { formatPhoneNumber, isValidPhoneNumber } from '@/lib/utils';
+import { formatEmail, isValidEmail } from '@/lib/utils';
 import analytics, { 
   ANALYTICS_EVENTS, 
   ONBOARDING_SCREENS, 
@@ -34,7 +34,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'ContactSetup'>;
 type Contact = {
   id?: string;
   name: string;
-  phone: string;
+  email: string;
   role?: string;
 };
 
@@ -42,7 +42,7 @@ export function ContactSetupScreen({ navigation }: Props) {
   const { user } = useMockAuth();
   const insets = useSafeAreaInsets();
   const [contacts, setContacts] = useState<Contact[]>([]);
-  const [newContact, setNewContact] = useState<Contact>({ name: '', phone: '', role: 'Coach' });
+  const [newContact, setNewContact] = useState<Contact>({ name: '', email: '', role: 'Coach' });
   const [error, setError] = useState<string | null>(null);
   const [formKey, setFormKey] = useState(0);
   const [screenStartTime] = useState(Date.now());
@@ -65,14 +65,14 @@ export function ContactSetupScreen({ navigation }: Props) {
   }, []);
 
   // Check if form is valid
-  const isValid = newContact.name.trim() && isValidPhoneNumber(newContact.phone);
+  const isValid = newContact.name.trim() && isValidEmail(newContact.email);
 
   // Clear error when form inputs change
   useEffect(() => {
     if (error) {
       setError(null);
     }
-  }, [newContact.name, newContact.phone, newContact.role]);
+  }, [newContact.name, newContact.email, newContact.role]);
 
 
   const handleAddContact = () => {
@@ -85,16 +85,16 @@ export function ContactSetupScreen({ navigation }: Props) {
         return;
       }
       
-      if (!isValidPhoneNumber(newContact.phone)) {
-        setError('Please enter a valid phone number (10-15 digits)');
+      if (!isValidEmail(newContact.email)) {
+        setError('Please enter a valid email address');
         return;
       }
-      
+
       // Create the contact object
       const contact = {
         id: Date.now().toString(),
         name: newContact.name.trim(),
-        phone: formatPhoneNumber(newContact.phone),
+        email: formatEmail(newContact.email),
         role: newContact.role || 'Coach'
       };
       
@@ -104,10 +104,10 @@ export function ContactSetupScreen({ navigation }: Props) {
         return;
       }
       
-      // Check for duplicate phone numbers
-      const phoneDigits = newContact.phone.replace(/\D/g, '');
-      if (contacts.some(c => c.phone.replace(/\D/g, '') === phoneDigits)) {
-        setError('This phone number has already been added');
+      // Check for duplicate emails
+      const emailLower = newContact.email.toLowerCase();
+      if (contacts.some(c => c.email.toLowerCase() === emailLower)) {
+        setError('This email address has already been added');
         return;
       }
       
@@ -118,7 +118,7 @@ export function ContactSetupScreen({ navigation }: Props) {
       console.log('Updated contacts:', updatedContacts);
       
       // Reset form
-      setNewContact({ name: '', phone: '', role: 'Coach' });
+      setNewContact({ name: '', email: '', role: 'Coach' });
       setFormKey(prev => prev + 1);
       setError(null);
       
@@ -188,7 +188,7 @@ export function ContactSetupScreen({ navigation }: Props) {
             />
           </View>
           <Text style={{ fontSize: 16, color: '#6b7280', marginBottom: 12 }}>
-            Who should we text when you're slacking?
+            Who should we email when you're slacking?
           </Text>
           
           {/* Timing Information - Compact */}
@@ -205,7 +205,7 @@ export function ContactSetupScreen({ navigation }: Props) {
               fontWeight: '600',
               textAlign: 'center'
             }}>
-              📅 Messages sent Sunday evening if you miss your weekly goal
+              📅 Emails sent Sunday evening if you miss your weekly goal
             </Text>
           </View>
         </View>
@@ -233,17 +233,20 @@ export function ContactSetupScreen({ navigation }: Props) {
             }}
           />
           <Input
-            placeholder="Phone number"
-            value={newContact.phone}
+            placeholder="Email address"
+            value={newContact.email}
             onChangeText={(text) => {
-              const formatted = formatPhoneNumber(text);
-              setNewContact({ ...newContact, phone: formatted });
+              const formatted = formatEmail(text);
+              setNewContact({ ...newContact, email: formatted });
             }}
-            keyboardType="phone-pad"
-            style={{ 
-              marginBottom: 12, 
-              borderRadius: 12, 
-              height: 52, 
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoComplete="email"
+            autoCorrect={false}
+            style={{
+              marginBottom: 12,
+              borderRadius: 12,
+              height: 52,
               fontSize: 16,
               borderColor: '#e5e7eb',
               backgroundColor: '#ffffff',
@@ -307,7 +310,7 @@ export function ContactSetupScreen({ navigation }: Props) {
                     {contact.name}
                   </Text>
                   <Text style={{ fontSize: 14, color: '#6b7280', marginBottom: 2 }}>
-                    {contact.phone}
+                    {contact.email}
                   </Text>
                   <Text style={{ fontSize: 12, color: '#f97316', fontWeight: '500' }}>
                     {contact.role}
