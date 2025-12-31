@@ -4,6 +4,9 @@ import * as WebBrowser from 'expo-web-browser';
 import { makeRedirectUri } from 'expo-auth-session';
 import { Database } from '@/types/supabase';
 import { Session } from '@supabase/supabase-js';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { analytics, calculateDaysSinceSignup } from '@/lib/analytics/index';
+import { ANALYTICS_EVENTS } from '@/lib/analytics/events';
 
 type User = Database['public']['Tables']['users']['Row'];
 
@@ -132,6 +135,42 @@ export function useAuth() {
             // Don't throw - connection was successful, sync can be retried
           } else {
             console.log('Strava activities synced successfully');
+
+            // Check if this is the user's first activity sync (activation milestone)
+            const hasFirstActivity = await AsyncStorage.getItem('has_first_activity');
+            if (!hasFirstActivity) {
+              // Check if any activities were synced
+              const { data: activities } = await supabase
+                .from('strava_activities')
+                .select('*')
+                .eq('user_id', session.user.id)
+                .limit(1);
+
+              if (activities && activities.length > 0) {
+                // Track first activity synced milestone
+                const user = await supabase
+                  .from('users')
+                  .select('created_at')
+                  .eq('id', session.user.id)
+                  .single();
+
+                if (user.data && analytics && typeof analytics.track === 'function') {
+                  analytics.track(ANALYTICS_EVENTS.ACTIVATION_FIRST_ACTIVITY_SYNCED, {
+                    days_since_signup: calculateDaysSinceSignup(user.data.created_at),
+                    activity_type: activities[0].type,
+                  });
+
+                  // Update user property
+                  if (typeof analytics.setUserProperties === 'function') {
+                    analytics.setUserProperties({
+                      last_activity_sync_date: new Date().toISOString(),
+                    });
+                  }
+
+                  await AsyncStorage.setItem('has_first_activity', 'true');
+                }
+              }
+            }
           }
         }
       }

@@ -1,204 +1,60 @@
-import { Mixpanel } from 'mixpanel-react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Platform } from 'react-native';
-import { addDebugEvent } from './MixpanelDebug';
+/**
+ * Legacy Analytics Module (Backward Compatibility)
+ * This file re-exports from the new analytics structure for backward compatibility
+ * New code should import from './analytics/' directly
+ *
+ * MIGRATION GUIDE:
+ * Old: import analytics, { ANALYTICS_EVENTS } from '@/lib/analytics';
+ * New: import { analytics } from '@/lib/analytics';
+ *      import { ANALYTICS_EVENTS } from '@/lib/analytics/events';
+ */
 
-// Create a singleton instance of Mixpanel
-let mixpanelInstance: Mixpanel | null = null;
+import { analytics as analyticsService } from './analytics/index';
 
 /**
- * Initialize Mixpanel with your project token
- * Get your token from https://mixpanel.com/settings/project
+ * Initialize analytics (now initializes all configured providers)
+ * @deprecated Use analytics.init() directly from '@/lib/analytics'
  */
 export const initMixpanel = async () => {
-  if (mixpanelInstance) return mixpanelInstance;
-  
-  try {
-    // Get Mixpanel token from environment or use development token
-    const MIXPANEL_TOKEN = process.env.EXPO_PUBLIC_MIXPANEL_TOKEN || 'dev-token-placeholder';
-    
-    // Create a new instance with the token and automatic events tracking disabled
-    mixpanelInstance = new Mixpanel(MIXPANEL_TOKEN, false);
-    
-    // Initialize Mixpanel
-    await mixpanelInstance.init();
-    
-    // Set some default properties that will be sent with all events
-    mixpanelInstance.registerSuperProperties({
-      platform: Platform.OS,
-      app_version: require('../../package.json').version,
-    });
-    
-    console.log('Mixpanel initialized successfully');
-    return mixpanelInstance;
-  } catch (error) {
-    console.error('Failed to initialize Mixpanel:', error);
-    return null;
-  }
+  await analyticsService.init();
+  return analyticsService;
 };
 
 /**
  * Track an event with optional properties
+ * @deprecated Use analytics.track() directly from '@/lib/analytics'
  */
 export const trackEvent = (eventName: string, properties?: Record<string, any>) => {
-  if (!mixpanelInstance) {
-    console.warn('Mixpanel not initialized. Call initMixpanel first.');
-    return;
-  }
-  
-  // Show debug overlay in development mode
-  if (__DEV__) {
-    addDebugEvent(eventName, properties || {});
-  }
-  
-  mixpanelInstance.track(eventName, properties);
+  analyticsService.track(eventName, properties);
 };
 
 /**
  * Identify a user with a unique ID and optional user properties
+ * @deprecated Use analytics.identify() directly from '@/lib/analytics'
  */
 export const identifyUser = (userId: string, userProperties?: Record<string, any>) => {
-  if (!mixpanelInstance) {
-    console.warn('Mixpanel not initialized. Call initMixpanel first.');
-    return;
-  }
-  
-  // Show debug overlay in development mode
-  if (__DEV__) {
-    addDebugEvent('identify', { userId, ...userProperties });
-  }
-  
-  mixpanelInstance.identify(userId);
-  
-  if (userProperties) {
-    // Set user profile properties
-    mixpanelInstance.getPeople().set(userProperties);
-  }
+  analyticsService.identify(userId, userProperties);
 };
 
 /**
  * Reset the current user's identity
+ * @deprecated Use analytics.reset() directly from '@/lib/analytics'
  */
 export const resetUser = async () => {
-  if (!mixpanelInstance) {
-    console.warn('Mixpanel not initialized. Call initMixpanel first.');
-    return;
-  }
-  
-  // Show debug overlay in development mode
-  if (__DEV__) {
-    addDebugEvent('reset', {});
-  }
-  
-  await mixpanelInstance.reset();
+  await analyticsService.reset();
 };
 
-// Common events to track
-export const ANALYTICS_EVENTS = {
-  // Core app events
-  APP_OPEN: 'App Open',
-  SCREEN_VIEW: 'Screen View',
-  BUTTON_CLICK: 'Button Click',
-  
-  // User events
-  USER_SIGN_IN: 'User Sign In',
-  USER_SIGN_UP: 'User Sign Up',
-  USER_SIGN_OUT: 'User Sign Out',
-  USER_PREFERENCE_SET: 'User Preference Set',
-  USER_PROFILE_UPDATE: 'User Profile Update',
-  
-  // Onboarding funnel events
-  ONBOARDING_STARTED: 'Onboarding Started',
-  ONBOARDING_SCREEN_VIEWED: 'Onboarding Screen Viewed',
-  ONBOARDING_SCREEN_COMPLETED: 'Onboarding Screen Completed',
-  ONBOARDING_STEP_ABANDONED: 'Onboarding Step Abandoned',
-  ONBOARDING_COMPLETED: 'Onboarding Completed',
-  ONBOARDING_ERROR: 'Onboarding Error',
-  
-  // Specific onboarding interactions
-  WHY_ACCOUNTABILITY_VIEWED: 'Why Accountability Viewed',
-  SOCIAL_PROOF_VIEWED: 'Social Proof Viewed',
-  MOTIVATION_QUIZ_STARTED: 'Motivation Quiz Started',
-  MOTIVATION_SELECTED: 'Motivation Type Selected',
-  GOAL_SETUP_STARTED: 'Goal Setup Started',
-  GOAL_SELECTED: 'Goal Selected',
-  VALUE_PREVIEW_VIEWED: 'Value Preview Viewed',
-  FITNESS_APP_CONNECT_STARTED: 'Fitness App Connect Started',
-  FITNESS_APP_CONNECTED: 'Fitness App Connected',
-  FITNESS_APP_SKIPPED: 'Fitness App Skipped',
-  CONTACT_SETUP_STARTED: 'Contact Setup Started',
-  CONTACT_SELECTED: 'Contact Selected',
-  MESSAGE_STYLE_STARTED: 'Message Style Started',
-  MESSAGE_STYLE_RECOMMENDED: 'Message Style Recommended',
-  MESSAGE_STYLE_SELECTED: 'Message Style Selected',
-  
-  // Revenue & subscription events
-  PAYWALL_VIEWED: 'Paywall Viewed',
-  SUBSCRIPTION_PLAN_SELECTED: 'Subscription Plan Selected',
-  PURCHASE_INITIATED: 'Purchase Initiated',
-  PURCHASE_COMPLETED: 'Purchase Completed',
-  PURCHASE_FAILED: 'Purchase Failed',
-  PURCHASE_CANCELLED: 'Purchase Cancelled',
-  SUBSCRIPTION_RESTORED: 'Subscription Restored',
-  FREE_TRIAL_STARTED: 'Free Trial Started',
-  
-  // Core app functionality events
-  STRAVA_CONNECTION_ATTEMPTED: 'Strava Connection Attempted',
-  STRAVA_CONNECTION_COMPLETED: 'Strava Connection Completed',
-  STRAVA_CONNECTION_FAILED: 'Strava Connection Failed',
-  ACTIVITY_SYNCED: 'Activity Synced',
-  GOAL_PROGRESS_UPDATED: 'Goal Progress Updated',
-  
-  // Message system events
-  MESSAGE_SCHEDULED: 'Message Scheduled',
-  MESSAGE_SENT_SUCCESS: 'Message Sent Success',
-  MESSAGE_SENT_FAILED: 'Message Sent Failed',
-  
-  // Legacy events (keeping for backward compatibility)
-  GOAL_CREATED: 'Goal Created',
-  ACTIVITY_TRACKED: 'Activity Tracked',
-  MESSAGE_SENT: 'Message Sent',
-  CONTACT_ADDED: 'Contact Added'
-};
+// Re-export events from new structure
+// @deprecated Import from '@/lib/analytics/events' instead
+export { ANALYTICS_EVENTS, ONBOARDING_SCREENS } from './analytics/events';
 
-// Onboarding screen names for consistent tracking
-export const ONBOARDING_SCREENS = {
-  ONBOARDING: 'onboarding',
-  USER_INFO: 'user_info',
-  LOGIN: 'login',
-  WELCOME: 'welcome',
-  WHY_ACCOUNTABILITY: 'why_accountability',
-  SOCIAL_PROOF: 'social_proof',
-  MOTIVATION_QUIZ: 'motivation_quiz',
-  GOAL_SETUP: 'goal_setup',
-  VALUE_PREVIEW: 'value_preview',
-  FITNESS_APP_CONNECT: 'fitness_app_connect',
-  CONTACT_SETUP: 'contact_setup',
-  MESSAGE_STYLE: 'message_style',
-  ONBOARDING_SUCCESS: 'onboarding_success'
-} as const;
-
-// User properties for segmentation
-export const USER_PROPERTIES = {
-  ONBOARDING_STEP: '$onboarding_step',
-  FIRST_NAME: '$first_name',
-  LAST_NAME: '$last_name',
-  DATE_OF_BIRTH: '$date_of_birth',
-  FITNESS_LEVEL: '$fitness_level',
-  PRIMARY_GOAL: '$primary_goal',
-  AUTH_METHOD: '$auth_method',
-  MOTIVATION_TYPE: '$motivation_type',
-  GOAL_TYPE: '$goal_type',
-  GOAL_VALUE: '$goal_value',
-  FITNESS_APP_CONNECTED: '$fitness_app_connected',
-  CONTACT_RELATIONSHIP: '$contact_relationship',
-  MESSAGE_STYLE: '$message_style',
-  ONBOARDING_COMPLETED_AT: '$onboarding_completed_at',
-  ONBOARDING_DURATION: '$onboarding_duration'
-} as const;
+// Re-export properties from new structure
+// @deprecated Import from '@/lib/analytics/properties' instead
+export { USER_PROPERTIES } from './analytics/properties';
 
 /**
  * Track onboarding screen views with consistent properties
+ * @deprecated Use analytics.track() with ANALYTICS_EVENTS.ONBOARDING_STEP_VIEWED
  */
 export const trackOnboardingScreenView = (screenName: string, additionalProperties?: Record<string, any>) => {
   const properties = {
@@ -208,15 +64,16 @@ export const trackOnboardingScreenView = (screenName: string, additionalProperti
     ...additionalProperties
   };
 
-  trackEvent(ANALYTICS_EVENTS.ONBOARDING_SCREEN_VIEWED, properties);
-  trackEvent(ANALYTICS_EVENTS.SCREEN_VIEW, properties);
+  analyticsService.track('onboarding:step_viewed', properties);
+  analyticsService.track('screen:view', properties);
 };
 
 /**
  * Track onboarding screen completion
+ * @deprecated Use analytics.track() with ANALYTICS_EVENTS.ONBOARDING_STEP_COMPLETED
  */
 export const trackOnboardingScreenCompleted = (screenName: string, additionalProperties?: Record<string, any>) => {
-  trackEvent(ANALYTICS_EVENTS.ONBOARDING_SCREEN_COMPLETED, {
+  analyticsService.track('onboarding:step_completed', {
     screen_name: screenName,
     screen_type: 'onboarding',
     timestamp: new Date().toISOString(),
@@ -226,46 +83,36 @@ export const trackOnboardingScreenCompleted = (screenName: string, additionalPro
 
 /**
  * Track onboarding errors with context
+ * @deprecated Use analytics.track() with ANALYTICS_EVENTS.ONBOARDING_ERROR
  */
 export const trackOnboardingError = (error: string | Error, context: Record<string, any>) => {
   const errorMessage = error instanceof Error ? error.message : error;
   const errorStack = error instanceof Error ? error.stack : undefined;
 
-  trackEvent(ANALYTICS_EVENTS.ONBOARDING_ERROR, {
+  analyticsService.track('onboarding:error', {
     error_message: errorMessage,
     error_stack: errorStack,
     timestamp: new Date().toISOString(),
     ...context
   });
-  
+
   console.error('Onboarding Error:', errorMessage, context);
 };
 
 /**
  * Set user properties for segmentation
+ * @deprecated Use analytics.setUserProperties() directly from '@/lib/analytics'
  */
 export const setUserProperties = (properties: Record<string, any>) => {
-  if (!mixpanelInstance) {
-    console.warn('Mixpanel not initialized. Call initMixpanel first.');
-    return;
-  }
-
-  // Set as people properties for user profiles
-  mixpanelInstance.getPeople().set(properties);
-  
-  // Also register as super properties for events
-  mixpanelInstance.registerSuperProperties(properties);
-
-  if (__DEV__) {
-    addDebugEvent('set_user_properties', properties);
-  }
+  analyticsService.setUserProperties(properties);
 };
 
 /**
  * Track funnel step completion with timing
+ * @deprecated Use analytics.track() with ANALYTICS_EVENTS.ONBOARDING_STEP_COMPLETED
  */
 export const trackFunnelStep = (stepName: string, stepNumber: number, totalSteps: number, additionalProperties?: Record<string, any>) => {
-  trackEvent(ANALYTICS_EVENTS.ONBOARDING_SCREEN_COMPLETED, {
+  analyticsService.track('onboarding:step_completed', {
     funnel_step: stepName,
     step_number: stepNumber,
     total_steps: totalSteps,
@@ -275,6 +122,7 @@ export const trackFunnelStep = (stepName: string, stepNumber: number, totalSteps
   });
 };
 
+// Default export for backward compatibility
 export default {
   initMixpanel,
   trackEvent,
@@ -285,7 +133,4 @@ export default {
   trackOnboardingError,
   setUserProperties,
   trackFunnelStep,
-  ANALYTICS_EVENTS,
-  ONBOARDING_SCREENS,
-  USER_PROPERTIES
 }; 

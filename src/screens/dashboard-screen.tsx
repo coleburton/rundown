@@ -8,7 +8,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { formatActivityDate, getWeekDateRange, isValidDate } from '@/lib/utils';
 import { calculateGoalProgress, calculateGoalProgressWithHistory, getGoalDisplayText, getMotivationalMessage } from '@/lib/goalUtils';
-import Svg, { Circle, Rect, Defs, LinearGradient, Stop } from 'react-native-svg';
+import Svg, { Circle, Rect, Defs, LinearGradient as SvgLinearGradient, Stop } from 'react-native-svg';
+import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle, 
@@ -24,7 +25,8 @@ import { SubscriptionCancelledModal } from '@/components/SubscriptionCancelledMo
 import { revenueCat } from '@/services/RevenueCat';
 import { isDebugMode } from '@/lib/debug-mode';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import analytics, { ANALYTICS_EVENTS } from '@/lib/analytics';
+import { analytics, calculateDaysSinceSignup, getSessionId } from '@/lib/analytics/index';
+import { ANALYTICS_EVENTS } from '@/lib/analytics/events';
 
 // Create animated Circle component for react-native-svg
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
@@ -323,7 +325,10 @@ export function DashboardScreen({ navigation }: Props) {
   
   // Trigger for progress ring animation when screen comes into focus
   const [animationTrigger, setAnimationTrigger] = useState(0);
-  
+
+  // Track scroll position to show/hide gradient overlay
+  const [isScrolled, setIsScrolled] = useState(false);
+
   // Clear session flag on component mount (new session)
   useEffect(() => {
     const clearSessionFlag = async () => {
@@ -332,14 +337,47 @@ export function DashboardScreen({ navigation }: Props) {
     clearSessionFlag();
   }, []);
 
+  // Track first-time dashboard view (activation milestone)
+  useEffect(() => {
+    const trackFirstView = async () => {
+      const hasViewed = await AsyncStorage.getItem('has_viewed_dashboard');
+      if (!hasViewed && user?.created_at && analytics && typeof analytics.track === 'function') {
+        analytics.track(ANALYTICS_EVENTS.ACTIVATION_FIRST_DASHBOARD_VIEWED, {
+          days_since_signup: calculateDaysSinceSignup(user.created_at),
+        });
+        await AsyncStorage.setItem('has_viewed_dashboard', 'true');
+      }
+    };
+    trackFirstView();
+  }, [user]);
+
   // Reset animation when screen comes into focus (user navigates back to dashboard)
   useFocusEffect(
     useCallback(() => {
       // Increment trigger to force re-animation when returning to screen
       setAnimationTrigger(prev => prev + 1);
-      
+
       // Check subscription status on focus
       checkSubscriptionStatus();
+
+      // Track dashboard view
+      const trackView = async () => {
+        if (analytics && typeof analytics.track === 'function') {
+          const sessionId = await getSessionId();
+          analytics.track(ANALYTICS_EVENTS.DASHBOARD_VIEWED, {
+            session_id: sessionId,
+            screen_name: 'Dashboard',
+          });
+
+          // Update user property
+          if (typeof analytics.setUserProperties === 'function') {
+            analytics.setUserProperties({
+              last_dashboard_view_date: new Date().toISOString(),
+            });
+          }
+        }
+      };
+      trackView();
     }, [])
   );
 
@@ -375,6 +413,14 @@ export function DashboardScreen({ navigation }: Props) {
   // Handle pull-to-refresh
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
+
+    // Track refresh event (safe check for analytics)
+    if (analytics && typeof analytics.track === 'function') {
+      analytics.track(ANALYTICS_EVENTS.DASHBOARD_REFRESHED, {
+        week_offset: selectedWeekOffset,
+      });
+    }
+
     try {
       // Refresh activities from Strava
       await refresh();
@@ -385,7 +431,7 @@ export function DashboardScreen({ navigation }: Props) {
     } finally {
       setRefreshing(false);
     }
-  }, [refresh]);
+  }, [refresh, selectedWeekOffset]);
 
   // Helper function to get week date range for any week offset
   const getWeekDateRangeForOffset = (weekOffset: number) => {
@@ -859,6 +905,37 @@ export function DashboardScreen({ navigation }: Props) {
     return messages[index];
   };
 
+  // Handle week selection change with analytics
+  const handleWeekChange = (newWeekOffset: number) => {
+    const direction = newWeekOffset > selectedWeekOffset ? 'past' : 'future';
+
+    // Track week change (safe check for analytics)
+    if (analytics && typeof analytics.track === 'function') {
+      analytics.track(ANALYTICS_EVENTS.DASHBOARD_WEEK_CHANGED, {
+        week_offset: newWeekOffset,
+        previous_week_offset: selectedWeekOffset,
+        direction,
+      });
+    }
+
+    setSelectedWeekOffset(newWeekOffset);
+  };
+
+  // Handle activity click with analytics
+  const handleActivityClick = (activity: any) => {
+    // Track activity click (safe check for analytics)
+    if (analytics && typeof analytics.track === 'function') {
+      analytics.track(ANALYTICS_EVENTS.DASHBOARD_ACTIVITY_CLICKED, {
+        activity_id: activity.id,
+        activity_type: activity.type,
+        counts_toward_goal: activity.countsTowardGoal,
+        week_offset: selectedWeekOffset,
+      });
+    }
+
+    navigation.navigate('ActivityDetail', { activityId: activity.id });
+  };
+
   const handleSignOut = async () => {
     try {
       await signOut();
@@ -1035,12 +1112,35 @@ export function DashboardScreen({ navigation }: Props) {
 
   return (
     <View style={{ flex: 1, backgroundColor: '#ffffff' }}>
-      <DebugOnboardingPanel 
+      <DebugOnboardingPanel
         debugCancelledState={debugCancelledState}
         onToggleCancelledState={setDebugCancelledState}
       />
+      {/* Fixed gradient overlay at top to prevent content overlap with status bar - only show when scrolled */}
+      {isScrolled && (
+        <View style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: insets.top + 80,
+          zIndex: 10,
+          pointerEvents: 'none',
+        }}>
+          <LinearGradient
+            colors={['#ffffff', 'rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0)']}
+            locations={[0, 0.7, 1]}
+            style={{ flex: 1 }}
+          />
+        </View>
+      )}
       <ScrollView
         style={{ flex: 1 }}
+        onScroll={(event) => {
+          const scrollY = event.nativeEvent.contentOffset.y;
+          setIsScrolled(scrollY > 10);
+        }}
+        scrollEventThrottle={16}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -1082,7 +1182,7 @@ export function DashboardScreen({ navigation }: Props) {
           
           <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
             <TouchableOpacity
-              onPress={() => setSelectedWeekOffset(Math.min(selectedWeekOffset + 1, 11))}
+              onPress={() => handleWeekChange(Math.min(selectedWeekOffset + 1, 11))}
               disabled={selectedWeekOffset >= 11}
               style={{ 
                 backgroundColor: selectedWeekOffset >= 11 ? '#f3f4f6' : '#e5e7eb',
@@ -1107,7 +1207,7 @@ export function DashboardScreen({ navigation }: Props) {
             </Text>
             
             <TouchableOpacity
-              onPress={() => setSelectedWeekOffset(Math.max(selectedWeekOffset - 1, 0))}
+              onPress={() => handleWeekChange(Math.max(selectedWeekOffset - 1, 0))}
               disabled={selectedWeekOffset <= 0}
               style={{ 
                 backgroundColor: selectedWeekOffset <= 0 ? '#f3f4f6' : '#e5e7eb',
@@ -1301,10 +1401,10 @@ export function DashboardScreen({ navigation }: Props) {
                 </View>
               </View>
             ) : (
-              <WeeklyGoalHistory 
+              <WeeklyGoalHistory
                 weeklyData={weeklyData}
-                selectedWeekOffset={selectedWeekOffset} 
-                onWeekSelect={setSelectedWeekOffset}
+                selectedWeekOffset={selectedWeekOffset}
+                onWeekSelect={handleWeekChange}
               />
             )}
           </View>
@@ -1468,7 +1568,7 @@ export function DashboardScreen({ navigation }: Props) {
                       borderWidth: 1,
                       borderColor: activity.countsTowardGoal ? '#bbf7d0' : '#e5e7eb',
                     }}
-                    onPress={() => navigation.navigate('ActivityDetail', { activityId: activity.id })}
+                    onPress={() => handleActivityClick(activity)}
                     activeOpacity={0.7}
                   >
                     <View style={{
