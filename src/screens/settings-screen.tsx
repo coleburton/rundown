@@ -719,7 +719,7 @@ export function SettingsScreen({ navigation }: Props) {
                       {contact.name}
                     </ThemedText>
                     <ThemedText style={{ fontSize: 14, color: '#6b7280' }}>
-                      {contact.relationship || 'Contact'} • {contact.phone_number}
+                      {contact.relationship || 'Contact'} • {contact.email}
                     </ThemedText>
                   </View>
                   <TouchableOpacity
