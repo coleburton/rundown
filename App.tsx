@@ -16,27 +16,29 @@ import MixpanelDebug from './src/lib/MixpanelDebug';
 import AnalyticsProvider from './src/lib/AnalyticsProvider';
 import { MockDataProvider } from './src/lib/mock-data-context';
 import { ActivityDetailScreen } from './src/screens/activity-detail-screen';
+import { ActivityHistoryScreen } from './src/screens/activity-history-screen';
 import { ContactSetupScreen } from './src/screens/contact-setup-screen';
 import { DashboardScreen } from './src/screens/dashboard-screen';
 import { FitnessAppConnectScreen } from './src/screens/fitness-app-connect-screen';
 import { GoalSetupScreen } from './src/screens/goal-setup-screen';
 import { LoginScreen } from './src/screens/login-screen';
+import { MessageHistoryScreen } from './src/screens/message-history-screen';
 import { MessageStyleScreen } from './src/screens/message-style-screen';
 import { MotivationQuizScreen } from './src/screens/motivation-quiz-screen';
 import { OnboardingScreen } from './src/screens/onboarding-screen';
 import { PaywallScreen } from './src/screens/paywall-screen';
 import { PaywallFreeTrialScreen } from './src/screens/paywall-free-trial-screen';
+import { PostPaywallOnboardingScreen } from './src/screens/post-paywall-onboarding-screen';
 import { SettingsScreen } from './src/screens/settings-screen';
 import { SocialProofScreen } from './src/screens/social-proof-screen';
+import { SplashScreen } from './src/screens/splash-screen';
 import { UserInfoScreen } from './src/screens/user-info-screen';
 import { ValuePreviewScreen } from './src/screens/value-preview-screen';
 import { WhyAccountabilityScreen } from './src/screens/why-accountability-screen';
-import { PostPaywallOnboardingScreen } from './src/screens/post-paywall-onboarding-screen';
-import { MessageHistoryScreen } from './src/screens/message-history-screen';
-import { ActivityHistoryScreen } from './src/screens/activity-history-screen';
 import { isDebugMode } from './src/lib/debug-mode';
 
 export type RootStackParamList = {
+  Splash: undefined;
   Onboarding: undefined;
   UserInfo: undefined;
   Login: undefined;
@@ -70,9 +72,8 @@ function AppContent() {
     );
   }
 
-  // Start with onboarding if no user, otherwise go to dashboard
-  // In debug mode, you can override this by setting a query param or env var
-  let initialRoute: keyof RootStackParamList = user ? 'Dashboard' : 'Onboarding';
+  // Always start with splash screen, then route based on auth state
+  let initialRoute: keyof RootStackParamList = 'Splash';
   
   // Debug override: Force onboarding flow even with existing user
   if (isDebugMode() && user) {
@@ -91,6 +92,8 @@ function AppContent() {
         initialRouteName={initialRoute}
         screenOptions={{ headerShown: false }}
       >
+        <Stack.Screen name="Splash" component={SplashScreen} />
+
         {/* Onboarding screen */}
         <Stack.Screen name="Onboarding" component={OnboardingScreen} />
         

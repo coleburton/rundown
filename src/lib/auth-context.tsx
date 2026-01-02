@@ -8,6 +8,8 @@ interface AuthContextType {
   loading: boolean;
   signInWithStrava: () => Promise<void>;
   signOut: () => Promise<void>;
+  refreshUser?: () => Promise<void>;
+  updateUser?: (updates: Partial<User>) => Promise<User>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);

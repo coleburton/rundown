@@ -2,20 +2,20 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useEffect, useState } from 'react';
 import {
-	Alert,
-	Animated,
-	ScrollView,
-	StyleSheet,
-	Text,
-	TouchableOpacity,
-	View
+  Alert,
+  Animated,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { RootStackParamList } from '../../App';
-import { OnboardingStepper } from '../components/OnboardingStepper';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { VectorIcon } from '../components/ui/IconComponent';
+import { IconComponent, VectorIcon } from '../components/ui/IconComponent';
 import { ONBOARDING_BUTTON_STYLE, ONBOARDING_CONTAINER_STYLE } from '../constants/OnboardingStyles';
 import { TYPOGRAPHY_STYLES } from '../constants/Typography';
 import { useColorScheme } from '../hooks/useColorScheme';
@@ -51,6 +51,48 @@ const PRIMARY_GOALS = [
   { id: 'habit_building', label: 'Form Good Habits', description: 'Sustainable progress', icon: '📈', color: '#3b82f6' },
 ];
 
+type StepHeroContent = {
+  title: string;
+  subtitle: string;
+};
+
+const STEP_HERO_CONTENT: StepHeroContent[] = [
+  {
+    title: 'Personalize Rundown',
+    subtitle: 'Share a few basics so accountability feels human.',
+  },
+  {
+    title: 'Use your name',
+    subtitle: 'First names keep accountability messages warm and real.',
+  },
+  {
+    title: 'Keep contacts clear',
+    subtitle: 'Sharing your last name helps keep buddy lists clear.',
+  },
+  {
+    title: 'Remember milestones',
+    subtitle: 'We remember milestones like birthdays for thoughtful nudges.',
+  },
+  {
+    title: 'Match your vibe',
+    subtitle: 'Match accountability tone to where you are today.',
+  },
+  {
+    title: 'Define what matters',
+    subtitle: 'Tell us what matters so your buddy emails stay focused.',
+  },
+];
+
+const hexToRgba = (hex: string, alpha: number) => {
+  const sanitized = hex.replace('#', '');
+  const bigint = parseInt(sanitized, 16);
+  const r = (bigint >> 16) & 255;
+  const g = (bigint >> 8) & 255;
+  const b = bigint & 255;
+
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
 export function UserInfoScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const insets = useSafeAreaInsets();
@@ -72,6 +114,7 @@ export function UserInfoScreen() {
 
   const totalSteps = 5;
   const progress = currentStep / totalSteps;
+  const heroContent = STEP_HERO_CONTENT[currentStep - 1] ?? STEP_HERO_CONTENT[0];
 
   useEffect(() => {
     Animated.timing(progressAnim, {
@@ -334,39 +377,63 @@ export function UserInfoScreen() {
               This helps us customize your experience
             </Text>
             <View style={styles.optionsContainer}>
-              {FITNESS_LEVELS.map((level) => (
-                <TouchableOpacity
-                  key={level.id}
-                  style={[
-                    styles.optionCard,
-                    userInfo.fitnessLevel === level.id && styles.selectedCard,
-                    isDarkMode && styles.darkCard,
-                    userInfo.fitnessLevel === level.id && isDarkMode && styles.darkSelectedCard,
-                  ]}
-                  onPress={() => setUserInfo({ ...userInfo, fitnessLevel: level.id as any })}
-                >
-                  <VectorIcon 
-                    emoji={level.icon as any} 
-                    size={22} 
-                    color={userInfo.fitnessLevel === level.id ? '#ea580c' : level.color} 
-                    style={{ marginBottom: 2 }}
-                  />
-                  <Text style={[
-                    styles.optionLabel,
-                    isDarkMode && styles.darkText,
-                    userInfo.fitnessLevel === level.id && styles.selectedText
-                  ]}>
-                    {level.label}
-                  </Text>
-                  <Text style={[
-                    styles.optionDescription,
-                    isDarkMode && styles.darkSubtitle,
-                    userInfo.fitnessLevel === level.id && styles.selectedDescription
-                  ]}>
-                    {level.description}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+              {FITNESS_LEVELS.map((level) => {
+                const selected = userInfo.fitnessLevel === level.id;
+
+                return (
+                  <TouchableOpacity
+                    key={level.id}
+                    style={[
+                      styles.optionCard,
+                      selected && styles.selectedCard,
+                      isDarkMode && styles.darkCard,
+                      selected && isDarkMode && styles.darkSelectedCard,
+                    ]}
+                    onPress={() => setUserInfo({ ...userInfo, fitnessLevel: level.id as any })}
+                    accessibilityRole="button"
+                  >
+                    <View style={styles.optionContent}>
+                      <View
+                        style={[
+                          styles.optionIconWrapper,
+                          {
+                            borderColor: selected ? level.color : 'transparent',
+                            backgroundColor: hexToRgba(level.color, selected ? 0.25 : 0.12),
+                          },
+                          isDarkMode && { backgroundColor: hexToRgba(level.color, selected ? 0.35 : 0.2) },
+                        ]}
+                      >
+                        <VectorIcon
+                          emoji={level.icon as any}
+                          size={20}
+                          color={selected ? '#ffffff' : level.color}
+                        />
+                      </View>
+                      <View style={styles.optionTextGroup}>
+                        <Text style={[
+                          styles.optionLabel,
+                          isDarkMode && styles.darkText,
+                          selected && styles.selectedText
+                        ]}>
+                          {level.label}
+                        </Text>
+                        <Text style={[
+                          styles.optionDescription,
+                          isDarkMode && styles.darkSubtitle,
+                          selected && styles.selectedDescription
+                        ]}>
+                          {level.description}
+                        </Text>
+                      </View>
+                      {selected && (
+                        <View style={[styles.optionCheck, { backgroundColor: level.color }]}>
+                          <IconComponent library="Feather" name="check" size={14} color="#ffffff" />
+                        </View>
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
             {errors.fitnessLevel && (
               <Text style={styles.errorText}>{errors.fitnessLevel}</Text>
@@ -384,39 +451,63 @@ export function UserInfoScreen() {
               We'll help you build sustainable habits through positive reinforcement
             </Text>
             <View style={styles.optionsContainer}>
-              {PRIMARY_GOALS.map((goal) => (
-                <TouchableOpacity
-                  key={goal.id}
-                  style={[
-                    styles.optionCard,
-                    userInfo.primaryGoal === goal.id && styles.selectedCard,
-                    isDarkMode && styles.darkCard,
-                    userInfo.primaryGoal === goal.id && isDarkMode && styles.darkSelectedCard,
-                  ]}
-                  onPress={() => setUserInfo({ ...userInfo, primaryGoal: goal.id as any })}
-                >
-                  <VectorIcon 
-                    emoji={goal.icon as any} 
-                    size={22} 
-                    color={userInfo.primaryGoal === goal.id ? '#ea580c' : goal.color} 
-                    style={{ marginBottom: 2 }}
-                  />
-                  <Text style={[
-                    styles.optionLabel,
-                    isDarkMode && styles.darkText,
-                    userInfo.primaryGoal === goal.id && styles.selectedText
-                  ]}>
-                    {goal.label}
-                  </Text>
-                  <Text style={[
-                    styles.optionDescription,
-                    isDarkMode && styles.darkSubtitle,
-                    userInfo.primaryGoal === goal.id && styles.selectedDescription
-                  ]}>
-                    {goal.description}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+              {PRIMARY_GOALS.map((goal) => {
+                const selected = userInfo.primaryGoal === goal.id;
+
+                return (
+                  <TouchableOpacity
+                    key={goal.id}
+                    style={[
+                      styles.optionCard,
+                      selected && styles.selectedCard,
+                      isDarkMode && styles.darkCard,
+                      selected && isDarkMode && styles.darkSelectedCard,
+                    ]}
+                    onPress={() => setUserInfo({ ...userInfo, primaryGoal: goal.id as any })}
+                    accessibilityRole="button"
+                  >
+                    <View style={styles.optionContent}>
+                      <View
+                        style={[
+                          styles.optionIconWrapper,
+                          {
+                            borderColor: selected ? goal.color : 'transparent',
+                            backgroundColor: hexToRgba(goal.color, selected ? 0.25 : 0.12),
+                          },
+                          isDarkMode && { backgroundColor: hexToRgba(goal.color, selected ? 0.35 : 0.2) },
+                        ]}
+                      >
+                        <VectorIcon
+                          emoji={goal.icon as any}
+                          size={20}
+                          color={selected ? '#ffffff' : goal.color}
+                        />
+                      </View>
+                      <View style={styles.optionTextGroup}>
+                        <Text style={[
+                          styles.optionLabel,
+                          isDarkMode && styles.darkText,
+                          selected && styles.selectedText
+                        ]}>
+                          {goal.label}
+                        </Text>
+                        <Text style={[
+                          styles.optionDescription,
+                          isDarkMode && styles.darkSubtitle,
+                          selected && styles.selectedDescription
+                        ]}>
+                          {goal.description}
+                        </Text>
+                      </View>
+                      {selected && (
+                        <View style={[styles.optionCheck, { backgroundColor: goal.color }]}>
+                          <IconComponent library="Feather" name="check" size={14} color="#ffffff" />
+                        </View>
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
             {errors.primaryGoal && (
               <Text style={styles.errorText}>{errors.primaryGoal}</Text>
@@ -430,62 +521,97 @@ export function UserInfoScreen() {
   };
 
   return (
-    <View style={[
-      styles.container,
-      isDarkMode ? styles.darkContainer : styles.lightContainer,
-      { paddingTop: insets.top }
-    ]}>
+    <View
+      style={[
+        styles.container,
+        isDarkMode ? styles.darkContainer : styles.lightContainer,
+        { paddingTop: insets.top }
+      ]}
+    >
       <ScreenTracker screenName="UserInfo" />
-      <OnboardingStepper currentStep={1} />
-      
-      {/* Header with progress */}
-      <View style={styles.header}>
-        <TouchableOpacity 
-          onPress={handleBack} 
-          style={[styles.backButton, currentStep === 1 && styles.backButtonDisabled]}
-          disabled={currentStep === 1}
+      <View style={styles.heroWrapper}>
+        <LinearGradient
+          colors={isDarkMode ? ['#020617', '#0f172a'] : ['#0f172a', '#1e293b']}
+          style={[styles.heroGradient, { paddingTop: 16 }]}
         >
-          <Text style={[
-            styles.backButtonText, 
-            isDarkMode && styles.darkText,
-            currentStep === 1 && styles.backButtonTextDisabled
-          ]}>
-            ←
-          </Text>
-        </TouchableOpacity>
-        
-        <View style={styles.progressContainer}>
-          <View style={[styles.progressBar, isDarkMode && styles.darkProgressBar]}>
-            <Animated.View 
-              style={[
-                styles.progressFill,
-                { width: progressAnim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: ['0%', '100%']
-                }) }
-              ]} 
-            />
+          <View style={styles.heroHeader}>
+            <TouchableOpacity
+              onPress={handleBack}
+              style={[styles.iconButton, currentStep === 1 && styles.iconButtonDisabled]}
+              accessibilityRole="button"
+              accessibilityLabel="Go back"
+              disabled={currentStep === 1}
+            >
+              <IconComponent
+                library="Feather"
+                name="arrow-left"
+                size={18}
+                color={currentStep === 1 ? '#94a3b8' : '#f8fafc'}
+              />
+            </TouchableOpacity>
+
+            <View style={styles.heroCopy}>
+              <Text style={styles.heroLabel}>Step {currentStep} of {totalSteps}</Text>
+              <Text style={styles.heroTitle} numberOfLines={1}>{heroContent.title}</Text>
+              <Text style={styles.heroSubtitle} numberOfLines={2}>{heroContent.subtitle}</Text>
+            </View>
+
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Dashboard')}
+              style={styles.skipButton}
+              accessibilityRole="button"
+              accessibilityLabel="Skip"
+            >
+              <Text style={styles.skipButtonText}>Skip</Text>
+            </TouchableOpacity>
           </View>
-          <Text style={[styles.progressText, isDarkMode && styles.darkSubtitle]}>
-            Step {currentStep} of {totalSteps}
-          </Text>
-        </View>
-        
-        <View style={styles.headerSpacer} />
+
+          <View style={styles.heroProgressContainer}>
+            <View style={styles.heroProgressTrack}>
+              <Animated.View
+                style={[
+                  styles.heroProgressFill,
+                  {
+                    width: progressAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: ['0%', '100%']
+                    })
+                  }
+                ]}
+              />
+            </View>
+            <Text style={styles.heroProgressText}>
+              {Math.round(progress * 100)}% complete
+            </Text>
+          </View>
+        </LinearGradient>
       </View>
 
-
-      {/* Content */}
-      <ScrollView 
+      <ScrollView
         style={styles.content}
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        {renderStep()}
+        <View
+          style={[
+            styles.cardSurface,
+            styles.cardSurfaceFloating,
+            isDarkMode && styles.cardSurfaceDark
+          ]}
+        >
+          {renderStep()}
+        </View>
       </ScrollView>
 
-      {/* Bottom CTA */}
-      <View style={[ONBOARDING_CONTAINER_STYLE, { paddingBottom: Math.max(16, insets.bottom) }]}>
+      <View
+        style={[
+          ONBOARDING_CONTAINER_STYLE,
+          styles.footer,
+          isDarkMode && styles.darkFooter,
+          { paddingBottom: Math.max(16, insets.bottom) }
+        ]}
+      >
         <Button
           onPress={handleNext}
           variant="default"
@@ -504,131 +630,205 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   lightContainer: {
-    backgroundColor: '#ffffff',
+    backgroundColor: '#f8fafc',
   },
   darkContainer: {
-    backgroundColor: '#111827',
+    backgroundColor: '#020617',
   },
-  header: {
+  heroWrapper: {
+    marginHorizontal: 16,
+    marginTop: 8,
+    borderRadius: 28,
+    overflow: 'hidden',
+    shadowColor: '#0f172a',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+    elevation: 6,
+  },
+  heroGradient: {
+    paddingHorizontal: 24,
+    paddingBottom: 16,
+    borderRadius: 28,
+  },
+  heroHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 16,
   },
-  backButton: {
+  iconButton: {
     width: 40,
     height: 40,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(248, 250, 252, 0.35)',
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: 'rgba(15, 23, 42, 0.4)',
   },
-  backButtonDisabled: {
-    opacity: 0.3,
+  iconButtonDisabled: {
+    opacity: 0.35,
   },
-  backButtonText: {
-    fontSize: 24,
-    color: '#374151',
-  },
-  backButtonTextDisabled: {
-    color: '#9ca3af',
-  },
-  headerSpacer: {
-    width: 40,
-  },
-  progressContainer: {
+  heroCopy: {
     flex: 1,
-    alignItems: 'center',
-    paddingHorizontal: 16,
+    marginHorizontal: 12,
   },
-  progressBar: {
+  heroLabel: {
+    ...TYPOGRAPHY_STYLES.caption1,
+    color: 'rgba(248, 250, 252, 0.85)',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  heroTitle: {
+    ...TYPOGRAPHY_STYLES.h5,
+    color: '#f8fafc',
+    marginTop: 2,
+    marginBottom: 2,
+  },
+  heroSubtitle: {
+    ...TYPOGRAPHY_STYLES.caption1,
+    color: 'rgba(248, 250, 252, 0.75)',
+  },
+  skipButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  skipButtonText: {
+    ...TYPOGRAPHY_STYLES.body2,
+    color: '#bae6fd',
+  },
+  heroProgressContainer: {
+    marginTop: 16,
+  },
+  heroProgressTrack: {
     width: '100%',
-    height: 4,
-    backgroundColor: '#e5e7eb',
-    borderRadius: 2,
-    marginBottom: 8,
+    height: 5,
+    borderRadius: 999,
+    backgroundColor: 'rgba(248, 250, 252, 0.25)',
   },
-  darkProgressBar: {
-    backgroundColor: '#374151',
-  },
-  progressFill: {
+  heroProgressFill: {
     height: '100%',
+    borderRadius: 999,
     backgroundColor: '#f97316',
-    borderRadius: 2,
   },
-  progressText: {
+  heroProgressText: {
     ...TYPOGRAPHY_STYLES.caption1,
-    color: '#6b7280',
-  },
-  socialProof: {
-    alignItems: 'center',
-    paddingVertical: 8,
-  },
-  socialProofText: {
-    ...TYPOGRAPHY_STYLES.caption1,
-    color: '#6b7280',
+    color: 'rgba(226, 232, 240, 0.9)',
+    marginTop: 8,
   },
   content: {
     flex: 1,
+  },
+  scrollContent: {
     paddingHorizontal: 24,
+    paddingTop: 0,
+    paddingBottom: 24,
+  },
+  cardSurface: {
+    borderRadius: 28,
+    paddingVertical: 20,
+    paddingHorizontal: 24,
+    backgroundColor: '#ffffff',
+    shadowColor: '#0f172a',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    elevation: 6,
+  },
+  cardSurfaceFloating: {
+    marginTop: -48,
+    zIndex: 10,
+  },
+  cardSurfaceDark: {
+    backgroundColor: '#111827',
+    borderWidth: 1,
+    borderColor: '#1f2937',
+    shadowColor: 'transparent',
+  },
+  footer: {
+    backgroundColor: 'transparent',
+    borderTopWidth: 0,
+    paddingHorizontal: 24,
+    paddingTop: 12,
+  },
+  darkFooter: {
+    backgroundColor: '#020617',
   },
   stepContainer: {
-    paddingVertical: 12,
-    flex: 1,
-    justifyContent: 'center',
+    width: '100%',
   },
   stepTitle: {
-    ...TYPOGRAPHY_STYLES.h3,
-    color: '#111827',
-    textAlign: 'center',
-    marginBottom: 8,
+    ...TYPOGRAPHY_STYLES.h4,
+    color: '#0f172a',
+    marginBottom: 4,
   },
   stepSubtitle: {
-    ...TYPOGRAPHY_STYLES.body1,
-    color: '#6b7280',
-    textAlign: 'center',
+    ...TYPOGRAPHY_STYLES.body2,
+    color: '#475569',
     marginBottom: 24,
   },
   input: {
-    marginBottom: 8,
+    marginBottom: 16,
     ...TYPOGRAPHY_STYLES.body1,
-    textAlign: 'center',
+    textAlign: 'left',
   },
   optionsContainer: {
-    gap: 4,
+    marginTop: 8,
     marginBottom: 8,
   },
   optionCard: {
-    backgroundColor: '#f9fafb',
-    borderWidth: 2,
-    borderColor: '#e5e7eb',
-    borderRadius: 12,
-    padding: 10,
-    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 18,
+    paddingVertical: 14,
+    paddingHorizontal: 12,
+    marginBottom: 12,
   },
   darkCard: {
-    backgroundColor: '#1f2937',
-    borderColor: '#374151',
+    backgroundColor: 'rgba(15, 23, 42, 0.6)',
+    borderColor: '#1f2937',
   },
   selectedCard: {
     borderColor: '#f97316',
     backgroundColor: '#fff7ed',
   },
   darkSelectedCard: {
-    backgroundColor: '#431407',
     borderColor: '#f97316',
+    backgroundColor: 'rgba(249, 115, 22, 0.18)',
   },
-  optionIcon: {
-    fontSize: 22,
-    marginBottom: 2,
+  optionContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  optionIconWrapper: {
+    width: 46,
+    height: 46,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'transparent',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  optionTextGroup: {
+    flex: 1,
   },
   optionLabel: {
     ...TYPOGRAPHY_STYLES.h6,
-    color: '#111827',
-    marginBottom: 2,
+    color: '#0f172a',
   },
   optionDescription: {
     ...TYPOGRAPHY_STYLES.body2,
-    color: '#6b7280',
-    textAlign: 'center',
+    color: '#475569',
+    marginTop: 2,
+  },
+  optionCheck: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#f97316',
   },
   selectedText: {
     color: '#ea580c',
@@ -639,13 +839,13 @@ const styles = StyleSheet.create({
   errorText: {
     ...TYPOGRAPHY_STYLES.caption1,
     color: '#ef4444',
-    textAlign: 'center',
+    textAlign: 'left',
     marginTop: 4,
   },
   darkText: {
     color: '#ffffff',
   },
   darkSubtitle: {
-    color: '#9ca3af',
+    color: '#94a3b8',
   },
 });

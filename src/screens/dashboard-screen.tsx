@@ -3,6 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, RefreshControl } from 'react-
 import { Button } from '@/components/ui/button';
 import { useAuthContext } from '@/lib/auth-context';
 import { useStravaActivities } from '@/hooks/useStravaActivities';
+import { useUserGoals } from '@/hooks/useUserGoals';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -311,6 +312,7 @@ interface WeeklyData {
 
 export function DashboardScreen({ navigation }: Props) {
   const { user, signOut } = useAuthContext();
+  const { activeGoal } = useUserGoals(user?.id);
   const insets = useSafeAreaInsets();
   const [selectedWeekOffset, setSelectedWeekOffset] = useState(0); // 0 = current week, 1 = last week, etc.
   const [weeklyData, setWeeklyData] = useState<WeeklyData[]>([]);
@@ -461,6 +463,21 @@ export function DashboardScreen({ navigation }: Props) {
     doesActivityCountTowardGoal,
   } = useStravaActivities();
 
+  // Helper to get current goal values (from activeGoal or fallback to user table)
+  const getCurrentGoal = useCallback(() => {
+    if (activeGoal) {
+      return {
+        goalType: activeGoal.goal_type,
+        goalValue: Number(activeGoal.target_value)
+      };
+    }
+    // Fallback to users table
+    return {
+      goalType: user?.goal_type || 'total_activities',
+      goalValue: user?.goal_value || user?.goal_per_week || 3
+    };
+  }, [activeGoal, user]);
+
   // Preload all weekly data (12 weeks) - with goal history from database
   const preloadWeeklyData = useCallback(async () => {
     if (!user?.id || loading) {
@@ -507,30 +524,26 @@ export function DashboardScreen({ navigation }: Props) {
 
       // Helper function to get goal for a specific week
       const getGoalForWeek = (weekStart: Date) => {
+        const currentGoal = getCurrentGoal();
+
         if (!goalHistory || goalHistory.length === 0) {
-          // Fallback to current user settings
-          return {
-            goalType: user.goal_type || 'total_activities',
-            goalValue: user.goal_value || user.goal_per_week || 3
-          };
+          // Fallback to current goal settings
+          return currentGoal;
         }
 
         // Find the most recent goal that was effective before or on this week
         const weekDateString = weekStart.toISOString().split('T')[0];
         const applicableGoal = goalHistory.find(goal => goal.effective_date <= weekDateString);
-        
+
         if (applicableGoal) {
           return {
             goalType: applicableGoal.goal_type,
             goalValue: applicableGoal.goal_value
           };
         }
-        
-        // Fallback to current user settings
-        return {
-          goalType: user.goal_type || 'total_activities',
-          goalValue: user.goal_value || user.goal_per_week || 3
-        };
+
+        // Fallback to current goal settings
+        return currentGoal;
       };
 
     for (let i = 0; i < 12; i++) {
@@ -678,9 +691,9 @@ export function DashboardScreen({ navigation }: Props) {
           weekStart,
           weekEnd,
           progress: 0,
-          goal: user?.goal_value || user?.goal_per_week || 3,
-          goalType: user?.goal_type || 'total_activities',
-          goalDisplay: getGoalDisplayText(user?.goal_type || 'total_activities'),
+          goal: getCurrentGoal().goalValue,
+          goalType: getCurrentGoal().goalType,
+          goalDisplay: getGoalDisplayText(getCurrentGoal().goalType),
           isOnTrack: false,
           isBehind: false,
           motivationalMessage: {
@@ -737,7 +750,7 @@ export function DashboardScreen({ navigation }: Props) {
       console.log('User goal settings changed, reloading weekly data');
       setWeeklyData([]); // Clear data to trigger reload
     }
-  }, [user?.goal_type, user?.goal_value, user?.goal_per_week]);
+  }, [activeGoal, user]);
 
   // Get current week data from preloaded data
   const currentWeekData = weeklyData.find(week => week.weekOffset === selectedWeekOffset);
@@ -785,7 +798,7 @@ export function DashboardScreen({ navigation }: Props) {
         name: activity.name || 'Activity',
         countsTowardGoal: checkActivityCountsTowardGoal({
           type: activity.type
-        }, user?.goal_type || 'total_activities')
+        }, getCurrentGoal().goalType)
       }))
     : weekActivities;
 
@@ -1020,7 +1033,7 @@ export function DashboardScreen({ navigation }: Props) {
   const calculateSimpleProgress = () => {
     if (!user || loading || stravaActivities.length === 0) return 0;
     
-    const goalType = user.goal_type || 'total_activities';
+    const goalType = getCurrentGoal().goalType;
     const now = new Date();
     const startOfWeek = new Date(now);
     startOfWeek.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1));
@@ -1088,7 +1101,7 @@ export function DashboardScreen({ navigation }: Props) {
   };
 
   const simpleProgress = calculateSimpleProgress();
-  const simpleGoal = user?.goal_value || user?.goal_per_week || 6;
+  const simpleGoal = getCurrentGoal().goalValue;
   const simpleWeeklyDistance = calculateSimpleWeeklyDistance();
   
   const simpleCurrentWeekData = {
@@ -1097,8 +1110,8 @@ export function DashboardScreen({ navigation }: Props) {
     weekEnd: new Date(),
     progress: simpleProgress,
     goal: simpleGoal,
-    goalType: user?.goal_type || 'total_activities',
-    goalDisplay: getGoalDisplayText(user?.goal_type || 'total_activities'),
+    goalType: getCurrentGoal().goalType,
+    goalDisplay: getGoalDisplayText(getCurrentGoal().goalType),
     isOnTrack: simpleProgress >= simpleGoal,
     isBehind: false,
     motivationalMessage: {

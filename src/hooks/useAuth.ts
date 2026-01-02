@@ -38,14 +38,16 @@ export function useAuth() {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: string, session: Session | null) => {
-      console.log('useAuth - Auth state change:', { 
-        event: _event, 
-        hasSession: !!session, 
+      console.log('useAuth - Auth state change:', {
+        event: _event,
+        hasSession: !!session,
         userId: session?.user?.id,
-        userEmail: session?.user?.email 
+        userEmail: session?.user?.email
       });
       if (session?.user) {
-        fetchUser(session.user.id);
+        // Only update last_login_at on actual sign-in events
+        const isSignInEvent = _event === 'SIGNED_IN' || _event === 'INITIAL_SESSION';
+        fetchUser(session.user.id, isSignInEvent);
       } else {
         setUser(null);
         setLoading(false);
@@ -57,8 +59,19 @@ export function useAuth() {
     };
   }, []);
 
-  const fetchUser = async (userId: string) => {
-    console.log('useAuth - Fetching user profile for:', userId);
+  const fetchUser = async (userId: string, updateLoginTimestamp = false) => {
+    // Add stack trace to see where this is being called from
+    console.log('useAuth - Fetching user profile for:', userId, 'updateTimestamp:', updateLoginTimestamp);
+    console.log('useAuth - Called from:', new Error().stack?.split('\n')[2]);
+
+    // Only update last_login_at on actual sign-in events, not every fetch
+    if (updateLoginTimestamp) {
+      await supabase
+        .from('users')
+        .update({ last_login_at: new Date().toISOString() })
+        .eq('id', userId);
+    }
+
     const { data, error } = await supabase
       .from('users')
       .select('*')
