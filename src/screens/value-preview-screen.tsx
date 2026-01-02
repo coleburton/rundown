@@ -5,7 +5,6 @@ import { IconComponent } from '@/components/ui/IconComponent';
 import { useAuth } from '@/hooks/useAuth';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { OnboardingStepper } from '@/components/OnboardingStepper';
 import { ONBOARDING_BUTTON_STYLE, ONBOARDING_CONTAINER_STYLE } from '@/constants/OnboardingStyles';
 import analytics, { 
   ANALYTICS_EVENTS, 
@@ -458,8 +457,6 @@ export function ValuePreviewScreen({ navigation }: Props) {
 
   return (
     <View style={{ flex: 1, backgroundColor: '#ffffff' }}>
-      <OnboardingStepper currentStep={7} />
-      
       {/* Back Button */}
       <View style={{ paddingHorizontal: 24, paddingTop: 8, paddingBottom: 4 }}>
         <TouchableOpacity 

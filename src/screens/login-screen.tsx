@@ -18,7 +18,6 @@ import { IconComponent } from '../components/ui/IconComponent';
 import { useColorScheme } from '../hooks/useColorScheme';
 import { TYPOGRAPHY_STYLES } from '../constants/Typography';
 import { ONBOARDING_BUTTON_STYLE, ONBOARDING_CONTAINER_STYLE } from '../constants/OnboardingStyles';
-import { OnboardingStepper } from '../components/OnboardingStepper';
 import ScreenTracker from '../lib/ScreenTracker';
 import analytics, { 
   ANALYTICS_EVENTS, 
@@ -352,8 +351,6 @@ export function LoginScreen() {
       { paddingTop: insets.top }
     ]}>
       <ScreenTracker screenName="Login" />
-      <OnboardingStepper currentStep={2} />
-      
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity 

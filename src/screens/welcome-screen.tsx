@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, ViewStyle, TextStyle, Animated } from 'react-native';
+import { View, Text, StyleSheet, ViewStyle, TextStyle, Animated, TouchableOpacity } from 'react-native';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ScreenTracker from '@/lib/ScreenTracker';
 import analytics, { ANALYTICS_EVENTS } from '@/lib/analytics';
 import { ONBOARDING_BUTTON_STYLE, ONBOARDING_CONTAINER_STYLE } from '@/constants/OnboardingStyles';
+import { LinearGradient } from 'expo-linear-gradient';
 
 type RootStackParamList = {
   Welcome: undefined;
@@ -19,179 +20,265 @@ type RootStackParamList = {
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Welcome'>;
 
+const HERO_PILLS = [
+  {
+    id: 'buddy-emails',
+    label: 'Buddy emails',
+    detail: 'No more ignored texts',
+  },
+  {
+    id: 'strava-sync',
+    label: 'Live Strava sync',
+    detail: 'Real data only',
+  },
+  {
+    id: 'two-minute',
+    label: '2 min setup',
+    detail: 'Goal + contact',
+  },
+] as const;
+
+const INTRO_POINTS = [
+  {
+    id: 'connect',
+    title: 'Connect Strava once',
+    copy: 'We pull every run automatically so you never log workouts twice.',
+  },
+  {
+    id: 'choose',
+    title: 'Pick your accountability buddy',
+    copy: 'Drop an email for the person who keeps it real when you slack off.',
+  },
+  {
+    id: 'nudge',
+    title: 'We send the receipts',
+    copy: 'Miss your weekly goal and Rundown emails your buddy instantly.',
+  },
+] as const;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 24,
-    position: 'relative',
   } as ViewStyle,
-  
   lightContainer: {
-    backgroundColor: '#ffffff',
+    backgroundColor: '#f8fafc',
   } as ViewStyle,
-  
   darkContainer: {
-    backgroundColor: '#111827', // gray-900
+    backgroundColor: '#020617',
   } as ViewStyle,
-  
-  // Header with dark mode toggle
-  headerContainer: {
-    position: 'absolute',
-    top: 24,
-    right: 24,
-    zIndex: 10,
+  heroGradient: {
+    paddingHorizontal: 24,
+    paddingBottom: 36,
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
+    overflow: 'hidden',
   } as ViewStyle,
-  
-  darkModeToggle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+  heroHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  } as ViewStyle,
+  brandBadge: {
+    width: 60,
+    height: 60,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#f3f4f6', // gray-100
+    backgroundColor: 'rgba(248, 250, 252, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(248, 250, 252, 0.24)',
   } as ViewStyle,
-  
-  darkModeToggleDark: {
-    backgroundColor: '#374151', // gray-700
-  } as ViewStyle,
-  
-  // Hero section
-  heroContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-  } as ViewStyle,
-  
-  // Logo/Icon
-  logoContainer: {
-    position: 'relative',
-    marginBottom: 32,
-  } as ViewStyle,
-  
-  logoMain: {
-    width: 96, // w-24 = 96px
-    height: 96, // h-24 = 96px
-    borderRadius: 24, // rounded-3xl
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 8,
-  } as ViewStyle,
-  
-  logoGradient: {
-    backgroundColor: '#f97316', // orange-500 base, gradient will be simulated
-  } as ViewStyle,
-  
-  logoIcon: {
-    fontSize: 48, // w-12 h-12 equivalent
-    color: '#ffffff',
+  brandIcon: {
+    fontSize: 32,
+    color: '#fbbf24',
   } as TextStyle,
-  
   logoPulse: {
     position: 'absolute',
-    top: -8,
-    right: -8,
-    width: 24,
-    height: 24,
-    backgroundColor: '#84cc16', // lime-400
-    borderRadius: 12,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: 'rgba(15, 118, 110, 0.45)',
+    zIndex: -1,
   } as ViewStyle,
-  
-  // Text content
-  textContainer: {
-    marginBottom: 32,
+  themeToggle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: 'rgba(248, 250, 252, 0.3)',
     alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(15, 23, 42, 0.35)',
   } as ViewStyle,
-  
-  mainHeadline: {
-    fontSize: 36, // text-4xl
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 16,
+  heroEyebrow: {
+    fontSize: 14,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    color: 'rgba(248, 250, 252, 0.75)',
+    marginBottom: 8,
   } as TextStyle,
-  
-  mainHeadlineLight: {
-    color: '#111827', // gray-900
+  heroTitle: {
+    fontSize: 34,
+    lineHeight: 40,
+    color: '#f8fafc',
+    fontWeight: '700',
   } as TextStyle,
-  
-  mainHeadlineDark: {
-    color: '#ffffff',
-  } as TextStyle,
-  
-  subHeadline: {
-    fontSize: 20, // text-xl
-    fontWeight: '500',
-    textAlign: 'center',
-    marginBottom: 24,
-  } as TextStyle,
-  
-  subHeadlineLight: {
-    color: '#4b5563', // gray-600
-  } as TextStyle,
-  
-  subHeadlineDark: {
-    color: '#d1d5db', // gray-300
-  } as TextStyle,
-  
-  description: {
-    fontSize: 16,
-    textAlign: 'center',
+  heroSubtitle: {
+    fontSize: 17,
+    color: 'rgba(226, 232, 240, 0.9)',
+    marginTop: 12,
     lineHeight: 24,
-    maxWidth: 280,
-    marginBottom: 32,
   } as TextStyle,
-  
-  descriptionLight: {
-    color: '#6b7280', // gray-500
+  heroPills: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginTop: 20,
+  } as ViewStyle,
+  heroPill: {
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 16,
+    backgroundColor: 'rgba(248, 250, 252, 0.16)',
+    borderWidth: 1,
+    borderColor: 'rgba(248, 250, 252, 0.24)',
+  } as ViewStyle,
+  heroPillLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#f8fafc',
   } as TextStyle,
-  
-  descriptionDark: {
-    color: '#9ca3af', // gray-400
+  heroPillDetail: {
+    fontSize: 12,
+    color: 'rgba(248, 250, 252, 0.75)',
+    marginTop: 2,
   } as TextStyle,
-  
-  // Animated dots
+  contentCard: {
+    marginHorizontal: 24,
+    marginTop: -40,
+    borderRadius: 28,
+    backgroundColor: '#ffffff',
+    paddingVertical: 24,
+    paddingHorizontal: 24,
+    shadowColor: '#0f172a',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.08,
+    shadowRadius: 24,
+    elevation: 8,
+  } as ViewStyle,
+  contentCardDark: {
+    backgroundColor: '#0b1120',
+    borderWidth: 1,
+    borderColor: '#1f2937',
+    shadowColor: 'rgba(0,0,0,0.2)',
+  } as ViewStyle,
+  cardEyebrow: {
+    fontSize: 13,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    color: '#f97316',
+    marginBottom: 6,
+  } as TextStyle,
+  cardTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#0f172a',
+    marginBottom: 12,
+  } as TextStyle,
+  cardTitleDark: {
+    color: '#f8fafc',
+  } as TextStyle,
+  cardDescription: {
+    fontSize: 16,
+    color: '#475569',
+    lineHeight: 24,
+    marginBottom: 20,
+  } as TextStyle,
+  cardDescriptionDark: {
+    color: '#94a3b8',
+  } as TextStyle,
+  pointList: {
+    gap: 16,
+  } as ViewStyle,
+  pointRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  } as ViewStyle,
+  pointBullet: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+    backgroundColor: '#fff7ed',
+  } as ViewStyle,
+  pointBulletDark: {
+    backgroundColor: 'rgba(249, 115, 22, 0.15)',
+    borderColor: '#f97316',
+  } as ViewStyle,
+  pointBulletText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#f97316',
+  } as TextStyle,
+  pointTextGroup: {
+    flex: 1,
+  } as ViewStyle,
+  pointTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#0f172a',
+    marginBottom: 4,
+  } as TextStyle,
+  pointTitleDark: {
+    color: '#f8fafc',
+  } as TextStyle,
+  pointCopy: {
+    fontSize: 14,
+    color: '#475569',
+    lineHeight: 20,
+  } as TextStyle,
+  pointCopyDark: {
+    color: '#94a3b8',
+  } as TextStyle,
   animatedDots: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginBottom: 48,
+    marginTop: 28,
   } as ViewStyle,
-  
   dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginHorizontal: 4,
+    width: 9,
+    height: 9,
+    borderRadius: 4.5,
+    marginHorizontal: 5,
   } as ViewStyle,
-  
   dotOrange: {
-    backgroundColor: '#f97316', // orange-500
+    backgroundColor: '#f97316',
   } as ViewStyle,
-  
   dotLime: {
-    backgroundColor: '#84cc16', // lime-500
+    backgroundColor: '#84cc16',
   } as ViewStyle,
-  
   dotTeal: {
-    backgroundColor: '#14b8a6', // teal-500
+    backgroundColor: '#14b8a6',
   } as ViewStyle,
-  
-  
+  footer: {
+    paddingHorizontal: 24,
+  } as ViewStyle,
   footerText: {
     fontSize: 14,
     textAlign: 'center',
     lineHeight: 20,
+    marginTop: 12,
   } as TextStyle,
-  
   footerTextLight: {
-    color: '#9ca3af', // gray-400
+    color: '#94a3b8',
   } as TextStyle,
-  
   footerTextDark: {
-    color: '#6b7280', // gray-500
+    color: '#475569',
   } as TextStyle,
 });
 
@@ -261,127 +348,145 @@ export function WelcomeScreen({ navigation }: Props) {
   };
 
   return (
-    <View 
+    <View
       style={[
         styles.container,
-        isDarkMode ? styles.darkContainer : styles.lightContainer,
-        { paddingTop: insets.top }
+        isDarkMode ? styles.darkContainer : styles.lightContainer
       ]}
     >
-      {/* Track screen view */}
       <ScreenTracker screenName="Welcome" />
-      
-      {/* Dark mode toggle */}
-      <View style={styles.headerContainer}>
-        <Button
-          variant="ghost"
-          size="icon"
-          onPress={() => {
-            toggleColorScheme();
-            // Track theme toggle
-            analytics.trackEvent(ANALYTICS_EVENTS.BUTTON_CLICK, {
-              button_name: 'theme_toggle',
-              new_theme: isDarkMode ? 'light' : 'dark',
-              screen: 'Welcome'
-            });
-          }}
-          style={[
-            styles.darkModeToggle,
-            isDarkMode && styles.darkModeToggleDark
-          ]}
-        >
-          <Text style={{ fontSize: 20 }}>
-            {isDarkMode ? '☀️' : '🌙'}
-          </Text>
-        </Button>
-      </View>
 
-      {/* Hero Section */}
-      <View style={styles.heroContainer}>
-        {/* Logo/Icon */}
-        <View style={styles.logoContainer}>
-          <View style={[styles.logoMain, styles.logoGradient]}>
-            <Text style={styles.logoIcon}>⚡</Text>
+      <LinearGradient
+        colors={isDarkMode ? ['#020617', '#030c1f'] : ['#0f172a', '#1e293b']}
+        style={[styles.heroGradient, { paddingTop: Math.max(insets.top, 24) }]}
+      >
+        <View style={styles.heroHeader}>
+          <View style={{ position: 'relative', alignItems: 'center', justifyContent: 'center' }}>
+            <Animated.View
+              style={[
+                styles.logoPulse,
+                {
+                  transform: [{ scale: pulseAnim }],
+                  opacity: pulseAnim.interpolate({
+                    inputRange: [1, 1.2],
+                    outputRange: [0.5, 0],
+                  }),
+                }
+              ]}
+            />
+            <View style={styles.brandBadge}>
+              <Text style={styles.brandIcon}>⚡</Text>
+            </View>
           </View>
-          <Animated.View 
-            style={[
-              styles.logoPulse,
-              { 
-                transform: [{ scale: pulseAnim }],
-                opacity: pulseAnim.interpolate({
-                  inputRange: [1, 1.2],
-                  outputRange: [1, 0.7],
-                }),
-              }
-            ]} 
-          />
+
+          <TouchableOpacity
+            onPress={() => {
+              toggleColorScheme();
+              analytics.trackEvent(ANALYTICS_EVENTS.BUTTON_CLICK, {
+                button_name: 'theme_toggle',
+                new_theme: isDarkMode ? 'light' : 'dark',
+                screen: 'Welcome'
+              });
+            }}
+            style={styles.themeToggle}
+            accessibilityRole="button"
+            accessibilityLabel="Toggle theme"
+          >
+            <Text style={{ fontSize: 20 }}>
+              {isDarkMode ? '☀️' : '🌙'}
+            </Text>
+          </TouchableOpacity>
         </View>
 
-        {/* App Name Lockup */}
-        <Text style={[
-          {
-            fontSize: 24,
-            fontWeight: 'bold',
-            marginBottom: 8,
-            textAlign: 'center',
-          },
-          isDarkMode ? { color: '#ffffff' } : { color: '#111827' }
-        ]}>
-          Rundown
+        <Text style={styles.heroEyebrow}>Accountability for real runners</Text>
+        <Text style={styles.heroTitle}>Run from your excuses.</Text>
+        <Text style={styles.heroSubtitle}>
+          Connect Strava, select a buddy email, and let Rundown send the receipts when you fall behind.
         </Text>
 
-        {/* Main Text */}
-        <View style={styles.textContainer}>
-          <Text style={[
-            styles.mainHeadline,
-            isDarkMode ? styles.mainHeadlineDark : styles.mainHeadlineLight
-          ]}>
-            Run from your excuses.
-          </Text>
-          
-          <Text style={[
-            styles.subHeadline,
-            isDarkMode ? styles.subHeadlineDark : styles.subHeadlineLight
-          ]}>
-            Built for runners who mean it.
-          </Text>
-          
-          <Text style={[
-            styles.description,
-            isDarkMode ? styles.descriptionDark : styles.descriptionLight
-          ]}>
-            Connect your Strava, choose a buddy, and hit your goals with zero excuses. We'll keep you honest — so you can stay proud.
-          </Text>
+        <View style={styles.heroPills}>
+          {HERO_PILLS.map((pill) => (
+            <View key={pill.id} style={styles.heroPill}>
+              <Text style={styles.heroPillLabel}>{pill.label}</Text>
+              <Text style={styles.heroPillDetail}>{pill.detail}</Text>
+            </View>
+          ))}
+        </View>
+      </LinearGradient>
+
+      <View style={[styles.contentCard, isDarkMode && styles.contentCardDark]}>
+        <Text style={styles.cardEyebrow}>Beta walkthrough</Text>
+        <Text style={[styles.cardTitle, isDarkMode && styles.cardTitleDark]}>
+          How Rundown keeps you honest
+        </Text>
+        <Text style={[styles.cardDescription, isDarkMode && styles.cardDescriptionDark]}>
+          Replace silent guilt with friendly accountability. Share your goals, and we’ll send respectful nudges via email when you miss.
+        </Text>
+
+        <View style={styles.pointList}>
+          {INTRO_POINTS.map((point, index) => (
+            <View key={point.id} style={styles.pointRow}>
+              <View style={[
+                styles.pointBullet,
+                isDarkMode && styles.pointBulletDark
+              ]}>
+                <Text style={styles.pointBulletText}>{index + 1}</Text>
+              </View>
+              <View style={styles.pointTextGroup}>
+                <Text style={[
+                  styles.pointTitle,
+                  isDarkMode && styles.pointTitleDark
+                ]}>
+                  {point.title}
+                </Text>
+                <Text style={[
+                  styles.pointCopy,
+                  isDarkMode && styles.pointCopyDark
+                ]}>
+                  {point.copy}
+                </Text>
+              </View>
+            </View>
+          ))}
         </View>
 
-        {/* Animated Dots */}
         <View style={styles.animatedDots}>
-          <Animated.View 
+          <Animated.View
             style={[
-              styles.dot, 
+              styles.dot,
               styles.dotOrange,
               { opacity: dot1Anim, transform: [{ scale: dot1Anim }] }
-            ]} 
+            ]}
           />
-          <Animated.View 
+          <Animated.View
             style={[
-              styles.dot, 
+              styles.dot,
               styles.dotLime,
               { opacity: dot2Anim, transform: [{ scale: dot2Anim }] }
-            ]} 
+            ]}
           />
-          <Animated.View 
+          <Animated.View
             style={[
-              styles.dot, 
+              styles.dot,
               styles.dotTeal,
               { opacity: dot3Anim, transform: [{ scale: dot3Anim }] }
-            ]} 
+            ]}
           />
         </View>
       </View>
 
-      {/* Bottom CTA */}
-      <View style={[ONBOARDING_CONTAINER_STYLE, { paddingBottom: Math.max(16, insets.bottom) }]}>
+      <View
+        style={[
+          ONBOARDING_CONTAINER_STYLE,
+          styles.footer,
+          {
+            backgroundColor: isDarkMode ? '#020617' : '#f8fafc',
+            borderTopWidth: 1,
+            borderTopColor: isDarkMode ? '#0f172a' : '#e5e7eb',
+            paddingBottom: Math.max(16, insets.bottom)
+          }
+        ]}
+      >
         <Button
           onPress={handleStart}
           variant="default"
@@ -400,4 +505,4 @@ export function WelcomeScreen({ navigation }: Props) {
       </View>
     </View>
   );
-} 
+}

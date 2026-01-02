@@ -2,18 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
+import { useUserGoals } from '@/hooks/useUserGoals';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { OnboardingStepper } from '@/components/OnboardingStepper';
 import { DebugSkipButton } from '@/components/DebugSkipButton';
 import { EnhancedGoalPicker, Goal } from '@/components/EnhancedGoalPicker';
 import { ONBOARDING_BUTTON_STYLE, ONBOARDING_CONTAINER_STYLE } from '@/constants/OnboardingStyles';
 import { Tooltip } from '@/components/ui/tooltip';
-import analytics, { 
-  ANALYTICS_EVENTS, 
-  ONBOARDING_SCREENS, 
+import analytics, {
+  ANALYTICS_EVENTS,
+  ONBOARDING_SCREENS,
   USER_PROPERTIES,
-  trackOnboardingScreenView, 
+  trackOnboardingScreenView,
   trackOnboardingScreenCompleted,
   trackOnboardingError,
   trackFunnelStep,
@@ -35,16 +35,17 @@ type RootStackParamList = {
 type Props = NativeStackScreenProps<RootStackParamList, 'GoalSetup'>;
 
 export function GoalSetupScreen({ navigation, route }: Props) {
-  const { user, updateUser } = useAuth();
+  const { user } = useAuth();
+  const { activeGoal, createOrUpdateGoal, toSimpleGoal, loading: goalsLoading } = useUserGoals(user?.id);
   const insets = useSafeAreaInsets();
   const fromSettings = route.params?.fromSettings;
-  const [selectedGoal, setSelectedGoal] = useState<Goal>({ 
-    type: 'total_activities', 
-    value: 3 
+  const [selectedGoal, setSelectedGoal] = useState<Goal>({
+    type: 'total_activities',
+    value: 3
   });
-  const [originalGoal, setOriginalGoal] = useState<Goal>({ 
-    type: 'total_activities', 
-    value: 3 
+  const [originalGoal, setOriginalGoal] = useState<Goal>({
+    type: 'total_activities',
+    value: 3
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [screenStartTime] = useState(Date.now());
@@ -56,7 +57,7 @@ export function GoalSetupScreen({ navigation, route }: Props) {
         step_number: 4,
         total_steps: 9
       });
-      
+
       analytics.trackEvent(ANALYTICS_EVENTS.GOAL_SETUP_STARTED);
     } catch (error) {
       trackOnboardingError(error as Error, {
@@ -66,9 +67,17 @@ export function GoalSetupScreen({ navigation, route }: Props) {
     }
   }, []);
 
-  // Initialize with user's existing goal if available
+  // Initialize with user's existing goal from user_goals table
   useEffect(() => {
-    if (user) {
+    if (!goalsLoading && activeGoal) {
+      const initialGoal = {
+        type: activeGoal.goal_type,
+        value: Number(activeGoal.target_value)
+      };
+      setSelectedGoal(initialGoal);
+      setOriginalGoal(initialGoal);
+    } else if (!goalsLoading && user) {
+      // Fallback to users table if no goal in user_goals yet
       const initialGoal = {
         type: user.goal_type || 'total_activities',
         value: user.goal_value || user.goal_per_week || 3
@@ -76,7 +85,7 @@ export function GoalSetupScreen({ navigation, route }: Props) {
       setSelectedGoal(initialGoal);
       setOriginalGoal(initialGoal);
     }
-  }, [user]);
+  }, [activeGoal, goalsLoading, user]);
 
   const handleGoalChange = (goal: Goal) => {
     try {
@@ -159,14 +168,10 @@ export function GoalSetupScreen({ navigation, route }: Props) {
         time_spent_ms: timeSpent,
         from_settings: fromSettings
       });
-      
-      // Update user with the selected goal
-      await updateUser({ 
-        goal_per_week: selectedGoal.value, // Keep legacy field for backwards compatibility
-        goal_type: selectedGoal.type,
-        goal_value: selectedGoal.value
-      });
-      
+
+      // Save goal to user_goals table (this also updates users table for backward compatibility)
+      await createOrUpdateGoal(selectedGoal);
+
       if (fromSettings) {
         navigation.goBack(); // Go back to settings
       } else {
@@ -220,8 +225,6 @@ export function GoalSetupScreen({ navigation, route }: Props) {
 
   return (
     <View style={{ flex: 1, backgroundColor: '#ffffff' }}>
-      {!fromSettings && <OnboardingStepper currentStep={6} />}
-      
       {/* Back Button */}
       <View style={{ paddingHorizontal: 16, paddingTop: fromSettings ? 48 : 8, paddingBottom: 4 }}>
         <TouchableOpacity 

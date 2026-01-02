@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/input';
 import { useMockAuth } from '@/hooks/useMockAuth';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { OnboardingStepper } from '@/components/OnboardingStepper';
 import { DebugSkipButton } from '@/components/DebugSkipButton';
 import { ContactRolePicker } from '@/components/ContactRolePicker';
 import { ONBOARDING_BUTTON_STYLE, ONBOARDING_CONTAINER_STYLE } from '@/constants/OnboardingStyles';
@@ -155,8 +154,6 @@ export function ContactSetupScreen({ navigation }: Props) {
       style={{ flex: 1, backgroundColor: '#ffffff' }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <OnboardingStepper currentStep={9} />
-      
       {/* Back Button */}
       <View style={{ paddingHorizontal: 24, paddingTop: 8, paddingBottom: 4 }}>
         <TouchableOpacity 

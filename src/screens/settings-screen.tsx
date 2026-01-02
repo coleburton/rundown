@@ -4,7 +4,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '../components/ui/button';
 import { IconComponent } from '../components/ui/IconComponent';
 import { ServiceLogo } from '../components/ServiceLogo';
-import { useAuth } from '../hooks/useAuth';
+import { useAuthContext } from '../lib/auth-context';
+import { useUserGoals } from '../hooks/useUserGoals';
 import { ThemedView } from '../components/ThemedView';
 import { ThemedText } from '../components/ThemedText';
 import { resetOnboardingState } from '../lib/utils';
@@ -29,7 +30,8 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Settings'>;
 
 export function SettingsScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
-  const { user, signOut, signInWithStrava, refreshUser } = useAuth();
+  const { user, signOut, signInWithStrava, refreshUser } = useAuthContext();
+  const { activeGoal, refreshGoals } = useUserGoals(user?.id);
 
   const getGoalTypeLabel = (type: string) => {
     const labels = {
@@ -52,12 +54,12 @@ export function SettingsScreen({ navigation }: Props) {
     };
     return descriptions[type as keyof typeof descriptions] || 'Any fitness activities per week';
   };
-  
+
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [loadingContacts, setLoadingContacts] = useState(true);
   const [userGoal, setUserGoal] = useState<Goal>({
-    type: user?.goal_type || 'total_activities',
-    value: user?.goal_value || user?.goal_per_week || 3
+    type: 'total_activities',
+    value: 3
   });
   
   const [messageTiming, setMessageTiming] = useState({
@@ -85,37 +87,43 @@ export function SettingsScreen({ navigation }: Props) {
   useEffect(() => {
     if (user) {
       fetchContacts();
-      setUserGoal({
-        type: user.goal_type || 'total_activities',
-        value: user.goal_value || user.goal_per_week || 3
-      });
       setMessageTiming({
         day: user.message_day || 'Sunday',
         timePeriod: user.message_time_period || 'evening'
       });
     }
-  }, [user, fetchContacts]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]); // Only re-run when user ID changes, not the entire user object
 
-  // Listen for navigation focus to refresh user goal when returning from GoalSetup
+  // Update userGoal when activeGoal changes
+  useEffect(() => {
+    if (activeGoal) {
+      setUserGoal({
+        type: activeGoal.goal_type,
+        value: Number(activeGoal.target_value)
+      });
+    } else if (user) {
+      // Fallback to users table if no active goal found
+      setUserGoal({
+        type: user.goal_type || 'total_activities',
+        value: user.goal_value || user.goal_per_week || 3
+      });
+    }
+  }, [activeGoal, user]);
+
+  // Listen for navigation focus to refresh goals when returning from GoalSetup
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
-      if (user) {
-        // Refresh user data from database to get latest changes
-        refreshUser().then(() => {
-          setUserGoal({
-            type: user.goal_type || 'total_activities',
-            value: user.goal_value || user.goal_per_week || 3
-          });
-        });
-      }
+      // Only refresh goals, not user profile (profile is already up to date from auth context)
+      refreshGoals();
     });
 
     return unsubscribe;
-  }, [navigation, user, refreshUser]);
+  }, [navigation, refreshGoals]);
 
   const fetchContacts = useCallback(async () => {
     if (!user) return;
-    
+
     try {
       const { data, error } = await supabase
         .from('contacts')
@@ -130,7 +138,7 @@ export function SettingsScreen({ navigation }: Props) {
     } finally {
       setLoadingContacts(false);
     }
-  }, [user]);
+  }, [user?.id]); // Only recreate when user ID changes, not the entire user object
 
   const handleSignOut = () => {
     Alert.alert(
@@ -163,7 +171,7 @@ export function SettingsScreen({ navigation }: Props) {
 
   const handleDisconnectStrava = async () => {
     if (!user) return;
-    
+
     Alert.alert(
       'Disconnect Strava',
       'Are you sure you want to disconnect Strava? This will remove access to your activities.',
@@ -183,10 +191,10 @@ export function SettingsScreen({ navigation }: Props) {
           .eq('id', user.id);
 
         if (error) throw error;
-        
+
         Alert.alert('Success', 'Strava has been disconnected successfully.');
         // Refresh user data
-        await refreshUser();
+        if (refreshUser) await refreshUser();
       } catch (error) {
         console.error('Error disconnecting Strava:', error);
         Alert.alert('Error', 'Failed to disconnect Strava. Please try again.');
@@ -198,9 +206,11 @@ export function SettingsScreen({ navigation }: Props) {
   };
 
   const handleConnectStrava = async () => {
+    if (!signInWithStrava) return;
+
     try {
       await signInWithStrava();
-      await refreshUser(); // Refresh user data to get updated Strava connection
+      if (refreshUser) await refreshUser(); // Refresh user data to get updated Strava connection
       Alert.alert('Success', 'Strava connected successfully!');
     } catch (error) {
       console.error('Error connecting Strava:', error);
@@ -406,41 +416,18 @@ export function SettingsScreen({ navigation }: Props) {
                     <ThemedText style={[TYPOGRAPHY_STYLES.caption1, { color: '#6b7280' }]}>Garmin device integration</ThemedText>
                   </View>
                 </View>
-                <View style={{ 
-                  backgroundColor: '#94a3b8', 
-                  paddingHorizontal: 6, 
-                  paddingVertical: 2, 
-                  borderRadius: 8 
+                <View style={{
+                  backgroundColor: '#94a3b8',
+                  paddingHorizontal: 6,
+                  paddingVertical: 2,
+                  borderRadius: 8
                 }}>
                   <Text style={{ color: 'white', fontSize: 10, fontWeight: '500' }}>
                     Coming Soon
                   </Text>
                 </View>
               </View>
-              
-              {/* Fitbit */}
-              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-                  <View style={{ marginRight: 10, width: 32, height: 32, borderRadius: 6, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' }}>
-                    <ServiceLogo service="fitbit" size={28} />
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <ThemedText style={[TYPOGRAPHY_STYLES.body1Medium]}>Fitbit</ThemedText>
-                    <ThemedText style={[TYPOGRAPHY_STYLES.caption1, { color: '#6b7280' }]}>Activity tracking platform</ThemedText>
-                  </View>
-                </View>
-                <View style={{ 
-                  backgroundColor: '#94a3b8', 
-                  paddingHorizontal: 6, 
-                  paddingVertical: 2, 
-                  borderRadius: 8 
-                }}>
-                  <Text style={{ color: 'white', fontSize: 10, fontWeight: '500' }}>
-                    Coming Soon
-                  </Text>
-                </View>
-              </View>
-              
+
               {/* Apple Health */}
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>

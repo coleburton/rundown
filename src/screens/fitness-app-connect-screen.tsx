@@ -6,7 +6,6 @@ import { useAuth } from '@/hooks/useAuth';
 import StravaAuthService from '@/services/strava-auth';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { OnboardingStepper } from '@/components/OnboardingStepper';
 import { DebugSkipButton } from '@/components/DebugSkipButton';
 import { ONBOARDING_BUTTON_STYLE, ONBOARDING_CONTAINER_STYLE } from '@/constants/OnboardingStyles';
 import { TYPOGRAPHY_STYLES } from '@/constants/Typography';
@@ -55,14 +54,6 @@ const FITNESS_APPS: FitnessApp[] = [
     name: 'Garmin Connect',
     icon: '⌚',
     description: 'Garmin device integration',
-    popular: false,
-    available: false
-  },
-  {
-    id: 'fitbit',
-    name: 'Fitbit',
-    icon: '📱',
-    description: 'Activity tracking platform',
     popular: false,
     available: false
   },
@@ -253,8 +244,6 @@ export function FitnessAppConnectScreen({ navigation }: Props) {
 
   return (
     <View style={{ flex: 1, backgroundColor: '#ffffff' }}>
-      <OnboardingStepper currentStep={8} />
-      
       {/* Back Button */}
       <View style={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 4 }}>
         <TouchableOpacity 

@@ -6,22 +6,18 @@ interface ServiceLogoProps extends Omit<ImageProps, 'source'> {
   size?: number;
 }
 
-// For now, we'll use fallback icons until PNG files are added
-// When you add PNG files to assets/images/service-logos/, you can uncomment the SERVICE_LOGOS object below
-
-// Temporarily disable all requires to fix Metro cache issue
+// Service logos from assets
 const SERVICE_LOGOS: Record<string, any> = {
-  // strava: require('@/assets/images/service-logos/strava.png'),
-  // apple: require('@/assets/images/service-logos/apple.png'),
-  // garmin: require('@/assets/images/service-logos/garmin.png'),
+  strava: require('../../assets/images/service-logos/strava.png'),
+  apple: require('../../assets/images/service-logos/apple.png'),
+  garmin: require('../../assets/images/service-logos/garmin.png'),
 };
 
-// Fallback icons for services
+// Fallback icons for services without logo assets
 const FALLBACK_ICONS: Record<string, string> = {
   strava: '🏃‍♂️',
   garmin: '⌚',
   apple: '🍎',
-  fitbit: '📱',
   google: '🔍',
   spotify: '🎵',
   nike: '👟',

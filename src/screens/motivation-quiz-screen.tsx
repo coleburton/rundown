@@ -5,7 +5,6 @@ import { VectorIcon } from '@/components/ui/IconComponent';
 import { useMockAuth } from '@/hooks/useMockAuth';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { OnboardingStepper } from '@/components/OnboardingStepper';
 import { DebugSkipButton } from '@/components/DebugSkipButton';
 import { ONBOARDING_BUTTON_STYLE, ONBOARDING_CONTAINER_STYLE } from '@/constants/OnboardingStyles';
 import analytics, { 
@@ -243,8 +242,6 @@ export function MotivationQuizScreen({ navigation }: Props) {
 
   return (
     <View style={{ flex: 1, backgroundColor: '#ffffff' }}>
-      <OnboardingStepper currentStep={5} />
-      
       {/* Back Button */}
       <View style={{ paddingHorizontal: 24, paddingTop: 8, paddingBottom: 4 }}>
         <TouchableOpacity 

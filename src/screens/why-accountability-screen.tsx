@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { IconComponent } from '@/components/ui/IconComponent';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { OnboardingStepper } from '@/components/OnboardingStepper';
 import { ONBOARDING_BUTTON_STYLE, ONBOARDING_CONTAINER_STYLE } from '@/constants/OnboardingStyles';
 import { TYPOGRAPHY_STYLES } from '@/constants/Typography';
 import analytics, { 
@@ -158,8 +157,6 @@ export function WhyAccountabilityScreen({ navigation }: Props) {
 
   return (
     <View style={{ flex: 1, backgroundColor: '#ffffff' }}>
-      <OnboardingStepper currentStep={3} />
-      
       {/* Back Button */}
       <View style={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 4 }}>
         <TouchableOpacity 
