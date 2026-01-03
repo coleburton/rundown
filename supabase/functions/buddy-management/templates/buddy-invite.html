@@ -1,157 +1,273 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>You were invited to support {{userName}}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <style>
-      body {
-        margin: 0;
-        padding: 0;
-        background-color: #f5f6f8;
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        color: #0f172a;
-      }
-      .wrapper {
-        width: 100%;
-        padding: 32px 16px;
-        background-color: #f5f6f8;
-      }
-      .container {
-        max-width: 600px;
-        margin: 0 auto;
-        background-color: #ffffff;
-        border-radius: 24px;
-        overflow: hidden;
-        box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
-      }
-      .hero {
-        background: linear-gradient(135deg, #f97316, #fda048);
-        padding: 40px 32px;
-        color: #ffffff;
-        text-align: left;
-      }
-      .hero h1 {
-        margin: 0 0 10px;
-        font-size: 28px;
-        font-weight: 700;
-        letter-spacing: -0.02em;
-      }
-      .hero p {
-        margin: 0;
-        font-size: 16px;
-        line-height: 1.6;
-        color: rgba(255, 255, 255, 0.9);
-      }
-      .content {
-        padding: 32px;
-      }
-      .card {
-        border: 1px solid #e2e8f0;
-        border-radius: 18px;
-        padding: 20px;
-        margin-bottom: 20px;
-      }
-      .card h2 {
-        margin: 0 0 12px;
-        font-size: 18px;
-        color: #0f172a;
-      }
-      .checklist {
-        padding-left: 18px;
-        margin: 0;
-        color: #475569;
-      }
-      .cta {
-        margin: 28px 0;
-        text-align: center;
-      }
-      .cta a {
-        display: inline-block;
-        padding: 14px 28px;
-        border-radius: 999px;
-        background-color: #0f172a;
-        color: #ffffff !important;
-        text-decoration: none;
-        font-weight: 600;
-      }
-      .opt-out {
-        text-align: center;
-        margin-top: 20px;
-        font-size: 13px;
-        color: #94a3b8;
-      }
-      .opt-out a {
-        color: #f97316;
-        text-decoration: none;
-        font-weight: 600;
-      }
-      .footer {
-        padding: 0 32px 32px;
-        text-align: center;
-        font-size: 12px;
-        color: #94a3b8;
-      }
-      @media (max-width: 520px) {
-        .content,
-        .hero,
-        .footer {
-          padding: 24px;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <span style="display:none;visibility:hidden;opacity:0;max-height:0;">
-      {{userName}} asked Rundown to keep them accountable each week—here’s how you can help.
-    </span>
-    <div class="wrapper">
-      <table role="presentation" cellpadding="0" cellspacing="0" width="100%" class="container">
-        <tr>
-          <td class="hero">
-            <h1>Thanks for backing {{userName}}</h1>
-            <p>They’re using Rundown to stay consistent with their routine and listed you as their accountability contact.</p>
-          </td>
-        </tr>
-        <tr>
-          <td class="content">
-            <p style="font-size: 15px; line-height: 1.7; color: #475569; margin-top: 0;">
-              Hi {{contactName}}, {{userName}} trusts you to nudge them when their training slips. When Rundown notices they’re behind, we’ll send you a short heads-up email so you can drop them a quick note.
-            </p>
+<html lang="en" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="x-apple-disable-message-reformatting">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="format-detection" content="telephone=no,address=no,email=no,date=no">
+  <meta name="color-scheme" content="light">
+  <meta name="supported-color-schemes" content="light">
+  <title>{{userName}} wants you in their corner</title>
+  <!--[if mso]>
+  <noscript>
+    <xml>
+      <o:OfficeDocumentSettings>
+        <o:PixelsPerInch>96</o:PixelsPerInch>
+      </o:OfficeDocumentSettings>
+    </xml>
+  </noscript>
+  <![endif]-->
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap');
 
-            <div class="card">
-              <h2>How it works</h2>
-              <ul class="checklist">
-                <li>We only email you when {{userName}} misses a weekly consistency goal.</li>
-                <li>You’ll see a quick snapshot of their goal vs. progress.</li>
-                <li>You can respond however you want—text, call, or send a meme.</li>
-              </ul>
-            </div>
+    :root {
+      color-scheme: light;
+      supported-color-schemes: light;
+    }
 
-            <div class="card" style="background-color:#f8fafc;">
-              <h2 style="margin-bottom:6px;">Need a break?</h2>
-              <p style="margin:0; color:#475569; font-size:14px;">
-                If being a buddy ever stops working for you, just click “opt out” and you won’t receive future emails.
+    * { margin: 0; padding: 0; }
+
+    body {
+      margin: 0 !important;
+      padding: 0 !important;
+      width: 100% !important;
+      -webkit-text-size-adjust: 100%;
+      -ms-text-size-adjust: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    table {
+      border-collapse: collapse;
+      border-spacing: 0;
+      mso-table-lspace: 0pt;
+      mso-table-rspace: 0pt;
+    }
+
+    td { padding: 0; }
+
+    img {
+      border: 0;
+      line-height: 100%;
+      outline: none;
+      text-decoration: none;
+      -ms-interpolation-mode: bicubic;
+    }
+
+    a[x-apple-data-detectors] {
+      color: inherit !important;
+      text-decoration: none !important;
+    }
+
+    .heading-font {
+      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    @media only screen and (max-width: 600px) {
+      .mobile-padding { padding: 24px 20px !important; }
+      .mobile-heading { font-size: 28px !important; line-height: 34px !important; }
+      .mobile-text { font-size: 15px !important; line-height: 24px !important; }
+      .mobile-hide { display: none !important; }
+      .mobile-center { text-align: center !important; }
+    }
+  </style>
+</head>
+<body style="margin:0;padding:0;background-color:#fafafa;word-spacing:normal;">
+
+  <!-- Preheader text -->
+  <div style="display:none;font-size:1px;color:#fafafa;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">
+    {{userName}} chose you as their accountability partner. Here's what that means (spoiler: it's easy).
+  </div>
+
+  <!-- Invisible preheader spacer -->
+  <div style="display:none;max-height:0px;overflow:hidden;">
+    &nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;
+  </div>
+
+  <!-- Email wrapper -->
+  <table role="presentation" style="width:100%;background-color:#fafafa;" cellpadding="0" cellspacing="0">
+    <tr>
+      <td align="center" style="padding:40px 20px;">
+
+        <!-- Main container -->
+        <table role="presentation" style="width:100%;max-width:600px;background-color:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.06);" cellpadding="0" cellspacing="0">
+
+          <!-- Logo/Brand Header -->
+          <tr>
+            <td style="padding:32px 40px 24px;" class="mobile-padding">
+              <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;">
+                <tr>
+                  <td>
+                    <div style="font-family:'DM Sans',-apple-system,sans-serif;font-size:24px;font-weight:700;color:#0f172a;letter-spacing:-0.02em;">
+                      Rundown
+                    </div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Hero Banner -->
+          <tr>
+            <td style="padding:0 40px 32px;" class="mobile-padding">
+              <div style="background:linear-gradient(135deg,#f97316 0%,#fb923c 100%);border-radius:12px;padding:40px 32px;text-align:center;">
+                <h1 style="margin:0 0 12px;font-family:'DM Sans',-apple-system,sans-serif;font-size:32px;font-weight:700;color:#ffffff;letter-spacing:-0.03em;line-height:1.2;" class="heading-font mobile-heading">
+                  {{userName}} picked you
+                </h1>
+                <p style="margin:0;font-size:17px;line-height:26px;color:rgba(255,255,255,0.95);font-weight:400;" class="mobile-text">
+                  You're now their accountability partner
+                </p>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Main Content -->
+          <tr>
+            <td style="padding:0 40px 32px;" class="mobile-padding">
+
+              <!-- Greeting -->
+              <p style="margin:0 0 24px;font-size:16px;line-height:26px;color:#334155;">
+                Hey {{contactName}},
               </p>
-            </div>
 
-            <div class="cta">
-              <a href="{{learnMoreUrl}}" target="_blank" rel="noopener">See how Rundown supports {{userName}}</a>
-            </div>
+              <p style="margin:0 0 24px;font-size:16px;line-height:26px;color:#334155;">
+                {{userName}} is using <strong style="color:#0f172a;font-weight:600;">Rundown</strong> to stay consistent with their fitness routine, and they chose you as someone who can help keep them accountable.
+              </p>
 
-            <div class="opt-out">
-              Prefer not to receive these updates? <a href="{{optOutUrl}}" target="_blank" rel="noopener">Opt out instantly</a>
-            </div>
-          </td>
-        </tr>
-        <tr>
-          <td class="footer">
-            Rundown · Accountability for consistent fitness<br />
-            You’re getting this because {{userName}} listed you as their accountability buddy.<br />
-            Questions? Reply or email {{supportEmail}}
-          </td>
-        </tr>
-      </table>
-    </div>
-  </body>
+              <p style="margin:0 0 32px;font-size:16px;line-height:26px;color:#334155;">
+                Don't worry—this isn't a big commitment. We'll only reach out when they fall behind on their goals, giving you a heads-up so you can send them a quick nudge.
+              </p>
+
+              <!-- How It Works Section -->
+              <div style="background-color:#fafafa;border-radius:12px;padding:28px 24px;margin:0 0 32px;">
+                <h2 style="margin:0 0 20px;font-family:'DM Sans',-apple-system,sans-serif;font-size:20px;font-weight:700;color:#0f172a;letter-spacing:-0.02em;" class="heading-font">
+                  How it works
+                </h2>
+
+                <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;">
+                  <tr>
+                    <td style="padding-bottom:16px;">
+                      <table role="presentation" cellpadding="0" cellspacing="0">
+                        <tr>
+                          <td style="width:32px;padding-right:12px;vertical-align:top;">
+                            <div style="width:28px;height:28px;background-color:#f97316;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;color:#ffffff;">1</div>
+                          </td>
+                          <td style="vertical-align:top;">
+                            <p style="margin:0;font-size:15px;line-height:24px;color:#475569;">
+                              <strong style="color:#0f172a;font-weight:600;">You'll only hear from us</strong> when {{userName}} misses their weekly consistency goal
+                            </p>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td style="padding-bottom:16px;">
+                      <table role="presentation" cellpadding="0" cellspacing="0">
+                        <tr>
+                          <td style="width:32px;padding-right:12px;vertical-align:top;">
+                            <div style="width:28px;height:28px;background-color:#f97316;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;color:#ffffff;">2</div>
+                          </td>
+                          <td style="vertical-align:top;">
+                            <p style="margin:0;font-size:15px;line-height:24px;color:#475569;">
+                              <strong style="color:#0f172a;font-weight:600;">We'll send you a brief update</strong> showing their goal vs. actual progress
+                            </p>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td>
+                      <table role="presentation" cellpadding="0" cellspacing="0">
+                        <tr>
+                          <td style="width:32px;padding-right:12px;vertical-align:top;">
+                            <div style="width:28px;height:28px;background-color:#f97316;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;color:#ffffff;">3</div>
+                          </td>
+                          <td style="vertical-align:top;">
+                            <p style="margin:0;font-size:15px;line-height:24px;color:#475569;">
+                              <strong style="color:#0f172a;font-weight:600;">You reach out however you want</strong>—text, call, meme, whatever works for your relationship
+                            </p>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+              </div>
+
+              <!-- Info Box -->
+              <div style="border-left:4px solid #f97316;background-color:#fff7ed;padding:20px 24px;margin:0 0 32px;border-radius:0 8px 8px 0;">
+                <p style="margin:0;font-size:15px;line-height:24px;color:#9a3412;">
+                  <strong style="color:#7c2d12;font-weight:600;">Why accountability works:</strong> Research shows that having someone in your corner makes you 65% more likely to achieve a goal. Your support matters more than you think.
+                </p>
+              </div>
+
+              <!-- CTA Button -->
+              <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;margin:0 0 32px;">
+                <tr>
+                  <td align="center">
+                    <a href="{{learnMoreUrl}}" style="display:inline-block;background-color:#0f172a;color:#ffffff;text-decoration:none;padding:16px 32px;border-radius:100px;font-family:'DM Sans',-apple-system,sans-serif;font-size:16px;font-weight:600;letter-spacing:-0.01em;box-shadow:0 4px 12px rgba(15,23,42,0.15);" class="heading-font">
+                      Learn more about Rundown
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Opt Out Notice -->
+              <div style="text-align:center;padding:24px 0 0;border-top:1px solid #e2e8f0;">
+                <p style="margin:0 0 8px;font-size:14px;line-height:22px;color:#64748b;">
+                  Not a good fit right now?
+                </p>
+                <p style="margin:0;">
+                  <a href="{{optOutUrl}}" style="color:#f97316;text-decoration:none;font-size:14px;font-weight:600;">
+                    Opt out instantly →
+                  </a>
+                </p>
+              </div>
+
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding:32px 40px;background-color:#fafafa;border-top:1px solid #e2e8f0;" class="mobile-padding">
+              <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;">
+                <tr>
+                  <td style="padding-bottom:16px;">
+                    <div style="font-family:'DM Sans',-apple-system,sans-serif;font-size:16px;font-weight:700;color:#0f172a;margin-bottom:4px;" class="heading-font">
+                      Rundown
+                    </div>
+                    <p style="margin:0;font-size:13px;line-height:20px;color:#64748b;">
+                      Accountability for consistent fitness
+                    </p>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding-bottom:12px;">
+                    <p style="margin:0;font-size:13px;line-height:20px;color:#64748b;">
+                      You're receiving this because {{userName}} added you as their accountability partner.
+                    </p>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <p style="margin:0;font-size:13px;line-height:20px;color:#64748b;">
+                      Questions? Reply to this email or contact us at <a href="mailto:{{supportEmail}}" style="color:#f97316;text-decoration:none;">{{supportEmail}}</a>
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+        </table>
+
+      </td>
+    </tr>
+  </table>
+
+</body>
 </html>

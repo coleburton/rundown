@@ -83,7 +83,7 @@ export function WhyAccountabilityScreen({ navigation }: Props) {
         total_steps: 9
       });
       
-      analytics.trackEvent(ANALYTICS_EVENTS.WHY_ACCOUNTABILITY_VIEWED);
+      analytics.trackEvent(ANALYTICS_EVENTS.ONBOARDING_WHY_ACCOUNTABILITY_VIEWED);
     } catch (error) {
       trackOnboardingError(error as Error, {
         screen: ONBOARDING_SCREENS.WHY_ACCOUNTABILITY,

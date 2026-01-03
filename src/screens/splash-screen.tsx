@@ -2,10 +2,8 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, Text, View } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/hooks/useAuth';
-import { Button } from '@/components/ui/button';
 import { TYPOGRAPHY_STYLES } from '@/constants/Typography';
 import type { RootStackParamList } from '../../App';
 import { useColorScheme } from '@/hooks/useColorScheme';
@@ -37,60 +35,46 @@ export function SplashScreen() {
         navigation.reset({ index: 0, routes: [{ name: 'Dashboard' }] });
       }, 1200);
       return () => clearTimeout(timer);
+    } else {
+      // Auto-navigate for non-logged-in users to Onboarding
+      const timer = setTimeout(() => {
+        navigation.replace('Onboarding');
+      }, 1800);
+      return () => clearTimeout(timer);
     }
   }, [user, navigation]);
 
-  const handleContinue = () => {
-    navigation.replace('Onboarding');
-  };
-
   return (
-    <View style={[styles.container, { paddingTop: insets.top + 32 }, isDarkMode ? styles.darkBg : styles.lightBg]}>
-      <LinearGradient
-        colors={isDarkMode ? ['#020617', '#030c1f'] : ['#0f172a', '#1e293b']}
-        style={styles.hero}
-      >
+    <View style={[styles.container, isDarkMode ? styles.darkBg : styles.lightBg]}>
+      <View style={styles.content}>
         <Animated.View
           style={[
             styles.badge,
             {
               transform: [
                 {
-                  scale: badgePulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.08] })
+                  scale: badgePulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.12] })
                 }
               ],
-              opacity: badgePulse.interpolate({ inputRange: [0, 1], outputRange: [0.7, 1] })
+              opacity: badgePulse.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1] })
             }
           ]}
         >
           <Text style={styles.badgeIcon}>⚡</Text>
         </Animated.View>
+
+        <Animated.View style={{ opacity: textFade, alignItems: 'center', marginTop: 24 }}>
+          <Text style={[styles.brandName, isDarkMode && styles.brandNameDark]}>Rundown</Text>
+        </Animated.View>
+      </View>
+
+      <View style={{ paddingBottom: Math.max(48, insets.bottom) }}>
         <Animated.View style={{ opacity: textFade }}>
-          <Text style={styles.eyebrow}>Rundown</Text>
-          <Text style={styles.title}>Accountability that hits different.</Text>
-          <Text style={styles.subtitle}>
-            We connect your Strava to the people who keep you honest. Real data. Real consequences.
+          <Text style={[styles.loadingText, isDarkMode && styles.loadingTextDark]}>
+            {user ? 'Loading…' : 'Loading…'}
           </Text>
         </Animated.View>
-      </LinearGradient>
-
-      {!user && (
-        <View style={styles.ctaContainer}>
-          <Text style={[styles.ctaText, isDarkMode && styles.ctaTextDark]}>Beta access is live.</Text>
-          <Button
-            onPress={handleContinue}
-            title="Enter Rundown"
-            variant="default"
-            size="lg"
-            style={styles.ctaButton}
-            darkMode={isDarkMode}
-          />
-        </View>
-      )}
-
-      {user && (
-        <Text style={[styles.loadingText, isDarkMode && styles.loadingTextDark]}>Syncing your dashboard…</Text>
-      )}
+      </View>
     </View>
   );
 }
@@ -107,68 +91,40 @@ const styles = StyleSheet.create({
   darkBg: {
     backgroundColor: '#010712',
   },
-  hero: {
-    borderRadius: 32,
-    padding: 28,
-    shadowColor: '#0f172a',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.7,
-    shadowRadius: 30,
-    elevation: 12,
+  content: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   badge: {
     width: 72,
     height: 72,
     borderRadius: 28,
-    backgroundColor: 'rgba(248, 250, 252, 0.15)',
+    backgroundColor: 'rgba(249, 115, 22, 0.1)',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(248, 250, 252, 0.3)',
-    marginBottom: 24,
+    borderColor: 'rgba(249, 115, 22, 0.2)',
   },
   badgeIcon: {
     fontSize: 34,
   },
-  eyebrow: {
-    ...TYPOGRAPHY_STYLES.caption1,
-    color: 'rgba(248, 250, 252, 0.85)',
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    marginBottom: 8,
+  brandName: {
+    fontFamily: 'DMSans-Bold',
+    fontSize: 32,
+    color: '#0f172a',
+    letterSpacing: -0.5,
   },
-  title: {
-    ...TYPOGRAPHY_STYLES.h2,
+  brandNameDark: {
     color: '#f8fafc',
-    marginBottom: 12,
-  },
-  subtitle: {
-    ...TYPOGRAPHY_STYLES.body1,
-    color: 'rgba(226, 232, 240, 0.9)',
-    lineHeight: 22,
-  },
-  ctaContainer: {
-    marginBottom: 48,
-  },
-  ctaText: {
-    ...TYPOGRAPHY_STYLES.caption1,
-    color: '#475569',
-    textAlign: 'center',
-    marginBottom: 12,
-  },
-  ctaTextDark: {
-    color: '#94a3b8',
-  },
-  ctaButton: {
-    borderRadius: 18,
   },
   loadingText: {
-    ...TYPOGRAPHY_STYLES.caption1,
-    color: '#475569',
+    fontFamily: 'DMSans-Regular',
+    fontSize: 14,
+    color: '#94a3b8',
     textAlign: 'center',
-    marginBottom: 32,
   },
   loadingTextDark: {
-    color: '#cbd5f5',
+    color: '#64748b',
   },
 });

@@ -38,6 +38,8 @@ type UserInfoData = {
   primaryGoal: 'consistency' | 'accountability' | 'motivation' | 'habit_building' | '';
 };
 
+type UserInfoErrors = Partial<Record<keyof UserInfoData, string>>;
+
 const FITNESS_LEVELS = [
   { id: 'beginner', label: 'Beginner', description: 'New to running', icon: '🌱', color: '#10b981' },
   { id: 'intermediate', label: 'Intermediate', description: 'Regular runner', icon: '🏃‍♂️', color: '#3b82f6' },
@@ -49,38 +51,6 @@ const PRIMARY_GOALS = [
   { id: 'accountability', label: 'Stay Accountable', description: 'Regular check-ins', icon: '🤝', color: '#8b5cf6' },
   { id: 'motivation', label: 'Stay Motivated', description: 'Positive reinforcement', icon: '🔥', color: '#ef4444' },
   { id: 'habit_building', label: 'Form Good Habits', description: 'Sustainable progress', icon: '📈', color: '#3b82f6' },
-];
-
-type StepHeroContent = {
-  title: string;
-  subtitle: string;
-};
-
-const STEP_HERO_CONTENT: StepHeroContent[] = [
-  {
-    title: 'Personalize Rundown',
-    subtitle: 'Share a few basics so accountability feels human.',
-  },
-  {
-    title: 'Use your name',
-    subtitle: 'First names keep accountability messages warm and real.',
-  },
-  {
-    title: 'Keep contacts clear',
-    subtitle: 'Sharing your last name helps keep buddy lists clear.',
-  },
-  {
-    title: 'Remember milestones',
-    subtitle: 'We remember milestones like birthdays for thoughtful nudges.',
-  },
-  {
-    title: 'Match your vibe',
-    subtitle: 'Match accountability tone to where you are today.',
-  },
-  {
-    title: 'Define what matters',
-    subtitle: 'Tell us what matters so your buddy emails stay focused.',
-  },
 ];
 
 const hexToRgba = (hex: string, alpha: number) => {
@@ -109,12 +79,11 @@ export function UserInfoScreen() {
 
   const [currentStep, setCurrentStep] = useState(1);
   const [progressAnim] = useState(new Animated.Value(0.2));
-  const [errors, setErrors] = useState<Partial<UserInfoData>>({});
+  const [errors, setErrors] = useState<UserInfoErrors>({});
   const [screenStartTime] = useState(Date.now());
 
   const totalSteps = 5;
   const progress = currentStep / totalSteps;
-  const heroContent = STEP_HERO_CONTENT[currentStep - 1] ?? STEP_HERO_CONTENT[0];
 
   useEffect(() => {
     Animated.timing(progressAnim, {
@@ -143,7 +112,7 @@ export function UserInfoScreen() {
   }, [screenStartTime, currentStep]);
 
   const validateStep = (step: number): boolean => {
-    const newErrors: Partial<UserInfoData> = {};
+    const newErrors: UserInfoErrors = {};
     
     switch (step) {
       case 1:
@@ -301,7 +270,7 @@ export function UserInfoScreen() {
             <Input
               value={userInfo.firstName}
               onChangeText={(text) => setUserInfo({ ...userInfo, firstName: text })}
-              placeholder="Enter your first name"
+              placeholder="First name"
               variant={errors.firstName ? 'destructive' : 'default'}
               darkMode={isDarkMode}
               style={styles.input}
@@ -326,7 +295,7 @@ export function UserInfoScreen() {
             <Input
               value={userInfo.lastName}
               onChangeText={(text) => setUserInfo({ ...userInfo, lastName: text })}
-              placeholder="Enter your last name"
+              placeholder="Last name"
               variant={errors.lastName ? 'destructive' : 'default'}
               darkMode={isDarkMode}
               style={styles.input}
@@ -552,8 +521,6 @@ export function UserInfoScreen() {
 
             <View style={styles.heroCopy}>
               <Text style={styles.heroLabel}>Step {currentStep} of {totalSteps}</Text>
-              <Text style={styles.heroTitle} numberOfLines={1}>{heroContent.title}</Text>
-              <Text style={styles.heroSubtitle} numberOfLines={2}>{heroContent.subtitle}</Text>
             </View>
 
             <TouchableOpacity
@@ -580,9 +547,6 @@ export function UserInfoScreen() {
                 ]}
               />
             </View>
-            <Text style={styles.heroProgressText}>
-              {Math.round(progress * 100)}% complete
-            </Text>
           </View>
         </LinearGradient>
       </View>
@@ -671,29 +635,23 @@ const styles = StyleSheet.create({
   heroCopy: {
     flex: 1,
     marginHorizontal: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   heroLabel: {
-    ...TYPOGRAPHY_STYLES.caption1,
-    color: 'rgba(248, 250, 252, 0.85)',
+    fontFamily: 'DMSans-Bold',
+    fontSize: 13,
+    color: 'rgba(248, 250, 252, 0.9)',
     textTransform: 'uppercase',
-    letterSpacing: 1,
-  },
-  heroTitle: {
-    ...TYPOGRAPHY_STYLES.h5,
-    color: '#f8fafc',
-    marginTop: 2,
-    marginBottom: 2,
-  },
-  heroSubtitle: {
-    ...TYPOGRAPHY_STYLES.caption1,
-    color: 'rgba(248, 250, 252, 0.75)',
+    letterSpacing: 1.2,
   },
   skipButton: {
     paddingHorizontal: 12,
     paddingVertical: 6,
   },
   skipButtonText: {
-    ...TYPOGRAPHY_STYLES.body2,
+    fontFamily: 'DMSans-Medium',
+    fontSize: 14,
     color: '#bae6fd',
   },
   heroProgressContainer: {
@@ -710,11 +668,6 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     backgroundColor: '#f97316',
   },
-  heroProgressText: {
-    ...TYPOGRAPHY_STYLES.caption1,
-    color: 'rgba(226, 232, 240, 0.9)',
-    marginTop: 8,
-  },
   content: {
     flex: 1,
   },
@@ -725,7 +678,8 @@ const styles = StyleSheet.create({
   },
   cardSurface: {
     borderRadius: 28,
-    paddingVertical: 20,
+    paddingTop: 32,
+    paddingBottom: 24,
     paddingHorizontal: 24,
     backgroundColor: '#ffffff',
     shadowColor: '#0f172a',
@@ -735,7 +689,7 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   cardSurfaceFloating: {
-    marginTop: -48,
+    marginTop: 16,
     zIndex: 10,
   },
   cardSurfaceDark: {
@@ -757,18 +711,22 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   stepTitle: {
-    ...TYPOGRAPHY_STYLES.h4,
+    fontFamily: 'DMSans-Bold',
+    fontSize: 24,
+    lineHeight: 28,
     color: '#0f172a',
     marginBottom: 4,
   },
   stepSubtitle: {
-    ...TYPOGRAPHY_STYLES.body2,
-    color: '#475569',
+    fontFamily: 'DMSans-Regular',
+    fontSize: 15,
+    color: '#64748b',
     marginBottom: 24,
   },
   input: {
     marginBottom: 16,
-    ...TYPOGRAPHY_STYLES.body1,
+    fontFamily: 'DMSans-Regular',
+    fontSize: 16,
     textAlign: 'left',
   },
   optionsContainer: {
@@ -814,12 +772,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   optionLabel: {
-    ...TYPOGRAPHY_STYLES.h6,
+    fontFamily: 'DMSans-Bold',
+    fontSize: 16,
     color: '#0f172a',
   },
   optionDescription: {
-    ...TYPOGRAPHY_STYLES.body2,
-    color: '#475569',
+    fontFamily: 'DMSans-Regular',
+    fontSize: 14,
+    color: '#64748b',
     marginTop: 2,
   },
   optionCheck: {
@@ -837,7 +797,8 @@ const styles = StyleSheet.create({
     color: '#ea580c',
   },
   errorText: {
-    ...TYPOGRAPHY_STYLES.caption1,
+    fontFamily: 'DMSans-Regular',
+    fontSize: 13,
     color: '#ef4444',
     textAlign: 'left',
     marginTop: 4,

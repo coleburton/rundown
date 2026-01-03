@@ -112,6 +112,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(15, 23, 42, 0.35)',
   } as ViewStyle,
   heroEyebrow: {
+    fontFamily: 'DMSans-Medium',
     fontSize: 14,
     letterSpacing: 1,
     textTransform: 'uppercase',
@@ -119,12 +120,13 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   } as TextStyle,
   heroTitle: {
+    fontFamily: 'DMSans-Bold',
     fontSize: 34,
     lineHeight: 40,
     color: '#f8fafc',
-    fontWeight: '700',
   } as TextStyle,
   heroSubtitle: {
+    fontFamily: 'DMSans-Regular',
     fontSize: 17,
     color: 'rgba(226, 232, 240, 0.9)',
     marginTop: 12,
@@ -145,18 +147,19 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(248, 250, 252, 0.24)',
   } as ViewStyle,
   heroPillLabel: {
+    fontFamily: 'DMSans-Bold',
     fontSize: 14,
-    fontWeight: '600',
     color: '#f8fafc',
   } as TextStyle,
   heroPillDetail: {
+    fontFamily: 'DMSans-Regular',
     fontSize: 12,
     color: 'rgba(248, 250, 252, 0.75)',
     marginTop: 2,
   } as TextStyle,
   contentCard: {
     marginHorizontal: 24,
-    marginTop: -40,
+    marginTop: 16,
     borderRadius: 28,
     backgroundColor: '#ffffff',
     paddingVertical: 24,
@@ -174,15 +177,17 @@ const styles = StyleSheet.create({
     shadowColor: 'rgba(0,0,0,0.2)',
   } as ViewStyle,
   cardEyebrow: {
-    fontSize: 13,
+    fontFamily: 'DMSans-Bold',
+    fontSize: 11,
     textTransform: 'uppercase',
-    letterSpacing: 1,
+    letterSpacing: 1.2,
     color: '#f97316',
-    marginBottom: 6,
+    marginBottom: 8,
   } as TextStyle,
   cardTitle: {
+    fontFamily: 'DMSans-Bold',
     fontSize: 24,
-    fontWeight: '700',
+    lineHeight: 28,
     color: '#0f172a',
     marginBottom: 12,
   } as TextStyle,
@@ -190,6 +195,7 @@ const styles = StyleSheet.create({
     color: '#f8fafc',
   } as TextStyle,
   cardDescription: {
+    fontFamily: 'DMSans-Regular',
     fontSize: 16,
     color: '#475569',
     lineHeight: 24,
@@ -221,16 +227,16 @@ const styles = StyleSheet.create({
     borderColor: '#f97316',
   } as ViewStyle,
   pointBulletText: {
+    fontFamily: 'DMSans-Bold',
     fontSize: 14,
-    fontWeight: '700',
     color: '#f97316',
   } as TextStyle,
   pointTextGroup: {
     flex: 1,
   } as ViewStyle,
   pointTitle: {
+    fontFamily: 'DMSans-Bold',
     fontSize: 16,
-    fontWeight: '600',
     color: '#0f172a',
     marginBottom: 4,
   } as TextStyle,
@@ -238,6 +244,7 @@ const styles = StyleSheet.create({
     color: '#f8fafc',
   } as TextStyle,
   pointCopy: {
+    fontFamily: 'DMSans-Regular',
     fontSize: 14,
     color: '#475569',
     lineHeight: 20,
@@ -269,6 +276,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   } as ViewStyle,
   footerText: {
+    fontFamily: 'DMSans-Regular',
     fontSize: 14,
     textAlign: 'center',
     lineHeight: 20,

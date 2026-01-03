@@ -435,12 +435,12 @@ export function LoginScreen() {
           {/* Hero Section */}
           <View style={styles.heroSection}>
             <Text style={[styles.title, isDarkMode && styles.darkText]}>
-              {authMode === 'login' ? 'Welcome back!' : 'Start your journey'}
+              {authMode === 'login' ? 'Welcome back' : 'Ready to run from your excuses?'}
             </Text>
             <Text style={[styles.subtitle, isDarkMode && styles.darkSubtitle]}>
-              {authMode === 'login' 
-                ? 'Pick up right where you left off' 
-                : 'Join thousands of runners achieving their personal best'
+              {authMode === 'login'
+                ? 'Sign in to keep your streak alive'
+                : 'Create your account and get started'
               }
             </Text>
           </View>
@@ -457,7 +457,7 @@ export function LoginScreen() {
                 key={`email-${authMode}`}
                 value={loginData.email}
                 onChangeText={(text) => setLoginData({ ...loginData, email: text.toLowerCase().trim() })}
-                placeholder="Enter your email"
+                placeholder="Email"
                 variant={errors.email ? 'destructive' : 'default'}
                 darkMode={isDarkMode}
                 style={styles.input}
@@ -483,7 +483,7 @@ export function LoginScreen() {
                   key={`password-${authMode}`}
                   value={loginData.password}
                   onChangeText={handlePasswordChange}
-                  placeholder={authMode === 'login' ? 'Enter your password' : 'Create a secure password'}
+                  placeholder="Password"
                   variant={errors.password ? 'destructive' : 'default'}
                   darkMode={isDarkMode}
                   style={[styles.input, styles.passwordInput]}
@@ -547,7 +547,7 @@ export function LoginScreen() {
                     key={`confirm-password-${authMode}`}
                     value={loginData.confirmPassword}
                     onChangeText={(text) => setLoginData({ ...loginData, confirmPassword: text })}
-                    placeholder="Confirm your password"
+                    placeholder="Confirm password"
                     variant={errors.confirmPassword ? 'destructive' : 'default'}
                     darkMode={isDarkMode}
                     style={[styles.input, styles.passwordInput]}
@@ -617,35 +617,6 @@ export function LoginScreen() {
               </TouchableOpacity>
             )}
 
-            {/* Trust Indicators */}
-            <View style={styles.trustIndicators}>
-              <View style={styles.trustBadge}>
-                <View style={styles.trustIcon}>
-                  <IconComponent
-                    library="Lucide"
-                    name="Shield"
-                    size={16}
-                    color="#10b981"
-                  />
-                </View>
-                <Text style={[styles.trustText, isDarkMode && styles.darkSubtitle]}>
-                  Bank-level security
-                </Text>
-              </View>
-              <View style={styles.trustBadge}>
-                <View style={styles.trustIcon}>
-                  <IconComponent
-                    library="Lucide"
-                    name="ShieldCheck"
-                    size={16}
-                    color="#3b82f6"
-                  />
-                </View>
-                <Text style={[styles.trustText, isDarkMode && styles.darkSubtitle]}>
-                  Privacy protected
-                </Text>
-              </View>
-            </View>
           </View>
         </Animated.View>
       </ScrollView>
@@ -666,9 +637,9 @@ export function LoginScreen() {
         />
         
         <Text style={[styles.footerText, isDarkMode && styles.darkSubtitle]}>
-          {authMode === 'login' 
-            ? "Welcome back to your running journey" 
-            : "Start your personalized running journey"
+          {authMode === 'login'
+            ? "Keep your streak going"
+            : "Free to start. Cancel anytime."
           }
         </Text>
       </View>
@@ -727,7 +698,8 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   toggleText: {
-    ...TYPOGRAPHY_STYLES.body2Medium,
+    fontFamily: 'DMSans-Medium',
+    fontSize: 14,
     color: '#6b7280',
   },
   activeToggleText: {
@@ -745,13 +717,16 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   title: {
-    ...TYPOGRAPHY_STYLES.h2,
+    fontFamily: 'DMSans-Bold',
+    fontSize: 28,
+    lineHeight: 34,
     color: '#111827',
     textAlign: 'center',
     marginBottom: 8,
   },
   subtitle: {
-    ...TYPOGRAPHY_STYLES.body1,
+    fontFamily: 'DMSans-Regular',
+    fontSize: 16,
     color: '#6b7280',
     textAlign: 'center',
     maxWidth: 280,
@@ -763,7 +738,8 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   inputLabel: {
-    ...TYPOGRAPHY_STYLES.body2Medium,
+    fontFamily: 'DMSans-Medium',
+    fontSize: 14,
     color: '#374151',
   },
   input: {
@@ -804,8 +780,8 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   strengthText: {
-    ...TYPOGRAPHY_STYLES.caption1,
-    fontWeight: '500',
+    fontFamily: 'DMSans-Medium',
+    fontSize: 12,
   },
   termsContainer: {
     flexDirection: 'row',
@@ -836,7 +812,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   termsText: {
-    ...TYPOGRAPHY_STYLES.caption1,
+    fontFamily: 'DMSans-Regular',
+    fontSize: 13,
     color: '#6b7280',
     flex: 1,
     lineHeight: 18,
@@ -845,39 +822,14 @@ const styles = StyleSheet.create({
     color: '#f97316',
     textDecorationLine: 'underline',
   },
-  trustIndicators: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginTop: 20,
-    paddingHorizontal: 20,
-  },
-  trustBadge: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  trustIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#f3f4f6',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 6,
-  },
-  trustIconText: {
-    fontSize: 16,
-  },
-  trustText: {
-    ...TYPOGRAPHY_STYLES.caption1,
-    color: '#6b7280',
-    textAlign: 'center',
-  },
   errorText: {
-    ...TYPOGRAPHY_STYLES.caption1,
+    fontFamily: 'DMSans-Regular',
+    fontSize: 13,
     color: '#ef4444',
   },
   footerText: {
-    ...TYPOGRAPHY_STYLES.caption1,
+    fontFamily: 'DMSans-Regular',
+    fontSize: 14,
     color: '#6b7280',
     textAlign: 'center',
     marginTop: 12,

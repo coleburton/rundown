@@ -93,7 +93,7 @@ export function FitnessAppConnectScreen({ navigation }: Props) {
         total_steps: 9
       });
       
-      analytics.trackEvent(ANALYTICS_EVENTS.FITNESS_APP_CONNECT_STARTED);
+      analytics.trackEvent(ANALYTICS_EVENTS.ONBOARDING_FITNESS_APP_CONNECT_STARTED);
     } catch (error) {
       trackOnboardingError(error as Error, {
         screen: ONBOARDING_SCREENS.FITNESS_APP_CONNECT,
@@ -118,7 +118,7 @@ export function FitnessAppConnectScreen({ navigation }: Props) {
       }
       
       // Track connection attempt
-      analytics.trackEvent(ANALYTICS_EVENTS.FITNESS_APP_CONNECTED, {
+      analytics.trackEvent(ANALYTICS_EVENTS.ONBOARDING_FITNESS_APP_CONNECTED, {
         app_name: selectedApp,
         screen: ONBOARDING_SCREENS.FITNESS_APP_CONNECT,
         time_to_connect_ms: timeSpent
@@ -182,7 +182,7 @@ export function FitnessAppConnectScreen({ navigation }: Props) {
       const timeSpent = Date.now() - screenStartTime;
       
       // Track skip action
-      analytics.trackEvent(ANALYTICS_EVENTS.FITNESS_APP_SKIPPED, {
+      analytics.trackEvent(ANALYTICS_EVENTS.ONBOARDING_FITNESS_APP_SKIPPED, {
         screen: ONBOARDING_SCREENS.FITNESS_APP_CONNECT,
         time_spent_ms: timeSpent
       });

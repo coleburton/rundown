@@ -26,7 +26,7 @@ export function useMockContacts() {
     }
   }, [user, setContacts]);
 
-  const addContact = useCallback(async (contactData: Omit<Contact, 'id' | 'userId'>) => {
+  const addContact = useCallback(async (contactData: Omit<Contact, 'id' | 'userId' | 'isActive'>) => {
     if (!user) return null;
 
     try {
@@ -35,6 +35,7 @@ export function useMockContacts() {
       const newContact = await contacts.addContact({
         ...contactData,
         userId: user.id,
+        isActive: true,
       });
       addContactToStore(newContact);
       return newContact;

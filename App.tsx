@@ -5,11 +5,7 @@ import { useFonts } from 'expo-font';
 import * as React from 'react';
 import { View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-
-// Polyfill for structuredClone if not available
-if (typeof global.structuredClone === 'undefined') {
-  global.structuredClone = (obj: any) => JSON.parse(JSON.stringify(obj));
-}
+import type { RootStackParamList } from './src/types/navigation';
 import { useAuth } from './src/hooks/useAuth';
 import { AuthProvider } from './src/lib/auth-context';
 import MixpanelDebug from './src/lib/MixpanelDebug';
@@ -26,6 +22,7 @@ import { MessageHistoryScreen } from './src/screens/message-history-screen';
 import { MessageStyleScreen } from './src/screens/message-style-screen';
 import { MotivationQuizScreen } from './src/screens/motivation-quiz-screen';
 import { OnboardingScreen } from './src/screens/onboarding-screen';
+import { OnboardingSuccessScreen } from './src/screens/onboarding-success-screen';
 import { PaywallScreen } from './src/screens/paywall-screen';
 import { PaywallFreeTrialScreen } from './src/screens/paywall-free-trial-screen';
 import { PostPaywallOnboardingScreen } from './src/screens/post-paywall-onboarding-screen';
@@ -36,29 +33,12 @@ import { UserInfoScreen } from './src/screens/user-info-screen';
 import { ValuePreviewScreen } from './src/screens/value-preview-screen';
 import { WhyAccountabilityScreen } from './src/screens/why-accountability-screen';
 import { isDebugMode } from './src/lib/debug-mode';
+export type { RootStackParamList } from './src/types/navigation';
 
-export type RootStackParamList = {
-  Splash: undefined;
-  Onboarding: undefined;
-  UserInfo: undefined;
-  Login: undefined;
-  WhyAccountability: undefined;
-  SocialProof: undefined;
-  MotivationQuiz: undefined;
-  GoalSetup: undefined;
-  ValuePreview: undefined;
-  FitnessAppConnect: undefined;
-  ContactSetup: undefined;
-  MessageStyle: undefined;
-  Dashboard: undefined;
-  Settings: undefined;
-  MessageHistory: undefined;
-  ActivityHistory: undefined;
-  Paywall: undefined;
-  PaywallFreeTrial: undefined;
-  PostPaywallOnboarding: undefined;
-  ActivityDetail: { activityId: string };
-};
+// Polyfill for structuredClone if not available
+if (typeof global.structuredClone === 'undefined') {
+  global.structuredClone = (obj: any) => JSON.parse(JSON.stringify(obj));
+}
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -110,6 +90,7 @@ function AppContent() {
         <Stack.Screen name="FitnessAppConnect" component={FitnessAppConnectScreen} />
         <Stack.Screen name="ContactSetup" component={ContactSetupScreen} />
         <Stack.Screen name="MessageStyle" component={MessageStyleScreen} />
+        <Stack.Screen name="OnboardingSuccess" component={OnboardingSuccessScreen} />
         <Stack.Screen name="Paywall" component={PaywallScreen} />
         <Stack.Screen name="PaywallFreeTrial" component={PaywallFreeTrialScreen} />
         <Stack.Screen name="PostPaywallOnboarding" component={PostPaywallOnboardingScreen} />
@@ -127,12 +108,16 @@ function AppContent() {
 
 function App() {
   const [fontsLoaded, fontError] = useFonts({
-    'Inter': require('./assets/fonts/Inter-Regular.ttf'),
-    'Inter-Medium': require('./assets/fonts/Inter-Medium.ttf'),
-    'Inter-SemiBold': require('./assets/fonts/Inter-SemiBold.ttf'),
+    'DMSans-Regular': require('./assets/fonts/DMSans-Regular.ttf'),
+    'DMSans-Medium': require('./assets/fonts/DMSans-Medium.ttf'),
+    'DMSans-Bold': require('./assets/fonts/DMSans-Bold.ttf'),
   });
 
-  if (!fontsLoaded && !fontError) {
+  if (fontError) {
+    console.error('Font loading error:', fontError);
+  }
+
+  if (!fontsLoaded) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff' }} />
     );

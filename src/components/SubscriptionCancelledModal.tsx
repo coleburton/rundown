@@ -83,8 +83,8 @@ export function SubscriptionCancelledModal({
             </View>
             
             <Text style={{
+              fontFamily: 'DMSans-Bold',
               fontSize: 20,
-              fontWeight: 'bold',
               color: '#111827',
               textAlign: 'center',
               marginBottom: 8,
@@ -93,6 +93,7 @@ export function SubscriptionCancelledModal({
             </Text>
             
             <Text style={{
+              fontFamily: 'DMSans-Regular',
               fontSize: 16,
               color: '#6b7280',
               textAlign: 'center',
@@ -132,6 +133,7 @@ export function SubscriptionCancelledModal({
                   />
                 </View>
                 <Text style={{
+                  fontFamily: 'DMSans-Regular',
                   flex: 1,
                   fontSize: 14,
                   color: '#374151',
@@ -160,8 +162,8 @@ export function SubscriptionCancelledModal({
               }}
             >
               <Text style={{
+                fontFamily: 'DMSans-Medium',
                 fontSize: 16,
-                fontWeight: '600',
                 color: '#ffffff',
               }}>
                 Reactivate Subscription
@@ -180,8 +182,8 @@ export function SubscriptionCancelledModal({
               }}
             >
               <Text style={{
+                fontFamily: 'DMSans-Medium',
                 fontSize: 16,
-                fontWeight: '500',
                 color: '#6b7280',
               }}>
                 Continue Without Subscription

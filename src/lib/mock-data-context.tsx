@@ -1,33 +1,5 @@
 import React, { createContext, useContext, useReducer, useCallback, ReactNode } from 'react';
-
-// Define types for our mock data
-export interface User {
-  id: string;
-  email: string;
-  goal_per_week?: number;
-  message_style?: string;
-}
-
-export interface Contact {
-  id: string;
-  name: string;
-  phone: string;
-}
-
-export interface Activity {
-  id: string;
-  type: string;
-  distance: number;
-  duration: number;
-  date: string;
-}
-
-export interface AccountabilityMessage {
-  id: string;
-  content: string;
-  sent_at: string;
-  contact_id: string;
-}
+import type { User, Contact, Activity, AccountabilityMessage } from '../types/mock';
 
 export interface MockDataStore {
   user: User | null;

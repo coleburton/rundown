@@ -104,9 +104,9 @@ export class MockMessages {
 
         this.messages.push({
           id: `msg-${week}-${contactId}`,
-          userId,
-          contactId,
-          sentAt: weekEnd.toISOString(),
+          user_id: userId,
+          contact_id: contactId,
+          sent_at: weekEnd.toISOString(),
           messageType,
           messageStyle,
           content,
@@ -119,9 +119,11 @@ export class MockMessages {
     }
 
     // Sort messages by date
-    this.messages.sort((a, b) => 
-      new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime()
-    );
+    this.messages.sort((a, b) => {
+      const sentA = a.sent_at ?? a.sentAt ?? '';
+      const sentB = b.sent_at ?? b.sentAt ?? '';
+      return new Date(sentA).getTime() - new Date(sentB).getTime();
+    });
 
     // Save to storage
     await storage.setMessages(this.messages);
@@ -130,7 +132,7 @@ export class MockMessages {
   async getMessages(userId: string): Promise<AccountabilityMessage[]> {
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 1000));
-    return this.messages.filter(message => message.userId === userId);
+    return this.messages.filter(message => (message.userId ?? message.user_id) === userId);
   }
 
   async addMessage(message: Omit<AccountabilityMessage, 'id'>): Promise<AccountabilityMessage> {
@@ -155,12 +157,16 @@ export class MockMessages {
     await new Promise(resolve => setTimeout(resolve, 1000));
 
     return this.messages.filter(message => {
-      const messageDate = new Date(message.sentAt);
+      const sentAt = message.sent_at ?? message.sentAt;
+      if (!sentAt) {
+        return false;
+      }
+      const messageDate = new Date(sentAt);
       return (
-        message.userId === userId &&
+        (message.userId ?? message.user_id) === userId &&
         messageDate >= weekStart &&
         messageDate < weekEnd
       );
     });
   }
-} 
+}

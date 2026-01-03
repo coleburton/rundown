@@ -19,18 +19,7 @@ import analytics, {
   trackFunnelStep,
   setUserProperties
 } from '../lib/analytics';
-
-type RootStackParamList = {
-  Welcome: undefined;
-  WhyAccountability: undefined;
-  GoalSetup: { fromSettings?: boolean };
-  MotivationQuiz: undefined;
-  ContactSetup: undefined;
-  MessageStyle: undefined;
-  OnboardingSuccess: undefined;
-  Dashboard: undefined;
-  Settings: undefined;
-};
+import type { RootStackParamList } from '@/types/navigation';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'GoalSetup'>;
 
@@ -50,6 +39,17 @@ export function GoalSetupScreen({ navigation, route }: Props) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [screenStartTime] = useState(Date.now());
 
+  const GOAL_TYPE_VALUES: Goal['type'][] = [
+    'total_activities',
+    'total_runs',
+    'total_miles_running',
+    'total_rides_biking',
+    'total_miles_biking'
+  ];
+
+  const isValidGoalType = (value: string | null | undefined): value is Goal['type'] =>
+    !!value && GOAL_TYPE_VALUES.includes(value as Goal['type']);
+
   // Track screen view on mount
   useEffect(() => {
     try {
@@ -58,7 +58,7 @@ export function GoalSetupScreen({ navigation, route }: Props) {
         total_steps: 9
       });
 
-      analytics.trackEvent(ANALYTICS_EVENTS.GOAL_SETUP_STARTED);
+      analytics.trackEvent(ANALYTICS_EVENTS.ONBOARDING_GOAL_SETUP_STARTED);
     } catch (error) {
       trackOnboardingError(error as Error, {
         screen: ONBOARDING_SCREENS.GOAL_SETUP,
@@ -70,16 +70,16 @@ export function GoalSetupScreen({ navigation, route }: Props) {
   // Initialize with user's existing goal from user_goals table
   useEffect(() => {
     if (!goalsLoading && activeGoal) {
-      const initialGoal = {
-        type: activeGoal.goal_type,
+      const initialGoal: Goal = {
+        type: isValidGoalType(activeGoal.goal_type) ? activeGoal.goal_type : 'total_activities',
         value: Number(activeGoal.target_value)
       };
       setSelectedGoal(initialGoal);
       setOriginalGoal(initialGoal);
     } else if (!goalsLoading && user) {
       // Fallback to users table if no goal in user_goals yet
-      const initialGoal = {
-        type: user.goal_type || 'total_activities',
+      const initialGoal: Goal = {
+        type: isValidGoalType(user.goal_type) ? user.goal_type : 'total_activities',
         value: user.goal_value || user.goal_per_week || 3
       };
       setSelectedGoal(initialGoal);
@@ -92,7 +92,7 @@ export function GoalSetupScreen({ navigation, route }: Props) {
       setSelectedGoal(goal);
       
       // Track goal selection in analytics (not creation - that happens on continue)
-      analytics.trackEvent(ANALYTICS_EVENTS.GOAL_SELECTED, { 
+      analytics.trackEvent(ANALYTICS_EVENTS.ONBOARDING_GOAL_SELECTED, { 
         goal_type: goal.type,
         goal_value: goal.value,
         screen: ONBOARDING_SCREENS.GOAL_SETUP,

@@ -2,11 +2,7 @@ export type MessageStyle = 'supportive' | 'snarky' | 'chaotic' | 'competitive' |
 export type MessageType = 'missed-goal' | 'weekly-summary';
 export type GoalType = 'runs' | 'miles' | 'activities' | 'bike_activities' | 'bike_miles';
 
-interface MessageBank {
-  [key in MessageStyle]: {
-    [key in MessageType]: string[];
-  };
-}
+type MessageBank = Record<MessageStyle, Record<MessageType, string[]>>;
 
 export const MESSAGE_TEMPLATES: MessageBank = {
   supportive: {

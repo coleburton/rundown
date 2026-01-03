@@ -8,6 +8,7 @@ WebBrowser.maybeCompleteAuthSession();
 const STRAVA_CLIENT_ID = Constants.expoConfig?.extra?.stravaClientId || process.env.EXPO_PUBLIC_STRAVA_CLIENT_ID;
 // SECURITY: Client secret removed from frontend - handled by backend Edge Functions only
 const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL || 'http://localhost:54321';
+const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL || 'http://localhost:8080';
 
 const redirectUri = AuthSession.makeRedirectUri({
   scheme: 'rundown',
@@ -88,8 +89,15 @@ class StravaAuthService {
         }
       } else if (result.type === 'cancel') {
         return { type: 'cancel' };
+      } else if (result.type === 'error') {
+        const errorMessage =
+          result.error?.message ||
+          result.error?.toString() ||
+          result.errorCode ||
+          'Authentication failed';
+        return { type: 'error', error: errorMessage };
       } else {
-        return { type: 'error', error: result.error?.message || 'Authentication failed' };
+        return { type: 'error', error: 'Authentication cancelled or locked' };
       }
     } catch (error) {
       console.error('Strava authentication error:', error);

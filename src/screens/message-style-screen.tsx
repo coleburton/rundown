@@ -48,7 +48,7 @@ const getStyleOptions = (userName: string): StyleOption[] => [
     description: 'Gentle nudges and encouragement',
     example: formatMessage(
       MESSAGE_TEMPLATES.supportive['missed-goal'][1], 
-      { user: userName, goalType: 'running' }
+      { user: userName, goalType: 'runs' }
     ),
     icon: 'Heart',
     color: '#f59e0b',
@@ -59,7 +59,7 @@ const getStyleOptions = (userName: string): StyleOption[] => [
     description: 'Playful sass and teasing',
     example: formatMessage(
       MESSAGE_TEMPLATES.snarky['missed-goal'][0], 
-      { user: userName, goalType: 'running' }
+      { user: userName, goalType: 'runs' }
     ),
     icon: 'Smile',
     color: '#8b5cf6',
@@ -70,7 +70,7 @@ const getStyleOptions = (userName: string): StyleOption[] => [
     description: 'Challenge them to step up',
     example: formatMessage(
       MESSAGE_TEMPLATES.competitive['missed-goal'][0], 
-      { user: userName, goalType: 'running' }
+      { user: userName, goalType: 'runs' }
     ),
     icon: 'Zap',
     color: '#3b82f6',
@@ -81,7 +81,7 @@ const getStyleOptions = (userName: string): StyleOption[] => [
     description: 'Focus on milestones and progress',
     example: formatMessage(
       MESSAGE_TEMPLATES.achievement['missed-goal'][0], 
-      { user: userName, goalType: 'running' }
+      { user: userName, goalType: 'runs' }
     ),
     icon: 'Target',
     color: '#10b981',
@@ -92,7 +92,7 @@ const getStyleOptions = (userName: string): StyleOption[] => [
     description: 'Unpredictable and hilarious', 
     example: formatMessage(
       MESSAGE_TEMPLATES.chaotic['missed-goal'][0], 
-      { user: userName, goalType: 'running' }
+      { user: userName, goalType: 'runs' }
     ),
     icon: 'Sparkles',
     color: '#ef4444',
@@ -133,7 +133,7 @@ export function MessageStyleScreen({ navigation }: Props) {
         total_steps: 9
       });
       
-      analytics.trackEvent(ANALYTICS_EVENTS.MESSAGE_STYLE_STARTED);
+      analytics.trackEvent(ANALYTICS_EVENTS.ONBOARDING_MESSAGE_STYLE_STARTED);
     } catch (error) {
       trackOnboardingError(error as Error, {
         screen: ONBOARDING_SCREENS.MESSAGE_STYLE,
@@ -149,7 +149,7 @@ export function MessageStyleScreen({ navigation }: Props) {
       setSelectedStyle(recommended);
       
       try {
-        analytics.trackEvent(ANALYTICS_EVENTS.MESSAGE_STYLE_RECOMMENDED, {
+        analytics.trackEvent(ANALYTICS_EVENTS.ONBOARDING_MESSAGE_STYLE_RECOMMENDED, {
           motivation_type: user.motivation_type,
           recommended_style: recommended,
           screen: ONBOARDING_SCREENS.MESSAGE_STYLE
@@ -191,7 +191,7 @@ export function MessageStyleScreen({ navigation }: Props) {
       });
       
       // Track message style selection
-      analytics.trackEvent(ANALYTICS_EVENTS.MESSAGE_STYLE_SELECTED, {
+      analytics.trackEvent(ANALYTICS_EVENTS.ONBOARDING_MESSAGE_STYLE_SELECTED, {
         selected_style: selectedStyle,
         recommended_style: recommendedStyle,
         changed_from_recommended: selectedStyle !== recommendedStyle,

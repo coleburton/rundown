@@ -168,8 +168,9 @@ export function useAuth() {
                   .single();
 
                 if (user.data && analytics && typeof analytics.track === 'function') {
+                  const signupDate = user.data.created_at ?? new Date().toISOString();
                   analytics.track(ANALYTICS_EVENTS.ACTIVATION_FIRST_ACTIVITY_SYNCED, {
-                    days_since_signup: calculateDaysSinceSignup(user.data.created_at),
+                    days_since_signup: calculateDaysSinceSignup(signupDate),
                     activity_type: activities[0].type,
                   });
 

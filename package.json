@@ -8,7 +8,14 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "typecheck": "tsc --noEmit",
+    "prepare": "husky",
+    "check-supabase": "cd supabase/functions && for dir in */; do echo \"Checking $dir...\"; deno check \"$dir/index.ts\" || exit 1; done",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:changed": "jest --onlyChanged"
   },
   "dependencies": {
     "@babel/runtime": "^7.28.2",
@@ -58,13 +65,33 @@
   },
   "devDependencies": {
     "@babel/core": "^7.28.0",
+    "@testing-library/jest-native": "^5.4.3",
+    "@testing-library/react-native": "^13.3.3",
+    "@types/jest": "^30.0.0",
     "@types/react": "~19.0.10",
     "babel-plugin-module-resolver": "^5.0.2",
     "babel-preset-expo": "~13.0.0",
     "dotenv": "^16.0.3",
     "eslint": "^9.25.0",
     "eslint-config-expo": "~9.2.0",
+    "husky": "^9.1.7",
+    "jest": "^29.7.0",
+    "jest-expo": "^54.0.16",
+    "lint-staged": "^15.5.2",
+    "react-test-renderer": "^19.0.0",
     "typescript": "~5.8.3"
+  },
+  "lint-staged": {
+    "src/**/*.{ts,tsx}": [
+      "eslint --fix --quiet"
+    ],
+    "App.tsx": [
+      "eslint --fix --quiet"
+    ],
+    "supabase/functions/**/*.ts": [
+      "bash scripts/run-deno-lint.sh",
+      "bash scripts/run-deno-check.sh"
+    ]
   },
   "private": true
 }

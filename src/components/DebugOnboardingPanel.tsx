@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-nati
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { isDebugMode } from '../lib/debug-mode';
-import type { RootStackParamList } from '../../App';
+import type { RootStackParamList } from '@/types/navigation';
 
 type Navigation = NativeStackNavigationProp<RootStackParamList>;
 
@@ -46,7 +46,7 @@ export function DebugOnboardingPanel({
   }
 
   const handleNavigate = (screenName: keyof RootStackParamList) => {
-    navigation.navigate(screenName);
+    navigation.navigate(screenName as never);
     setIsExpanded(false);
   };
 

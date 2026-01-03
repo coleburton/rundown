@@ -59,7 +59,7 @@ export function SocialProofScreen({ navigation }: Props) {
         total_steps: 9
       });
       
-      analytics.trackEvent(ANALYTICS_EVENTS.SOCIAL_PROOF_VIEWED);
+      analytics.trackEvent(ANALYTICS_EVENTS.ONBOARDING_SOCIAL_PROOF_VIEWED);
     } catch (error) {
       trackOnboardingError(error as Error, {
         screen: ONBOARDING_SCREENS.SOCIAL_PROOF,

@@ -10,7 +10,12 @@
     },
     "jsx": "react-native",
     "types": [
-      "react-native"
+      "react-native",
+      "jest"
+    ],
+    "typeRoots": [
+      "./node_modules/@types",
+      "./node_modules/react-native/types"
     ],
     "allowJs": true,
     "esModuleInterop": true,
@@ -20,5 +25,9 @@
   "include": [
     "**/*.ts",
     "**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules",
+    "supabase"
   ]
 }

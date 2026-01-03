@@ -54,7 +54,7 @@ export function ContactSetupScreen({ navigation }: Props) {
         total_steps: 9
       });
       
-      analytics.trackEvent(ANALYTICS_EVENTS.CONTACT_SETUP_STARTED);
+      analytics.trackEvent(ANALYTICS_EVENTS.ONBOARDING_CONTACT_SETUP_STARTED);
     } catch (error) {
       trackOnboardingError(error as Error, {
         screen: ONBOARDING_SCREENS.CONTACT_SETUP,
