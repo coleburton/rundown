@@ -1,0 +1,338 @@
+app-example/components/Collapsible.tsx(6,28): error TS2307: Cannot find module '@/components/ui/IconSymbol' or its corresponding type declarations.
+app-example/components/Collapsible.tsx(7,24): error TS2307: Cannot find module '@/constants/Colors' or its corresponding type declarations.
+app-example/components/Collapsible.tsx(19,9): error TS2322: Type '{ children: Element[]; style: { flexDirection: string; alignItems: string; gap: number; }; onPress: () => void; activeOpacity: number; }' is not assignable to type 'IntrinsicAttributes & TouchableOpacityProps'.
+  Property 'activeOpacity' does not exist on type 'IntrinsicAttributes & TouchableOpacityProps'.
+app-example/components/Collapsible.tsx(24,18): error TS2367: This comparison appears to be unintentional because the types 'ColorSchemeContextType' and 'string' have no overlap.
+app-example/components/Collapsible.tsx(28,21): error TS2322: Type '{ children: string; type: string; }' is not assignable to type 'IntrinsicAttributes & ThemedTextProps'.
+  Property 'type' does not exist on type 'IntrinsicAttributes & ThemedTextProps'.
+app-example/components/HapticTab.tsx(9,19): error TS7006: Parameter 'ev' implicitly has an 'any' type.
+app-example/components/ParallaxScrollView.tsx(11,38): error TS2307: Cannot find module '@/components/ui/TabBarBackground' or its corresponding type declarations.
+app-example/components/ParallaxScrollView.tsx(27,36): error TS2344: Type 'AnimatedScrollView' does not satisfy the constraint 'Component<{}, {}, any>'.
+app-example/components/ParallaxScrollView.tsx(51,9): error TS2322: Type '{ children: Element[]; ref: AnimatedRef<AnimatedScrollView>; scrollEventThrottle: number; scrollIndicatorInsets: { bottom: any; }; contentContainerStyle: { ...; }; }' is not assignable to type 'IntrinsicAttributes & AnimatedScrollViewProps & RefAttributes<AnimatedScrollView>'.
+  Property 'scrollEventThrottle' does not exist on type 'IntrinsicAttributes & AnimatedScrollViewProps & RefAttributes<AnimatedScrollView>'.
+app-example/components/ParallaxScrollView.tsx(57,54): error TS2538: Type 'ColorSchemeContextType' cannot be used as an index type.
+app-example/components/ui/IconSymbol.tsx(6,10): error TS2305: Module '"react-native"' has no exported member 'OpaqueColorValue'.
+app-example/components/ui/TabBarBackground.ios.tsx(12,25): error TS2339: Property 'absoluteFill' does not exist on type '{ create<T extends { [key: string]: any; }>(styles: T): T; }'.
+app-example/hooks/useColorScheme.ts(1,10): error TS2305: Module '"react-native"' has no exported member 'useColorScheme'.
+app-example/hooks/useColorScheme.web.ts(2,10): error TS2305: Module '"react-native"' has no exported member 'useColorScheme'.
+app-example/hooks/useThemeColor.ts(6,24): error TS2307: Cannot find module '@/constants/Colors' or its corresponding type declarations.
+app-example/hooks/useThemeColor.ts(14,32): error TS2538: Type 'ColorSchemeContextType' cannot be used as an index type.
+App.tsx(108,40): error TS2322: Type '({ navigation, route }: Props) => Element' is not assignable to type 'ScreenComponentType<RootStackParamList, "GoalSetup"> | undefined'.
+  Type '({ navigation, route }: Props) => Element' is not assignable to type 'FunctionComponent<{}>'.
+    Types of parameters '__0' and 'props' are incompatible.
+      Type '{}' is missing the following properties from type 'Props': navigation, route
+components/Collapsible.tsx(6,28): error TS2307: Cannot find module '@/components/ui/IconSymbol' or its corresponding type declarations.
+components/Collapsible.tsx(7,24): error TS2307: Cannot find module '@/constants/Colors' or its corresponding type declarations.
+components/Collapsible.tsx(19,9): error TS2322: Type '{ children: Element[]; style: { flexDirection: string; alignItems: string; gap: number; }; onPress: () => void; activeOpacity: number; }' is not assignable to type 'IntrinsicAttributes & TouchableOpacityProps'.
+  Property 'activeOpacity' does not exist on type 'IntrinsicAttributes & TouchableOpacityProps'.
+components/Collapsible.tsx(24,18): error TS2367: This comparison appears to be unintentional because the types 'ColorSchemeContextType' and 'string' have no overlap.
+components/Collapsible.tsx(28,21): error TS2322: Type '{ children: string; type: string; }' is not assignable to type 'IntrinsicAttributes & ThemedTextProps'.
+  Property 'type' does not exist on type 'IntrinsicAttributes & ThemedTextProps'.
+components/HapticTab.tsx(9,19): error TS7006: Parameter 'ev' implicitly has an 'any' type.
+components/ParallaxScrollView.tsx(11,38): error TS2307: Cannot find module '@/components/ui/TabBarBackground' or its corresponding type declarations.
+components/ParallaxScrollView.tsx(27,36): error TS2344: Type 'AnimatedScrollView' does not satisfy the constraint 'Component<{}, {}, any>'.
+components/ParallaxScrollView.tsx(51,9): error TS2322: Type '{ children: Element[]; ref: AnimatedRef<AnimatedScrollView>; scrollEventThrottle: number; scrollIndicatorInsets: { bottom: any; }; contentContainerStyle: { ...; }; }' is not assignable to type 'IntrinsicAttributes & AnimatedScrollViewProps & RefAttributes<AnimatedScrollView>'.
+  Property 'scrollEventThrottle' does not exist on type 'IntrinsicAttributes & AnimatedScrollViewProps & RefAttributes<AnimatedScrollView>'.
+components/ParallaxScrollView.tsx(57,54): error TS2538: Type 'ColorSchemeContextType' cannot be used as an index type.
+components/ui/IconSymbol.tsx(6,10): error TS2305: Module '"react-native"' has no exported member 'OpaqueColorValue'.
+components/ui/TabBarBackground.ios.tsx(12,25): error TS2339: Property 'absoluteFill' does not exist on type '{ create<T extends { [key: string]: any; }>(styles: T): T; }'.
+hooks/useColorScheme.ts(1,10): error TS2305: Module '"react-native"' has no exported member 'useColorScheme'.
+hooks/useColorScheme.web.ts(2,10): error TS2305: Module '"react-native"' has no exported member 'useColorScheme'.
+hooks/useThemeColor.ts(6,24): error TS2307: Cannot find module '@/constants/Colors' or its corresponding type declarations.
+hooks/useThemeColor.ts(14,32): error TS2538: Type 'ColorSchemeContextType' cannot be used as an index type.
+src/components/AddContactModal.tsx(5,3): error TS2305: Module '"react-native"' has no exported member 'Modal'.
+src/components/AddContactModal.tsx(10,3): error TS2305: Module '"react-native"' has no exported member 'Alert'.
+src/components/AddContactModal.tsx(236,15): error TS2322: Type '{ placeholder: string; value: string; onChangeText: (text: string) => void; keyboardType: string; autoCapitalize: "none"; autoComplete: string; autoCorrect: false; style: { borderRadius: number; ... 4 more ...; paddingHorizontal: number; }; }' is not assignable to type 'IntrinsicAttributes & InputProps'.
+  Property 'autoComplete' does not exist on type 'IntrinsicAttributes & InputProps'.
+src/components/DebugOnboardingPanel.tsx(49,25): error TS2769: No overload matches this call.
+  Argument of type '[keyof RootStackParamList]' is not assignable to parameter of type '[screen: "Dashboard", params?: undefined, options?: { merge?: boolean | undefined; pop?: boolean | undefined; } | undefined] | [screen: "Settings", params?: undefined, options?: { merge?: boolean | undefined; pop?: boolean | undefined; } | undefined] | ... 17 more ... | [screen: ...]'.
+    Type '[keyof RootStackParamList]' is not assignable to type '[screen: "Dashboard", params?: undefined, options?: { merge?: boolean | undefined; pop?: boolean | undefined; } | undefined] | [screen: "Settings", params?: undefined, options?: { merge?: boolean | undefined; pop?: boolean | undefined; } | undefined] | ... 16 more ... | [screen: ...]'.
+      Type '[keyof RootStackParamList]' is not assignable to type '[screen: "FitnessAppConnect", params?: undefined, options?: { merge?: boolean | undefined; pop?: boolean | undefined; } | undefined]'.
+        Type at position 0 in source is not compatible with type at position 0 in target.
+          Type 'keyof RootStackParamList' is not assignable to type '"FitnessAppConnect"'.
+            Type '"Dashboard"' is not assignable to type '"FitnessAppConnect"'.
+  Overload 2 of 2, '(options: { name: "Dashboard"; params: undefined; path?: string | undefined; merge?: boolean | undefined; pop?: boolean | undefined; } | { name: "Settings"; params: undefined; path?: string | undefined; merge?: boolean | undefined; pop?: boolean | undefined; } | ... 17 more ... | { ...; }): void', gave the following error.
+    Argument of type 'string' is not assignable to parameter of type '{ name: "Dashboard"; params: undefined; path?: string | undefined; merge?: boolean | undefined; pop?: boolean | undefined; } | { name: "Settings"; params: undefined; path?: string | undefined; merge?: boolean | undefined; pop?: boolean | undefined; } | ... 17 more ... | { ...; }'.
+      Type 'string' is not assignable to type '{ name: "Dashboard"; params: undefined; path?: string | undefined; merge?: boolean | undefined; pop?: boolean | undefined; } | { name: "Settings"; params: undefined; path?: string | undefined; merge?: boolean | undefined; pop?: boolean | undefined; } | ... 17 more ... | { ...; }'.
+src/components/EnhancedGoalPicker.tsx(252,19): error TS2322: Type '{ style: ({ fontSize: number; fontWeight: string; textAlign: string; width: number; padding: number; marginBottom: number; } | { color: string; })[]; value: string; onChangeText: Dispatch<SetStateAction<string>>; ... 5 more ...; placeholderTextColor: string; }' is not assignable to type 'IntrinsicAttributes & TextInputProps'.
+  Property 'autoFocus' does not exist on type 'IntrinsicAttributes & TextInputProps'.
+src/components/EnhancedGoalPicker.tsx(285,37): error TS2339: Property 'icon' does not exist on type 'never'.
+src/components/EnhancedGoalPicker.tsx(287,38): error TS2339: Property 'color' does not exist on type 'never'.
+src/components/EnhancedGoalPicker.tsx(291,30): error TS2339: Property 'title' does not exist on type 'never'.
+src/components/EnhancedGoalPicker.tsx(294,30): error TS2339: Property 'description' does not exist on type 'never'.
+src/components/OnboardingCarousel.tsx(2,34): error TS2305: Module '"react-native"' has no exported member 'Dimensions'.
+src/components/ServiceLogo.tsx(2,10): error TS2305: Module '"react-native"' has no exported member 'Image'.
+src/components/ServiceLogo.tsx(2,17): error TS2305: Module '"react-native"' has no exported member 'ImageProps'.
+src/components/StravaConnectionStatus.tsx(2,40): error TS2305: Module '"react-native"' has no exported member 'Alert'.
+src/components/StravaConnectionStatus.tsx(155,9): error TS2322: Type '{ children: Element; onPress: () => Promise<void>; disabled: boolean; style: { backgroundColor: string; borderRadius: number; paddingVertical: number; paddingHorizontal: number; alignItems: string; }; }' is not assignable to type 'IntrinsicAttributes & TouchableOpacityProps'.
+  Property 'disabled' does not exist on type 'IntrinsicAttributes & TouchableOpacityProps'.
+src/components/SubscriptionCancelledModal.tsx(2,40): error TS2305: Module '"react-native"' has no exported member 'Modal'.
+src/components/ui/input.tsx(197,20): error TS2339: Property 'spring' does not exist on type '{ Value: any; View: ComponentType<any>; timing: (value: any, config: any) => any; sequence: (animations: any[]) => any; }'.
+src/components/ui/input.tsx(207,20): error TS2339: Property 'spring' does not exist on type '{ Value: any; View: ComponentType<any>; timing: (value: any, config: any) => any; sequence: (animations: any[]) => any; }'.
+src/components/ui/input.tsx(218,9): error TS2322: Type '{ value?: string | undefined; onChangeText?: ((text: string) => void) | undefined; placeholder?: string | undefined; placeholderTextColor: string; editable?: boolean | undefined; onFocus: (e: any) => void; ... 16 more ...; style: any[]; } | { ...; }' is not assignable to type 'IntrinsicAttributes & TextInputProps'.
+  Type '{ value?: string | undefined; onChangeText?: ((text: string) => void) | undefined; placeholder?: string | undefined; placeholderTextColor: string; editable?: boolean | undefined; onFocus: (e: any) => void; ... 16 more ...; style: any[]; }' is not assignable to type 'IntrinsicAttributes & TextInputProps'.
+    Property 'importantForAutofill' does not exist on type 'IntrinsicAttributes & TextInputProps'.
+src/hooks/useAuth.ts(71,19): error TS2353: Object literal may only specify known properties, and 'last_login_at' does not exist in type '{ access_token?: string | null | undefined; birthday?: string | null | undefined; created_at?: string | null | undefined; email?: string | undefined; first_name?: string | null | undefined; ... 22 more ...; updated_at?: string | ... 1 more ... | undefined; }'.
+src/hooks/useAuth.ts(157,23): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(relation: "contacts" | "users" | "user_goals" | "activities" | "buddy_events" | "goal_history" | "goal_progress" | "messages" | "run_logs" | "strava_webhook_events" | "sync_status"): PostgrestQueryBuilder<...>', gave the following error.
+    Argument of type '"strava_activities"' is not assignable to parameter of type '"contacts" | "users" | "user_goals" | "activities" | "buddy_events" | "goal_history" | "goal_progress" | "messages" | "run_logs" | "strava_webhook_events" | "sync_status"'.
+  Overload 2 of 2, '(relation: never): PostgrestQueryBuilder<{ Tables: { activities: { Row: { achievement_count: number | null; average_heartrate: number | null; average_speed: number | null; created_at: string | null; distance: number | null; ... 15 more ...; user_id: string; }; Insert: { ...; }; Update: { ...; }; Relationships: []; }; ... 9 more ...; users: { ...; }; }; Views: {}; Functions: { ...; }; Enums: {}; CompositeTypes: {}; }, never, never, never>', gave the following error.
+    Argument of type '"strava_activities"' is not assignable to parameter of type 'never'.
+src/hooks/useAuth.ts(172,65): error TS2345: Argument of type 'string | null' is not assignable to parameter of type 'string | Date'.
+  Type 'null' is not assignable to type 'string | Date'.
+src/hooks/useAuth.ts(173,50): error TS2339: Property 'type' does not exist on type '{ access_token: string | null; birthday: string | null; created_at: string | null; email: string; first_name: string | null; fitness_level: string | null; goal_per_week: number; ... 20 more ...; updated_at: string | null; } | ... 9 more ... | { ...; }'.
+  Property 'type' does not exist on type '{ access_token: string | null; birthday: string | null; created_at: string | null; email: string; first_name: string | null; fitness_level: string | null; goal_per_week: number; goal_type: string | null; ... 19 more ...; updated_at: string | null; }'.
+src/hooks/useMockContacts.ts(37,9): error TS2353: Object literal may only specify known properties, and 'userId' does not exist in type 'Omit<Contact, "id">'.
+src/hooks/useMockContacts.ts(72,44): error TS2353: Object literal may only specify known properties, and 'isActive' does not exist in type 'Contact'.
+src/hooks/useStravaActivities.ts(61,24): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/hooks/useStravaActivities.ts(74,21): error TS2345: Argument of type '{ achievement_count: number | null; average_heartrate: number | null; average_speed: number | null; created_at: string | null; distance: number | null; elapsed_time: number | null; ... 14 more ...; user_id: string; }[]' is not assignable to parameter of type 'SetStateAction<Activity[]>'.
+  Type '{ achievement_count: number | null; average_heartrate: number | null; average_speed: number | null; created_at: string | null; distance: number | null; elapsed_time: number | null; ... 14 more ...; user_id: string; }[]' is not assignable to type 'Activity[]'.
+    Type '{ achievement_count: number | null; average_heartrate: number | null; average_speed: number | null; created_at: string | null; distance: number | null; elapsed_time: number | null; ... 14 more ...; user_id: string; }' is not assignable to type 'Activity'.
+      Types of property 'distance' are incompatible.
+        Type 'number | null' is not assignable to type 'number'.
+          Type 'null' is not assignable to type 'number'.
+src/hooks/useThemeColor.ts(41,24): error TS2367: This comparison appears to be unintentional because the types 'ColorSchemeContextType' and 'string' have no overlap.
+src/lib/message-templates.ts(6,3): error TS7061: A mapped type may not declare properties or methods.
+src/lib/message-templates.ts(170,23): error TS7053: Element implicitly has an 'any' type because expression of type 'MessageStyle' can't be used to index type 'MessageBank'.
+  Property 'supportive' does not exist on type 'MessageBank'.
+src/lib/MixpanelProvider.tsx(18,45): error TS2339: Property 'APP_OPEN' does not exist on type '{ readonly APP_LAUNCHED: "app:launched"; readonly APP_BACKGROUNDED: "app:backgrounded"; readonly APP_FOREGROUNDED: "app:foregrounded"; readonly APP_SESSION_STARTED: "app:session_started"; ... 96 more ...; readonly NETWORK_ERROR: "network:error"; }'.
+src/lib/mock-contacts.ts(8,5): error TS2353: Object literal may only specify known properties, and 'userId' does not exist in type 'Contact'.
+src/lib/mock-contacts.ts(16,5): error TS2353: Object literal may only specify known properties, and 'userId' does not exist in type 'Contact'.
+src/lib/mock-contacts.ts(53,52): error TS2339: Property 'userId' does not exist on type 'Contact'.
+src/lib/mock-contacts.ts(96,7): error TS2353: Object literal may only specify known properties, and 'isActive' does not exist in type 'Contact'.
+src/lib/mock-contacts.ts(106,26): error TS2339: Property 'userId' does not exist on type 'Contact'.
+src/lib/mock-contacts.ts(106,55): error TS2339: Property 'isActive' does not exist on type 'Contact'.
+src/lib/mock-messages.ts(107,11): error TS2353: Object literal may only specify known properties, and 'userId' does not exist in type 'AccountabilityMessage'.
+src/lib/mock-messages.ts(123,18): error TS2551: Property 'sentAt' does not exist on type 'AccountabilityMessage'. Did you mean 'sent_at'?
+src/lib/mock-messages.ts(123,49): error TS2551: Property 'sentAt' does not exist on type 'AccountabilityMessage'. Did you mean 'sent_at'?
+src/lib/mock-messages.ts(133,52): error TS2339: Property 'userId' does not exist on type 'AccountabilityMessage'.
+src/lib/mock-messages.ts(158,44): error TS2551: Property 'sentAt' does not exist on type 'AccountabilityMessage'. Did you mean 'sent_at'?
+src/lib/mock-messages.ts(160,17): error TS2339: Property 'userId' does not exist on type 'AccountabilityMessage'.
+src/screens/activity-detail-screen.tsx(7,10): error TS2305: Module '"react-native"' has no exported member 'Linking'.
+src/screens/activity-detail-screen.tsx(311,103): error TS2322: Type '{ children: string; style: { fontSize: number; fontWeight: string; color: string; textAlign: string; }; numberOfLines: number; adjustsFontSizeToFit: true; }' is not assignable to type 'IntrinsicAttributes & TextProps'.
+  Property 'numberOfLines' does not exist on type 'IntrinsicAttributes & TextProps'.
+src/screens/activity-detail-screen.tsx(329,103): error TS2322: Type '{ children: string; style: { fontSize: number; fontWeight: string; color: string; textAlign: string; }; numberOfLines: number; adjustsFontSizeToFit: true; }' is not assignable to type 'IntrinsicAttributes & TextProps'.
+  Property 'numberOfLines' does not exist on type 'IntrinsicAttributes & TextProps'.
+src/screens/activity-detail-screen.tsx(347,103): error TS2322: Type '{ children: string; style: { fontSize: number; fontWeight: string; color: string; textAlign: string; }; numberOfLines: number; adjustsFontSizeToFit: true; }' is not assignable to type 'IntrinsicAttributes & TextProps'.
+  Property 'numberOfLines' does not exist on type 'IntrinsicAttributes & TextProps'.
+src/screens/activity-history-screen.tsx(2,52): error TS2305: Module '"react-native"' has no exported member 'RefreshControl'.
+src/screens/activity-history-screen.tsx(226,9): error TS2322: Type '{ children: (false | Element)[]; contentContainerStyle: { padding: number; }; refreshControl: Element; }' is not assignable to type 'IntrinsicAttributes & ScrollViewProps'.
+  Property 'refreshControl' does not exist on type 'IntrinsicAttributes & ScrollViewProps'.
+src/screens/activity-history-screen.tsx(421,21): error TS2322: Type '{ children: (false | Element)[]; key: string; style: { flexDirection: string; alignItems: string; backgroundColor: string; borderRadius: number; padding: number; borderWidth: number; borderColor: string; }; onPress: () => void; activeOpacity: number; }' is not assignable to type 'IntrinsicAttributes & TouchableOpacityProps'.
+  Property 'activeOpacity' does not exist on type 'IntrinsicAttributes & TouchableOpacityProps'.
+src/screens/contact-setup-screen.tsx(57,45): error TS2551: Property 'CONTACT_SETUP_STARTED' does not exist on type '{ readonly APP_LAUNCHED: "app:launched"; readonly APP_BACKGROUNDED: "app:backgrounded"; readonly APP_FOREGROUNDED: "app:foregrounded"; readonly APP_SESSION_STARTED: "app:session_started"; ... 96 more ...; readonly NETWORK_ERROR: "network:error"; }'. Did you mean 'CONTACT_UPDATED'?
+src/screens/contact-setup-screen.tsx(241,13): error TS2322: Type '{ placeholder: string; value: string; onChangeText: (text: string) => void; keyboardType: string; autoCapitalize: "none"; autoComplete: string; autoCorrect: false; style: { marginBottom: number; ... 5 more ...; paddingHorizontal: number; }; }' is not assignable to type 'IntrinsicAttributes & InputProps'.
+  Property 'autoComplete' does not exist on type 'IntrinsicAttributes & InputProps'.
+src/screens/contact-setup-screen.tsx(275,40): error TS2339: Property 'first_name' does not exist on type 'User'.
+src/screens/contact-setup-screen.tsx(275,60): error TS2339: Property 'name' does not exist on type 'User'.
+src/screens/dashboard-screen-backup.tsx(137,32): error TS2749: 'ScrollView' refers to a value, but is being used as a type here. Did you mean 'typeof ScrollView'?
+src/screens/dashboard-screen-backup.tsx(201,13): error TS2322: Type '{ children: Element | Element[]; ref: RefObject<ScrollView>; horizontal: true; showsHorizontalScrollIndicator: false; contentContainerStyle: { paddingLeft: number; paddingRight: number; }; }' is not assignable to type 'IntrinsicAttributes & ScrollViewProps'.
+  Property 'ref' does not exist on type 'IntrinsicAttributes & ScrollViewProps'.
+src/screens/dashboard-screen-backup.tsx(225,17): error TS2322: Type '{ children: Element[]; key: number; style: { alignItems: string; marginHorizontal: number; }; onPress: () => void; activeOpacity: number; }' is not assignable to type 'IntrinsicAttributes & TouchableOpacityProps'.
+  Property 'activeOpacity' does not exist on type 'IntrinsicAttributes & TouchableOpacityProps'.
+src/screens/dashboard-screen-backup.tsx(479,46): error TS2345: Argument of type 'string' is not assignable to parameter of type 'GoalType'.
+src/screens/dashboard-screen-backup.tsx(565,43): error TS2345: Argument of type 'string' is not assignable to parameter of type 'GoalType'.
+src/screens/dashboard-screen-backup.tsx(641,16): error TS2448: Block-scoped variable 'shouldShowSimpleDashboard' used before its declaration.
+src/screens/dashboard-screen-backup.tsx(641,16): error TS2454: Variable 'shouldShowSimpleDashboard' is used before being assigned.
+src/screens/dashboard-screen-backup.tsx(641,44): error TS2448: Block-scoped variable 'simpleCurrentWeekData' used before its declaration.
+src/screens/dashboard-screen-backup.tsx(641,44): error TS2454: Variable 'simpleCurrentWeekData' is used before being assigned.
+src/screens/dashboard-screen-backup.tsx(655,29): error TS2448: Block-scoped variable 'shouldShowSimpleDashboard' used before its declaration.
+src/screens/dashboard-screen-backup.tsx(655,29): error TS2454: Variable 'shouldShowSimpleDashboard' is used before being assigned.
+src/screens/dashboard-screen-backup.tsx(934,37): error TS2345: Argument of type 'string' is not assignable to parameter of type 'GoalType'.
+src/screens/dashboard-screen-backup.tsx(943,13): error TS1355: A 'const' assertions can only be applied to references to enum members, or string, number, boolean, array, or object literals.
+src/screens/dashboard-screen-backup.tsx(978,15): error TS2322: Type '{ children: Element; onPress: () => void; disabled: boolean; style: { backgroundColor: string; borderRadius: number; width: number; height: number; alignItems: string; justifyContent: string; marginRight: number; }; }' is not assignable to type 'IntrinsicAttributes & TouchableOpacityProps'.
+  Property 'disabled' does not exist on type 'IntrinsicAttributes & TouchableOpacityProps'.
+src/screens/dashboard-screen-backup.tsx(1003,15): error TS2322: Type '{ children: Element; onPress: () => void; disabled: boolean; style: { backgroundColor: string; borderRadius: number; width: number; height: number; alignItems: string; justifyContent: string; marginLeft: number; }; }' is not assignable to type 'IntrinsicAttributes & TouchableOpacityProps'.
+  Property 'disabled' does not exist on type 'IntrinsicAttributes & TouchableOpacityProps'.
+src/screens/dashboard-screen-backup.tsx(1197,19): error TS2322: Type '{ children: Element[]; key: any; style: { flexDirection: string; alignItems: string; backgroundColor: string; borderRadius: number; padding: number; borderWidth: number; borderColor: string; }; onPress: () => void; activeOpacity: number; }' is not assignable to type 'IntrinsicAttributes & TouchableOpacityProps'.
+  Property 'activeOpacity' does not exist on type 'IntrinsicAttributes & TouchableOpacityProps'.
+src/screens/dashboard-screen-backup.tsx(1225,25): error TS2322: Type '{ children: any; style: { fontSize: number; fontWeight: string; color: string; flex: number; marginRight: number; }; numberOfLines: number; ellipsizeMode: string; }' is not assignable to type 'IntrinsicAttributes & TextProps'.
+  Property 'numberOfLines' does not exist on type 'IntrinsicAttributes & TextProps'.
+src/screens/dashboard-screen-fintech.tsx(105,20): error TS2554: Expected 3 arguments, but got 2.
+src/screens/dashboard-screen-fintech.tsx(106,42): error TS2345: Argument of type '{ access_token: string | null; birthday: string | null; created_at: string | null; email: string; first_name: string | null; fitness_level: string | null; goal_per_week: number; ... 20 more ...; updated_at: string | null; } | null' is not assignable to parameter of type 'GoalType'.
+  Type 'null' is not assignable to type 'GoalType'.
+src/screens/dashboard-screen-fintech.tsx(193,29): error TS2339: Property 'current' does not exist on type '{ progress: number; goal: number; goalType: GoalType; }'.
+src/screens/dashboard-screen-fintech.tsx(205,29): error TS2322: Type '{ name: string; size: number; color: string; }' is not assignable to type 'IntrinsicAttributes & VectorIconProps'.
+  Property 'name' does not exist on type 'IntrinsicAttributes & VectorIconProps'.
+src/screens/dashboard-screen-fintech.tsx(229,25): error TS2322: Type '{ name: string; size: number; color: string; }' is not assignable to type 'IntrinsicAttributes & VectorIconProps'.
+  Property 'name' does not exist on type 'IntrinsicAttributes & VectorIconProps'.
+src/screens/dashboard-screen-fintech.tsx(245,31): error TS2322: Type '{ name: string; size: number; color: string; }' is not assignable to type 'IntrinsicAttributes & VectorIconProps'.
+  Property 'name' does not exist on type 'IntrinsicAttributes & VectorIconProps'.
+src/screens/dashboard-screen-fintech.tsx(272,28): error TS2339: Property 'contact_name' does not exist on type '{ access_token: string | null; birthday: string | null; created_at: string | null; email: string; first_name: string | null; fitness_level: string | null; goal_per_week: number; goal_type: string | null; ... 19 more ...; updated_at: string | null; }'.
+src/screens/dashboard-screen-fintech.tsx(280,31): error TS2322: Type '{ name: string; size: number; color: string; }' is not assignable to type 'IntrinsicAttributes & VectorIconProps'.
+  Property 'name' does not exist on type 'IntrinsicAttributes & VectorIconProps'.
+src/screens/dashboard-screen-fintech.tsx(284,22): error TS2339: Property 'contact_phone' does not exist on type '{ access_token: string | null; birthday: string | null; created_at: string | null; email: string; first_name: string | null; fitness_level: string | null; goal_per_week: number; goal_type: string | null; ... 19 more ...; updated_at: string | null; }'.
+src/screens/dashboard-screen-fintech.tsx(287,59): error TS2339: Property 'contact_phone' does not exist on type '{ access_token: string | null; birthday: string | null; created_at: string | null; email: string; first_name: string | null; fitness_level: string | null; goal_per_week: number; goal_type: string | null; ... 19 more ...; updated_at: string | null; }'.
+src/screens/dashboard-screen.tsx(2,52): error TS2305: Module '"react-native"' has no exported member 'RefreshControl'.
+src/screens/dashboard-screen.tsx(190,32): error TS2749: 'ScrollView' refers to a value, but is being used as a type here. Did you mean 'typeof ScrollView'?
+src/screens/dashboard-screen.tsx(261,13): error TS2322: Type '{ children: Element | Element[]; ref: RefObject<ScrollView>; horizontal: true; showsHorizontalScrollIndicator: false; contentContainerStyle: { paddingLeft: number; paddingRight: number; }; }' is not assignable to type 'IntrinsicAttributes & ScrollViewProps'.
+  Property 'ref' does not exist on type 'IntrinsicAttributes & ScrollViewProps'.
+src/screens/dashboard-screen.tsx(283,17): error TS2322: Type '{ children: Element[]; key: number; style: { alignItems: string; marginHorizontal: number; }; onPress: () => void; activeOpacity: number; }' is not assignable to type 'IntrinsicAttributes & TouchableOpacityProps'.
+  Property 'activeOpacity' does not exist on type 'IntrinsicAttributes & TouchableOpacityProps'.
+src/screens/dashboard-screen.tsx(490,7): error TS2448: Block-scoped variable 'refresh' used before its declaration.
+src/screens/dashboard-screen.tsx(490,7): error TS2454: Variable 'refresh' is used before being assigned.
+src/screens/dashboard-screen.tsx(664,46): error TS2345: Argument of type 'string' is not assignable to parameter of type 'GoalType'.
+src/screens/dashboard-screen.tsx(750,43): error TS2345: Argument of type 'string' is not assignable to parameter of type 'GoalType'.
+src/screens/dashboard-screen.tsx(831,16): error TS2448: Block-scoped variable 'shouldShowSimpleDashboard' used before its declaration.
+src/screens/dashboard-screen.tsx(831,16): error TS2454: Variable 'shouldShowSimpleDashboard' is used before being assigned.
+src/screens/dashboard-screen.tsx(831,44): error TS2448: Block-scoped variable 'simpleCurrentWeekData' used before its declaration.
+src/screens/dashboard-screen.tsx(831,44): error TS2454: Variable 'simpleCurrentWeekData' is used before being assigned.
+src/screens/dashboard-screen.tsx(845,29): error TS2448: Block-scoped variable 'shouldShowSimpleDashboard' used before its declaration.
+src/screens/dashboard-screen.tsx(845,29): error TS2454: Variable 'shouldShowSimpleDashboard' is used before being assigned.
+src/screens/dashboard-screen.tsx(1168,37): error TS2345: Argument of type 'string' is not assignable to parameter of type 'GoalType'.
+src/screens/dashboard-screen.tsx(1177,13): error TS1355: A 'const' assertions can only be applied to references to enum members, or string, number, boolean, array, or object literals.
+src/screens/dashboard-screen.tsx(1202,9): error TS2322: Type '{ children: Element; style: { flex: number; }; onScroll: (event: any) => void; scrollEventThrottle: number; refreshControl: Element; }' is not assignable to type 'IntrinsicAttributes & ScrollViewProps'.
+  Property 'onScroll' does not exist on type 'IntrinsicAttributes & ScrollViewProps'.
+src/screens/dashboard-screen.tsx(1202,20): error TS7006: Parameter 'event' implicitly has an 'any' type.
+src/screens/dashboard-screen.tsx(1282,15): error TS2322: Type '{ children: Element; onPress: () => void; disabled: boolean; style: { width: number; height: number; backgroundColor: string; borderRadius: number; alignItems: string; justifyContent: string; }; }' is not assignable to type 'IntrinsicAttributes & TouchableOpacityProps'.
+  Property 'disabled' does not exist on type 'IntrinsicAttributes & TouchableOpacityProps'.
+src/screens/dashboard-screen.tsx(1314,15): error TS2322: Type '{ children: Element; onPress: () => void; disabled: boolean; style: { width: number; height: number; backgroundColor: string; borderRadius: number; alignItems: string; justifyContent: string; }; }' is not assignable to type 'IntrinsicAttributes & TouchableOpacityProps'.
+  Property 'disabled' does not exist on type 'IntrinsicAttributes & TouchableOpacityProps'.
+src/screens/dashboard-screen.tsx(1363,13): error TS2322: Type '{ children: Element[]; onPress: () => void; style: { borderRadius: number; paddingHorizontal: number; paddingVertical: number; marginBottom: number; backgroundColor: string; borderWidth: number; borderColor: string; flexDirection: string; alignItems: string; }; activeOpacity: number; }' is not assignable to type 'IntrinsicAttributes & TouchableOpacityProps'.
+  Property 'activeOpacity' does not exist on type 'IntrinsicAttributes & TouchableOpacityProps'.
+src/screens/dashboard-screen.tsx(1482,23): error TS2322: Type '{ library: "Lucide"; name: string; size: number; color: string; style: { marginTop: number; }; }' is not assignable to type 'IntrinsicAttributes & IconComponentProps'.
+  Property 'style' does not exist on type 'IntrinsicAttributes & IconComponentProps'.
+src/screens/dashboard-screen.tsx(1687,21): error TS2322: Type '{ children: any[]; key: any; onPress: () => void; style: { backgroundColor: string; borderLeftWidth: number; borderLeftColor: string; paddingVertical: number; paddingHorizontal: number; flexDirection: string; alignItems: string; }; activeOpacity: number; }' is not assignable to type 'IntrinsicAttributes & TouchableOpacityProps'.
+  Property 'activeOpacity' does not exist on type 'IntrinsicAttributes & TouchableOpacityProps'.
+src/screens/dashboard-screen.tsx(1701,26): error TS2322: Type '{ children: any; style: { fontFamily: string; fontSize: number; color: string; marginBottom: number; }; numberOfLines: number; }' is not assignable to type 'IntrinsicAttributes & TextProps'.
+  Property 'numberOfLines' does not exist on type 'IntrinsicAttributes & TextProps'.
+src/screens/fitness-app-connect-screen.tsx(2,52): error TS2305: Module '"react-native"' has no exported member 'Linking'.
+src/screens/fitness-app-connect-screen.tsx(96,45): error TS2339: Property 'FITNESS_APP_CONNECT_STARTED' does not exist on type '{ readonly APP_LAUNCHED: "app:launched"; readonly APP_BACKGROUNDED: "app:backgrounded"; readonly APP_FOREGROUNDED: "app:foregrounded"; readonly APP_SESSION_STARTED: "app:session_started"; ... 96 more ...; readonly NETWORK_ERROR: "network:error"; }'.
+src/screens/fitness-app-connect-screen.tsx(121,45): error TS2339: Property 'FITNESS_APP_CONNECTED' does not exist on type '{ readonly APP_LAUNCHED: "app:launched"; readonly APP_BACKGROUNDED: "app:backgrounded"; readonly APP_FOREGROUNDED: "app:foregrounded"; readonly APP_SESSION_STARTED: "app:session_started"; ... 96 more ...; readonly NETWORK_ERROR: "network:error"; }'.
+src/screens/fitness-app-connect-screen.tsx(185,45): error TS2339: Property 'FITNESS_APP_SKIPPED' does not exist on type '{ readonly APP_LAUNCHED: "app:launched"; readonly APP_BACKGROUNDED: "app:backgrounded"; readonly APP_FOREGROUNDED: "app:foregrounded"; readonly APP_SESSION_STARTED: "app:session_started"; ... 96 more ...; readonly NETWORK_ERROR: "network:error"; }'.
+src/screens/fitness-app-connect-screen.tsx(296,15): error TS2322: Type '{ children: Element[]; key: string; onPress: () => false | void; disabled: boolean; style: { backgroundColor: string; borderWidth: number; borderColor: string; borderRadius: number; padding: number; ... 8 more ...; opacity: number; }; }' is not assignable to type 'IntrinsicAttributes & TouchableOpacityProps'.
+  Property 'disabled' does not exist on type 'IntrinsicAttributes & TouchableOpacityProps'.
+src/screens/goal-setup-screen.tsx(2,52): error TS2305: Module '"react-native"' has no exported member 'Alert'.
+src/screens/goal-setup-screen.tsx(61,45): error TS2339: Property 'GOAL_SETUP_STARTED' does not exist on type '{ readonly APP_LAUNCHED: "app:launched"; readonly APP_BACKGROUNDED: "app:backgrounded"; readonly APP_FOREGROUNDED: "app:foregrounded"; readonly APP_SESSION_STARTED: "app:session_started"; ... 96 more ...; readonly NETWORK_ERROR: "network:error"; }'.
+src/screens/goal-setup-screen.tsx(77,23): error TS2345: Argument of type '{ type: string; value: number; }' is not assignable to parameter of type 'SetStateAction<Goal>'.
+  Type '{ type: string; value: number; }' is not assignable to type 'Goal'.
+    Types of property 'type' are incompatible.
+      Type 'string' is not assignable to type 'GoalType'.
+src/screens/goal-setup-screen.tsx(78,23): error TS2345: Argument of type '{ type: string; value: number; }' is not assignable to parameter of type 'SetStateAction<Goal>'.
+  Type '{ type: string; value: number; }' is not assignable to type 'Goal'.
+    Types of property 'type' are incompatible.
+      Type 'string' is not assignable to type 'GoalType'.
+src/screens/goal-setup-screen.tsx(85,23): error TS2345: Argument of type '{ type: string; value: number; }' is not assignable to parameter of type 'SetStateAction<Goal>'.
+  Type '{ type: string; value: number; }' is not assignable to type 'Goal'.
+    Types of property 'type' are incompatible.
+      Type 'string' is not assignable to type 'GoalType'.
+src/screens/goal-setup-screen.tsx(86,23): error TS2345: Argument of type '{ type: string; value: number; }' is not assignable to parameter of type 'SetStateAction<Goal>'.
+  Type '{ type: string; value: number; }' is not assignable to type 'Goal'.
+    Types of property 'type' are incompatible.
+      Type 'string' is not assignable to type 'GoalType'.
+src/screens/goal-setup-screen.tsx(95,45): error TS2339: Property 'GOAL_SELECTED' does not exist on type '{ readonly APP_LAUNCHED: "app:launched"; readonly APP_BACKGROUNDED: "app:backgrounded"; readonly APP_FOREGROUNDED: "app:foregrounded"; readonly APP_SESSION_STARTED: "app:session_started"; ... 96 more ...; readonly NETWORK_ERROR: "network:error"; }'.
+src/screens/goal-setup-screen.tsx(178,29): error TS2769: No overload matches this call.
+  Argument of type '["ValuePreview"]' is not assignable to parameter of type '[screen: "Dashboard", params?: undefined, options?: { merge?: boolean | undefined; pop?: boolean | undefined; } | undefined] | [screen: "Settings", params?: undefined, options?: { merge?: boolean | undefined; pop?: boolean | undefined; } | undefined] | ... 6 more ... | [screen: ...]'.
+    Type '["ValuePreview"]' is not assignable to type '[screen: "Dashboard", params?: undefined, options?: { merge?: boolean | undefined; pop?: boolean | undefined; } | undefined] | [screen: "Settings", params?: undefined, options?: { merge?: boolean | undefined; pop?: boolean | undefined; } | undefined] | ... 5 more ... | [screen: ...]'.
+      Type '["ValuePreview"]' is not assignable to type '[screen: "OnboardingSuccess", params?: undefined, options?: { merge?: boolean | undefined; pop?: boolean | undefined; } | undefined]'.
+        Type at position 0 in source is not compatible with type at position 0 in target.
+          Type '"ValuePreview"' is not assignable to type '"OnboardingSuccess"'.
+  Overload 2 of 2, '(options: { name: "Dashboard"; params: undefined; path?: string | undefined; merge?: boolean | undefined; pop?: boolean | undefined; } | { name: "Settings"; params: undefined; path?: string | undefined; merge?: boolean | undefined; pop?: boolean | undefined; } | ... 6 more ... | { ...; }): void', gave the following error.
+    Argument of type 'string' is not assignable to parameter of type '{ name: "Dashboard"; params: undefined; path?: string | undefined; merge?: boolean | undefined; pop?: boolean | undefined; } | { name: "Settings"; params: undefined; path?: string | undefined; merge?: boolean | undefined; pop?: boolean | undefined; } | ... 6 more ... | { ...; }'.
+src/screens/goal-setup-screen.tsx(294,45): error TS2769: No overload matches this call.
+  Argument of type '["ValuePreview"]' is not assignable to parameter of type '[screen: "Dashboard", params?: undefined, options?: { merge?: boolean | undefined; pop?: boolean | undefined; } | undefined] | [screen: "Settings", params?: undefined, options?: { merge?: boolean | undefined; pop?: boolean | undefined; } | undefined] | ... 6 more ... | [screen: ...]'.
+    Type '["ValuePreview"]' is not assignable to type '[screen: "Dashboard", params?: undefined, options?: { merge?: boolean | undefined; pop?: boolean | undefined; } | undefined] | [screen: "Settings", params?: undefined, options?: { merge?: boolean | undefined; pop?: boolean | undefined; } | undefined] | ... 5 more ... | [screen: ...]'.
+      Type '["ValuePreview"]' is not assignable to type '[screen: "OnboardingSuccess", params?: undefined, options?: { merge?: boolean | undefined; pop?: boolean | undefined; } | undefined]'.
+        Type at position 0 in source is not compatible with type at position 0 in target.
+          Type '"ValuePreview"' is not assignable to type '"OnboardingSuccess"'.
+  Overload 2 of 2, '(options: { name: "Dashboard"; params: undefined; path?: string | undefined; merge?: boolean | undefined; pop?: boolean | undefined; } | { name: "Settings"; params: undefined; path?: string | undefined; merge?: boolean | undefined; pop?: boolean | undefined; } | ... 6 more ... | { ...; }): void', gave the following error.
+    Argument of type 'string' is not assignable to parameter of type '{ name: "Dashboard"; params: undefined; path?: string | undefined; merge?: boolean | undefined; pop?: boolean | undefined; } | { name: "Settings"; params: undefined; path?: string | undefined; merge?: boolean | undefined; pop?: boolean | undefined; } | ... 6 more ... | { ...; }'.
+src/screens/login-screen.tsx(9,3): error TS2305: Module '"react-native"' has no exported member 'Alert'.
+src/screens/login-screen.tsx(10,3): error TS2305: Module '"react-native"' has no exported member 'Linking'.
+src/screens/login-screen.tsx(66,14): error TS2339: Property 'parallel' does not exist on type '{ Value: any; View: ComponentType<any>; timing: (value: any, config: any) => any; sequence: (animations: any[]) => any; }'.
+src/screens/login-screen.tsx(424,9): error TS2322: Type '{ children: Element; style: { flex: number; }; showsVerticalScrollIndicator: false; keyboardShouldPersistTaps: string; }' is not assignable to type 'IntrinsicAttributes & ScrollViewProps'.
+  Property 'keyboardShouldPersistTaps' does not exist on type 'IntrinsicAttributes & ScrollViewProps'.
+src/screens/login-screen.tsx(450,37): error TS2322: Type '{ children: (false | Element)[]; style: { gap: number; }; importantForAutofill: string; }' is not assignable to type 'IntrinsicAttributes & ViewProps'.
+  Property 'importantForAutofill' does not exist on type 'IntrinsicAttributes & ViewProps'.
+src/screens/login-screen.tsx(467,17): error TS2322: Type '{ key: string; value: string; onChangeText: (text: string) => void; placeholder: string; variant: "destructive" | "default"; darkMode: boolean; style: { fontSize: number; }; keyboardType: string; ... 4 more ...; importantForAutofill: string; }' is not assignable to type 'IntrinsicAttributes & InputProps'.
+  Property 'textContentType' does not exist on type 'IntrinsicAttributes & InputProps'.
+src/screens/login-screen.tsx(493,19): error TS2322: Type '{ key: string; value: string; onChangeText: (password: string) => void; placeholder: string; variant: "destructive" | "default"; darkMode: boolean; style: ({ fontSize: number; } | { paddingRight: number; })[]; ... 7 more ...; importantForAutofill: string; }' is not assignable to type 'IntrinsicAttributes & InputProps'.
+  Property 'autoComplete' does not exist on type 'IntrinsicAttributes & InputProps'.
+src/screens/login-screen.tsx(557,21): error TS2322: Type '{ key: string; value: string; onChangeText: (text: string) => void; placeholder: string; variant: "destructive" | "default"; darkMode: boolean; style: ({ fontSize: number; } | { paddingRight: number; })[]; ... 7 more ...; importantForAutofill: string; }' is not assignable to type 'IntrinsicAttributes & InputProps'.
+  Property 'autoComplete' does not exist on type 'IntrinsicAttributes & InputProps'.
+src/screens/login-screen.tsx(605,21): error TS2322: Type '{ children: string; style: { color: string; textDecorationLine: string; }; onPress: () => void; }' is not assignable to type 'IntrinsicAttributes & TextProps'.
+  Property 'onPress' does not exist on type 'IntrinsicAttributes & TextProps'.
+src/screens/login-screen.tsx(612,21): error TS2322: Type '{ children: string; style: { color: string; textDecorationLine: string; }; onPress: () => void; }' is not assignable to type 'IntrinsicAttributes & TextProps'.
+  Property 'onPress' does not exist on type 'IntrinsicAttributes & TextProps'.
+src/screens/message-history-screen.tsx(2,52): error TS2305: Module '"react-native"' has no exported member 'RefreshControl'.
+src/screens/message-history-screen.tsx(14,51): error TS2339: Property 'message_queue' does not exist on type '{ activities: { Row: { achievement_count: number | null; average_heartrate: number | null; average_speed: number | null; created_at: string | null; distance: number | null; elapsed_time: number | null; ... 14 more ...; user_id: string; }; Insert: { ...; }; Update: { ...; }; Relationships: []; }; ... 9 more ...; user...'.
+src/screens/message-history-screen.tsx(63,15): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(relation: "contacts" | "users" | "user_goals" | "activities" | "buddy_events" | "goal_history" | "goal_progress" | "messages" | "run_logs" | "strava_webhook_events" | "sync_status"): PostgrestQueryBuilder<...>', gave the following error.
+    Argument of type '"message_queue"' is not assignable to parameter of type '"contacts" | "users" | "user_goals" | "activities" | "buddy_events" | "goal_history" | "goal_progress" | "messages" | "run_logs" | "strava_webhook_events" | "sync_status"'.
+  Overload 2 of 2, '(relation: never): PostgrestQueryBuilder<{ Tables: { activities: { Row: { achievement_count: number | null; average_heartrate: number | null; average_speed: number | null; created_at: string | null; distance: number | null; ... 15 more ...; user_id: string; }; Insert: { ...; }; Update: { ...; }; Relationships: []; }; ... 9 more ...; users: { ...; }; }; Views: {}; Functions: { ...; }; Enums: {}; CompositeTypes: {}; }, never, never, never>', gave the following error.
+    Argument of type '"message_queue"' is not assignable to parameter of type 'never'.
+src/screens/message-history-screen.tsx(78,23): error TS2345: Argument of type '{ contact_id: string; id: string; message_text: string; sent_at: string; status: string; user_id: string; contacts: { id: string; name: string; email: string; relationship: string | null; }; }[]' is not assignable to parameter of type 'SetStateAction<MessageWithContact[]>'.
+  Type '{ contact_id: string; id: string; message_text: string; sent_at: string; status: string; user_id: string; contacts: { id: string; name: string; email: string; relationship: string | null; }; }[]' is not assignable to type 'MessageWithContact[]'.
+    Type '{ contact_id: string; id: string; message_text: string; sent_at: string; status: string; user_id: string; contacts: { id: string; name: string; email: string; relationship: string | null; }; }' is not assignable to type 'MessageWithContact'.
+      Type '{ contact_id: string; id: string; message_text: string; sent_at: string; status: string; user_id: string; contacts: { id: string; name: string; email: string; relationship: string | null; }; }' is not assignable to type '{ contacts: { created_at: string | null; id: string; is_active: boolean | null; last_notified_at: string | null; name: string; notification_preference: string | null; opt_out_token: string | null; ... 6 more ...; verified_at: string | null; }; }'.
+        Types of property 'contacts' are incompatible.
+          Type '{ id: string; name: string; email: string; relationship: string | null; }' is missing the following properties from type '{ created_at: string | null; id: string; is_active: boolean | null; last_notified_at: string | null; name: string; notification_preference: string | null; opt_out_token: string | null; ... 6 more ...; verified_at: string | null; }': created_at, is_active, last_notified_at, notification_preference, and 6 more.
+src/screens/message-history-screen.tsx(261,9): error TS2322: Type '{ children: (false | Element)[]; contentContainerStyle: { padding: number; }; refreshControl: Element; }' is not assignable to type 'IntrinsicAttributes & ScrollViewProps'.
+  Property 'refreshControl' does not exist on type 'IntrinsicAttributes & ScrollViewProps'.
+src/screens/message-style-screen.tsx(50,25): error TS2339: Property 'supportive' does not exist on type 'MessageBank'.
+src/screens/message-style-screen.tsx(51,25): error TS2322: Type '"running"' is not assignable to type 'GoalType | undefined'.
+src/screens/message-style-screen.tsx(61,25): error TS2339: Property 'snarky' does not exist on type 'MessageBank'.
+src/screens/message-style-screen.tsx(62,25): error TS2322: Type '"running"' is not assignable to type 'GoalType | undefined'.
+src/screens/message-style-screen.tsx(72,25): error TS2339: Property 'competitive' does not exist on type 'MessageBank'.
+src/screens/message-style-screen.tsx(73,25): error TS2322: Type '"running"' is not assignable to type 'GoalType | undefined'.
+src/screens/message-style-screen.tsx(83,25): error TS2339: Property 'achievement' does not exist on type 'MessageBank'.
+src/screens/message-style-screen.tsx(84,25): error TS2322: Type '"running"' is not assignable to type 'GoalType | undefined'.
+src/screens/message-style-screen.tsx(94,25): error TS2339: Property 'chaotic' does not exist on type 'MessageBank'.
+src/screens/message-style-screen.tsx(95,25): error TS2322: Type '"running"' is not assignable to type 'GoalType | undefined'.
+src/screens/message-style-screen.tsx(136,45): error TS2551: Property 'MESSAGE_STYLE_STARTED' does not exist on type '{ readonly APP_LAUNCHED: "app:launched"; readonly APP_BACKGROUNDED: "app:backgrounded"; readonly APP_FOREGROUNDED: "app:foregrounded"; readonly APP_SESSION_STARTED: "app:session_started"; ... 96 more ...; readonly NETWORK_ERROR: "network:error"; }'. Did you mean 'MESSAGE_STYLE_CHANGED'?
+src/screens/message-style-screen.tsx(146,15): error TS2339: Property 'motivation_type' does not exist on type '{ access_token: string | null; birthday: string | null; created_at: string | null; email: string; first_name: string | null; fitness_level: string | null; goal_per_week: number; goal_type: string | null; ... 19 more ...; updated_at: string | null; }'.
+src/screens/message-style-screen.tsx(147,52): error TS2339: Property 'motivation_type' does not exist on type '{ access_token: string | null; birthday: string | null; created_at: string | null; email: string; first_name: string | null; fitness_level: string | null; goal_per_week: number; goal_type: string | null; ... 19 more ...; updated_at: string | null; }'.
+src/screens/message-style-screen.tsx(152,47): error TS2551: Property 'MESSAGE_STYLE_RECOMMENDED' does not exist on type '{ readonly APP_LAUNCHED: "app:launched"; readonly APP_BACKGROUNDED: "app:backgrounded"; readonly APP_FOREGROUNDED: "app:foregrounded"; readonly APP_SESSION_STARTED: "app:session_started"; ... 96 more ...; readonly NETWORK_ERROR: "network:error"; }'. Did you mean 'MESSAGE_STYLE_CHANGED'?
+src/screens/message-style-screen.tsx(153,33): error TS2339: Property 'motivation_type' does not exist on type '{ access_token: string | null; birthday: string | null; created_at: string | null; email: string; first_name: string | null; fitness_level: string | null; goal_per_week: number; goal_type: string | null; ... 19 more ...; updated_at: string | null; }'.
+src/screens/message-style-screen.tsx(164,13): error TS2339: Property 'motivation_type' does not exist on type '{ access_token: string | null; birthday: string | null; created_at: string | null; email: string; first_name: string | null; fitness_level: string | null; goal_per_week: number; goal_type: string | null; ... 19 more ...; updated_at: string | null; }'.
+src/screens/message-style-screen.tsx(194,45): error TS2339: Property 'MESSAGE_STYLE_SELECTED' does not exist on type '{ readonly APP_LAUNCHED: "app:launched"; readonly APP_BACKGROUNDED: "app:backgrounded"; readonly APP_FOREGROUNDED: "app:foregrounded"; readonly APP_SESSION_STARTED: "app:session_started"; ... 96 more ...; readonly NETWORK_ERROR: "network:error"; }'.
+src/screens/motivation-quiz-screen.tsx(91,45): error TS2339: Property 'MOTIVATION_QUIZ_STARTED' does not exist on type '{ readonly APP_LAUNCHED: "app:launched"; readonly APP_BACKGROUNDED: "app:backgrounded"; readonly APP_FOREGROUNDED: "app:foregrounded"; readonly APP_SESSION_STARTED: "app:session_started"; ... 96 more ...; readonly NETWORK_ERROR: "network:error"; }'.
+src/screens/motivation-quiz-screen.tsx(105,45): error TS2339: Property 'MOTIVATION_SELECTED' does not exist on type '{ readonly APP_LAUNCHED: "app:launched"; readonly APP_BACKGROUNDED: "app:backgrounded"; readonly APP_FOREGROUNDED: "app:foregrounded"; readonly APP_SESSION_STARTED: "app:session_started"; ... 96 more ...; readonly NETWORK_ERROR: "network:error"; }'.
+src/screens/motivation-quiz-screen.tsx(163,9): error TS2353: Object literal may only specify known properties, and 'motivation_type' does not exist in type 'Partial<User>'.
+src/screens/motivation-quiz-screen.tsx(200,26): error TS2353: Object literal may only specify known properties, and 'onboarding_step' does not exist in type 'Partial<User>'.
+src/screens/motivation-quiz-screen.tsx(309,29): error TS2322: Type 'string' is not assignable to type '"💪" | "🏃‍♂️" | "🏃" | "🚴‍♂️" | "🚴" | "🏊‍♂️" | "🚶‍♂️" | "🏋️‍♂️" | "🧘‍♂️" | "🎯" | "📊" | "🔥" | "🚀" | "👑" | "🌱" | "⚖️" | "💬" | "👥" | "👨‍👩‍👧‍👦" | "⚙️" | "📱" | "📍" | "📅" | ... 42 more ... | "📺"'.
+src/screens/onboarding-success-screen.tsx(75,52): error TS2339: Property 'SUCCESS' does not exist on type '{ readonly ONBOARDING: "onboarding"; readonly USER_INFO: "user_info"; readonly LOGIN: "login"; readonly WELCOME: "welcome"; readonly WHY_ACCOUNTABILITY: "why_accountability"; readonly SOCIAL_PROOF: "social_proof"; ... 6 more ...; readonly ONBOARDING_SUCCESS: "onboarding_success"; }'.
+src/screens/onboarding-success-screen.tsx(81,36): error TS2339: Property 'SUCCESS' does not exist on type '{ readonly ONBOARDING: "onboarding"; readonly USER_INFO: "user_info"; readonly LOGIN: "login"; readonly WELCOME: "welcome"; readonly WHY_ACCOUNTABILITY: "why_accountability"; readonly SOCIAL_PROOF: "social_proof"; ... 6 more ...; readonly ONBOARDING_SUCCESS: "onboarding_success"; }'.
+src/screens/onboarding-success-screen.tsx(88,26): error TS2551: Property 'ONBOARDING_COMPLETION_DATE' does not exist on type '{ readonly USER_ID: "user_id"; readonly EMAIL: "email"; readonly NAME: "name"; readonly FIRST_NAME: "first_name"; readonly LAST_NAME: "last_name"; readonly CREATED_AT: "created_at"; ... 36 more ...; readonly ACCOUNTABILITY_MESSAGES_SENT_COUNT: "accountability_messages_sent_count"; }'. Did you mean 'ONBOARDING_COMPLETED_AT'?
+src/screens/onboarding-success-screen.tsx(93,36): error TS2339: Property 'SUCCESS' does not exist on type '{ readonly ONBOARDING: "onboarding"; readonly USER_INFO: "user_info"; readonly LOGIN: "login"; readonly WELCOME: "welcome"; readonly WHY_ACCOUNTABILITY: "why_accountability"; readonly SOCIAL_PROOF: "social_proof"; ... 6 more ...; readonly ONBOARDING_SUCCESS: "onboarding_success"; }'.
+src/screens/onboarding-success-screen.tsx(119,36): error TS2339: Property 'SUCCESS' does not exist on type '{ readonly ONBOARDING: "onboarding"; readonly USER_INFO: "user_info"; readonly LOGIN: "login"; readonly WELCOME: "welcome"; readonly WHY_ACCOUNTABILITY: "why_accountability"; readonly SOCIAL_PROOF: "social_proof"; ... 6 more ...; readonly ONBOARDING_SUCCESS: "onboarding_success"; }'.
+src/screens/onboarding-success-screen.tsx(126,36): error TS2339: Property 'SUCCESS' does not exist on type '{ readonly ONBOARDING: "onboarding"; readonly USER_INFO: "user_info"; readonly LOGIN: "login"; readonly WELCOME: "welcome"; readonly WHY_ACCOUNTABILITY: "why_accountability"; readonly SOCIAL_PROOF: "social_proof"; ... 6 more ...; readonly ONBOARDING_SUCCESS: "onboarding_success"; }'.
+src/screens/paywall-free-trial-screen.tsx(5,10): error TS2305: Module '"react-native"' has no exported member 'Alert'.
+src/screens/paywall-screen.tsx(5,10): error TS2305: Module '"react-native"' has no exported member 'Alert'.
+src/screens/paywall-screen.tsx(94,43): error TS2551: Property 'SUBSCRIPTION_PLAN_SELECTED' does not exist on type '{ readonly APP_LAUNCHED: "app:launched"; readonly APP_BACKGROUNDED: "app:backgrounded"; readonly APP_FOREGROUNDED: "app:foregrounded"; readonly APP_SESSION_STARTED: "app:session_started"; ... 96 more ...; readonly NETWORK_ERROR: "network:error"; }'. Did you mean 'SUBSCRIPTION_PLAN_CHANGED'?
+src/screens/settings-screen.tsx(2,52): error TS2305: Module '"react-native"' has no exported member 'Alert'.
+src/screens/settings-screen.tsx(102,9): error TS2322: Type 'string' is not assignable to type 'GoalType'.
+src/screens/settings-screen.tsx(108,9): error TS2322: Type 'string' is not assignable to type 'GoalType'.
+src/screens/settings-screen.tsx(573,65): error TS2345: Argument of type '{ fromSettings: boolean; }' is not assignable to parameter of type 'undefined'.
+src/screens/social-proof-screen.tsx(62,45): error TS2339: Property 'SOCIAL_PROOF_VIEWED' does not exist on type '{ readonly APP_LAUNCHED: "app:launched"; readonly APP_BACKGROUNDED: "app:backgrounded"; readonly APP_FOREGROUNDED: "app:foregrounded"; readonly APP_SESSION_STARTED: "app:session_started"; ... 96 more ...; readonly NETWORK_ERROR: "network:error"; }'.
+src/screens/splash-screen.tsx(22,14): error TS2339: Property 'loop' does not exist on type '{ Value: any; View: ComponentType<any>; timing: (value: any, config: any) => any; sequence: (animations: any[]) => any; }'.
+src/screens/user-info-screen.tsx(5,3): error TS2305: Module '"react-native"' has no exported member 'Alert'.
+src/screens/user-info-screen.tsx(129,37): error TS2322: Type '"Please select your fitness level"' is not assignable to type '"" | "beginner" | "intermediate" | "advanced" | undefined'.
+src/screens/user-info-screen.tsx(132,36): error TS2322: Type '"Please select your primary goal"' is not assignable to type '"" | "motivation" | "consistency" | "accountability" | "habit_building" | undefined'.
+src/screens/user-info-screen.tsx(276,15): error TS2322: Type '{ value: string; onChangeText: (text: string) => void; placeholder: string; variant: "destructive" | "default"; darkMode: boolean; style: { marginBottom: number; fontFamily: string; fontSize: number; textAlign: string; }; autoCapitalize: "words"; autoFocus: true; }' is not assignable to type 'IntrinsicAttributes & InputProps'.
+  Property 'autoFocus' does not exist on type 'IntrinsicAttributes & InputProps'.
+src/screens/user-info-screen.tsx(301,15): error TS2322: Type '{ value: string; onChangeText: (text: string) => void; placeholder: string; variant: "destructive" | "default"; darkMode: boolean; style: { marginBottom: number; fontFamily: string; fontSize: number; textAlign: string; }; autoCapitalize: "words"; autoFocus: true; }' is not assignable to type 'IntrinsicAttributes & InputProps'.
+  Property 'autoFocus' does not exist on type 'IntrinsicAttributes & InputProps'.
+src/screens/user-info-screen.tsx(329,15): error TS2322: Type '{ value: string; onChangeText: (text: string) => void; placeholder: string; variant: "destructive" | "default"; darkMode: boolean; style: { marginBottom: number; fontFamily: string; fontSize: number; textAlign: string; }; keyboardType: string; autoFocus: true; }' is not assignable to type 'IntrinsicAttributes & InputProps'.
+  Property 'autoFocus' does not exist on type 'IntrinsicAttributes & InputProps'.
+src/screens/user-info-screen.tsx(360,21): error TS2322: Type '{ children: Element; key: string; style: (false | { backgroundColor: string; borderColor: string; })[]; onPress: () => void; accessibilityRole: string; }' is not assignable to type 'IntrinsicAttributes & TouchableOpacityProps'.
+  Property 'accessibilityRole' does not exist on type 'IntrinsicAttributes & TouchableOpacityProps'.
+src/screens/user-info-screen.tsx(434,21): error TS2322: Type '{ children: Element; key: string; style: (false | { backgroundColor: string; borderColor: string; })[]; onPress: () => void; accessibilityRole: string; }' is not assignable to type 'IntrinsicAttributes & TouchableOpacityProps'.
+  Property 'accessibilityRole' does not exist on type 'IntrinsicAttributes & TouchableOpacityProps'.
+src/screens/user-info-screen.tsx(508,15): error TS2322: Type '{ children: Element; onPress: () => void; style: (false | { width: number; height: number; borderRadius: number; borderWidth: number; borderColor: string; alignItems: string; justifyContent: string; backgroundColor: string; } | { ...; })[]; accessibilityRole: string; accessibilityLabel: string; disabled: boolean; }' is not assignable to type 'IntrinsicAttributes & TouchableOpacityProps'.
+  Property 'accessibilityRole' does not exist on type 'IntrinsicAttributes & TouchableOpacityProps'.
+src/screens/user-info-screen.tsx(527,15): error TS2322: Type '{ children: Element; onPress: () => void; style: { paddingHorizontal: number; paddingVertical: number; }; accessibilityRole: string; accessibilityLabel: string; }' is not assignable to type 'IntrinsicAttributes & TouchableOpacityProps'.
+  Property 'accessibilityRole' does not exist on type 'IntrinsicAttributes & TouchableOpacityProps'.
+src/screens/user-info-screen.tsx(556,9): error TS2322: Type '{ children: Element; style: { flex: number; }; contentContainerStyle: { paddingHorizontal: number; paddingTop: number; paddingBottom: number; }; showsVerticalScrollIndicator: false; keyboardShouldPersistTaps: string; }' is not assignable to type 'IntrinsicAttributes & ScrollViewProps'.
+  Property 'keyboardShouldPersistTaps' does not exist on type 'IntrinsicAttributes & ScrollViewProps'.
+src/screens/value-preview-screen.tsx(135,45): error TS2339: Property 'VALUE_PREVIEW_VIEWED' does not exist on type '{ readonly APP_LAUNCHED: "app:launched"; readonly APP_BACKGROUNDED: "app:backgrounded"; readonly APP_FOREGROUNDED: "app:foregrounded"; readonly APP_SESSION_STARTED: "app:session_started"; ... 96 more ...; readonly NETWORK_ERROR: "network:error"; }'.
+src/screens/value-preview-screen.tsx(268,22): error TS2339: Property 'motivation_type' does not exist on type '{ access_token: string | null; birthday: string | null; created_at: string | null; email: string; first_name: string | null; fitness_level: string | null; goal_per_week: number; goal_type: string | null; ... 19 more ...; updated_at: string | null; }'.
+src/screens/value-preview-screen.tsx(270,25): error TS2339: Property 'motivation_type' does not exist on type '{ access_token: string | null; birthday: string | null; created_at: string | null; email: string; first_name: string | null; fitness_level: string | null; goal_per_week: number; goal_type: string | null; ... 19 more ...; updated_at: string | null; }'.
+src/screens/welcome-screen.tsx(400,13): error TS2322: Type '{ children: Element; onPress: () => void; style: any; accessibilityRole: string; accessibilityLabel: string; }' is not assignable to type 'IntrinsicAttributes & TouchableOpacityProps'.
+  Property 'accessibilityRole' does not exist on type 'IntrinsicAttributes & TouchableOpacityProps'.
+src/screens/why-accountability-screen.tsx(86,45): error TS2339: Property 'WHY_ACCOUNTABILITY_VIEWED' does not exist on type '{ readonly APP_LAUNCHED: "app:launched"; readonly APP_BACKGROUNDED: "app:backgrounded"; readonly APP_FOREGROUNDED: "app:foregrounded"; readonly APP_SESSION_STARTED: "app:session_started"; ... 96 more ...; readonly NETWORK_ERROR: "network:error"; }'.
+src/services/strava-auth.ts(92,47): error TS2339: Property 'error' does not exist on type 'AuthSessionResult'.
+  Property 'error' does not exist on type '{ type: "cancel" | "dismiss" | "opened" | "locked"; }'.
+src/services/strava-auth.ts(344,56): error TS2304: Cannot find name 'BACKEND_URL'.
+src/services/strava-auth.ts(346,39): error TS2304: Cannot find name 'BACKEND_URL'.

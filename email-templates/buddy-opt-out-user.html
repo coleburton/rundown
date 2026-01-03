@@ -1,91 +1,258 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>{{contactName}} opted out</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <style>
-      body {
-        margin: 0;
-        padding: 0;
-        background-color: #0f172a;
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      }
-      .wrapper {
-        width: 100%;
-        padding: 40px 16px;
-      }
-      .card {
-        max-width: 520px;
-        margin: 0 auto;
-        background-color: #ffffff;
-        border-radius: 24px;
-        padding: 32px;
-        box-shadow: 0 20px 45px rgba(15, 23, 42, 0.35);
-      }
-      h1 {
-        margin: 0 0 12px;
-        font-size: 26px;
-        color: #0f172a;
-      }
-      p {
-        margin: 0 0 14px;
-        color: #475569;
-        line-height: 1.7;
-        font-size: 15px;
-      }
-      .highlight {
-        border-radius: 16px;
-        padding: 18px;
-        background-color: #fef3c7;
-        color: #92400e;
-        font-size: 15px;
-        margin-bottom: 20px;
-      }
-      .cta {
-        text-align: center;
-        margin-top: 28px;
-      }
-      .cta a {
-        display: inline-block;
-        padding: 14px 28px;
-        border-radius: 999px;
-        background-color: #f97316;
-        color: #ffffff !important;
-        text-decoration: none;
-        font-weight: 600;
-      }
-      .footer {
-        text-align: center;
-        margin-top: 18px;
-        font-size: 12px;
-        color: #94a3b8;
-      }
-      @media (max-width: 480px) {
-        .card {
-          padding: 24px;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <div class="wrapper">
-      <div class="card">
-        <h1>{{contactName}} opted out</h1>
-        <div class="highlight">
-          We won’t send accountability emails to {{contactName}} anymore. They clicked the opt-out link at {{optOutTime}}.
-        </div>
-        <p>
-          Keeping a buddy in the loop doubles your odds of hitting weekly goals. Add someone new (or invite {{contactName}} again later) so Rundown can continue nudging the right person when you need it.
-        </p>
-        <div class="cta">
-          <a href="{{manageContactsUrl}}" target="_blank" rel="noopener">Manage accountability contacts</a>
-        </div>
-        <div class="footer">
-          Rundown · Accountability for consistent fitness<br />
-          Need help? Reply to this email or reach {{supportEmail}}
-        </div>
-      </div>
-    </div>
-  </body>
+<html lang="en" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="x-apple-disable-message-reformatting">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="format-detection" content="telephone=no,address=no,email=no,date=no">
+  <meta name="color-scheme" content="light">
+  <meta name="supported-color-schemes" content="light">
+  <title>Update about your accountability partner</title>
+  <!--[if mso]>
+  <noscript>
+    <xml>
+      <o:OfficeDocumentSettings>
+        <o:PixelsPerInch>96</o:PixelsPerInch>
+      </o:OfficeDocumentSettings>
+    </xml>
+  </noscript>
+  <![endif]-->
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap');
+
+    :root {
+      color-scheme: light;
+      supported-color-schemes: light;
+    }
+
+    * { margin: 0; padding: 0; }
+
+    body {
+      margin: 0 !important;
+      padding: 0 !important;
+      width: 100% !important;
+      -webkit-text-size-adjust: 100%;
+      -ms-text-size-adjust: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    table {
+      border-collapse: collapse;
+      border-spacing: 0;
+      mso-table-lspace: 0pt;
+      mso-table-rspace: 0pt;
+    }
+
+    td { padding: 0; }
+
+    img {
+      border: 0;
+      line-height: 100%;
+      outline: none;
+      text-decoration: none;
+      -ms-interpolation-mode: bicubic;
+    }
+
+    a[x-apple-data-detectors] {
+      color: inherit !important;
+      text-decoration: none !important;
+    }
+
+    .heading-font {
+      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    @media only screen and (max-width: 600px) {
+      .mobile-padding { padding: 24px 20px !important; }
+      .mobile-heading { font-size: 28px !important; line-height: 34px !important; }
+      .mobile-text { font-size: 15px !important; line-height: 24px !important; }
+      .mobile-hide { display: none !important; }
+      .mobile-center { text-align: center !important; }
+    }
+  </style>
+</head>
+<body style="margin:0;padding:0;background-color:#fafafa;word-spacing:normal;">
+
+  <!-- Preheader text -->
+  <div style="display:none;font-size:1px;color:#fafafa;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">
+    {{contactName}} opted out of accountability updates. Here's what to do next.
+  </div>
+
+  <!-- Invisible preheader spacer -->
+  <div style="display:none;max-height:0px;overflow:hidden;">
+    &nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;
+  </div>
+
+  <!-- Email wrapper -->
+  <table role="presentation" style="width:100%;background-color:#fafafa;" cellpadding="0" cellspacing="0">
+    <tr>
+      <td align="center" style="padding:40px 20px;">
+
+        <!-- Main container -->
+        <table role="presentation" style="width:100%;max-width:600px;background-color:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.06);" cellpadding="0" cellspacing="0">
+
+          <!-- Logo/Brand Header -->
+          <tr>
+            <td style="padding:32px 40px 24px;" class="mobile-padding">
+              <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;">
+                <tr>
+                  <td>
+                    <div style="font-family:'DM Sans',-apple-system,sans-serif;font-size:24px;font-weight:700;color:#0f172a;letter-spacing:-0.02em;">
+                      Rundown
+                    </div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Hero Banner -->
+          <tr>
+            <td style="padding:0 40px 32px;" class="mobile-padding">
+              <div style="background-color:#fef3c7;border-radius:12px;padding:32px;border-left:6px solid #f59e0b;">
+                <h1 style="margin:0 0 12px;font-family:'DM Sans',-apple-system,sans-serif;font-size:28px;font-weight:700;color:#92400e;letter-spacing:-0.03em;line-height:1.2;" class="heading-font mobile-heading">
+                  {{contactName}} opted out
+                </h1>
+                <p style="margin:0;font-size:16px;line-height:26px;color:#78350f;font-weight:500;" class="mobile-text">
+                  We won't send them accountability updates anymore
+                </p>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Main Content -->
+          <tr>
+            <td style="padding:0 40px 32px;" class="mobile-padding">
+
+              <!-- Status Update -->
+              <div style="background-color:#f8fafc;border-radius:12px;padding:24px;margin:0 0 28px;border:1px solid #e2e8f0;">
+                <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;">
+                  <tr>
+                    <td style="width:32px;padding-right:16px;vertical-align:top;">
+                      <div style="width:32px;height:32px;background-color:#fef3c7;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;">
+                        ⓘ
+                      </div>
+                    </td>
+                    <td style="vertical-align:top;">
+                      <p style="margin:0;font-size:15px;line-height:24px;color:#475569;">
+                        <strong style="color:#0f172a;font-weight:600;">{{contactName}}</strong> clicked the opt-out link on <strong style="color:#0f172a;font-weight:600;">{{optOutTime}}</strong>. They won't receive any more emails about your goals.
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+              </div>
+
+              <!-- Main Message -->
+              <p style="margin:0 0 24px;font-size:16px;line-height:26px;color:#334155;">
+                No worries—people's bandwidth changes. The important thing is keeping <em style="color:#0f172a;font-style:normal;font-weight:600;">someone</em> in your corner.
+              </p>
+
+              <p style="margin:0 0 32px;font-size:16px;line-height:26px;color:#334155;">
+                Research shows that having an accountability partner makes you <strong style="color:#0f172a;font-weight:600;">65% more likely</strong> to hit your weekly goals. We'd recommend adding a new contact so Rundown can keep you on track.
+              </p>
+
+              <!-- Stats Card -->
+              <div style="background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);border-radius:12px;padding:28px 24px;margin:0 0 32px;text-align:center;">
+                <div style="margin-bottom:16px;">
+                  <div style="font-family:'DM Sans',-apple-system,sans-serif;font-size:48px;font-weight:700;color:#f97316;line-height:1;letter-spacing:-0.04em;" class="heading-font">
+                    65%
+                  </div>
+                </div>
+                <p style="margin:0;font-size:15px;line-height:24px;color:rgba(255,255,255,0.9);">
+                  Higher success rate when someone's<br class="mobile-hide"> in your corner
+                </p>
+              </div>
+
+              <!-- Suggestions -->
+              <div style="background-color:#fafafa;border-radius:12px;padding:24px;margin:0 0 32px;">
+                <h2 style="margin:0 0 16px;font-family:'DM Sans',-apple-system,sans-serif;font-size:18px;font-weight:700;color:#0f172a;letter-spacing:-0.02em;" class="heading-font">
+                  Who makes a good accountability partner?
+                </h2>
+
+                <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;">
+                  <tr>
+                    <td style="padding-bottom:12px;">
+                      <p style="margin:0;font-size:15px;line-height:24px;color:#475569;">
+                        <span style="color:#f97316;font-weight:700;margin-right:8px;">✓</span> Someone who genuinely cares about your progress
+                      </p>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding-bottom:12px;">
+                      <p style="margin:0;font-size:15px;line-height:24px;color:#475569;">
+                        <span style="color:#f97316;font-weight:700;margin-right:8px;">✓</span> A friend or family member who'll be honest with you
+                      </p>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <p style="margin:0;font-size:15px;line-height:24px;color:#475569;">
+                        <span style="color:#f97316;font-weight:700;margin-right:8px;">✓</span> Anyone you'd feel motivated to stay consistent for
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+              </div>
+
+              <!-- CTA Button -->
+              <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;margin:0 0 24px;">
+                <tr>
+                  <td align="center">
+                    <a href="{{manageContactsUrl}}" style="display:inline-block;background-color:#f97316;color:#ffffff;text-decoration:none;padding:16px 32px;border-radius:100px;font-family:'DM Sans',-apple-system,sans-serif;font-size:16px;font-weight:600;letter-spacing:-0.01em;box-shadow:0 4px 12px rgba(249,115,22,0.3);" class="heading-font">
+                      Add a new accountability partner
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Alternative action -->
+              <div style="text-align:center;">
+                <p style="margin:0;font-size:14px;line-height:22px;color:#64748b;">
+                  You can always <a href="{{manageContactsUrl}}" style="color:#f97316;text-decoration:none;font-weight:600;">re-invite {{contactName}}</a> later too
+                </p>
+              </div>
+
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding:32px 40px;background-color:#fafafa;border-top:1px solid #e2e8f0;" class="mobile-padding">
+              <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;">
+                <tr>
+                  <td style="padding-bottom:16px;">
+                    <div style="font-family:'DM Sans',-apple-system,sans-serif;font-size:16px;font-weight:700;color:#0f172a;margin-bottom:4px;" class="heading-font">
+                      Rundown
+                    </div>
+                    <p style="margin:0;font-size:13px;line-height:20px;color:#64748b;">
+                      Accountability for consistent fitness
+                    </p>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding-bottom:12px;">
+                    <p style="margin:0;font-size:13px;line-height:20px;color:#64748b;">
+                      This is an automated notification about changes to your accountability contacts.
+                    </p>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <p style="margin:0;font-size:13px;line-height:20px;color:#64748b;">
+                      Questions? Reply to this email or contact us at <a href="mailto:{{supportEmail}}" style="color:#f97316;text-decoration:none;">{{supportEmail}}</a>
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+        </table>
+
+      </td>
+    </tr>
+  </table>
+
+</body>
 </html>

@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "lib": ["deno.window"],
+    "strict": true
+  },
+  "tasks": {
+    "test": "deno test --allow-all --coverage=coverage",
+    "test:watch": "deno test --allow-all --watch"
+  },
+  "imports": {
+    "std/": "https://deno.land/std@0.168.0/"
+  }
+}

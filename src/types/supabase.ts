@@ -83,9 +83,81 @@ export type Database = {
           total_elevation_gain?: number | null
           type?: string
           user_id?: string
-        }
-        Relationships: []
       }
+      Relationships: []
+    }
+    strava_activities: {
+      Row: {
+        achievement_count: number | null
+        average_heartrate: number | null
+        average_speed: number | null
+        created_at: string | null
+        distance: number | null
+        elapsed_time: number | null
+        id: string
+        kudos_count: number | null
+        max_heartrate: number | null
+        max_speed: number | null
+        moving_time: number | null
+        name: string
+        raw_data: Json | null
+        sport_type: string
+        start_date: string
+        start_date_local: string
+        strava_activity_id: number
+        synced_at: string | null
+        total_elevation_gain: number | null
+        type: string
+        user_id: string
+      }
+      Insert: {
+        achievement_count?: number | null
+        average_heartrate?: number | null
+        average_speed?: number | null
+        created_at?: string | null
+        distance?: number | null
+        elapsed_time?: number | null
+        id?: string
+        kudos_count?: number | null
+        max_heartrate?: number | null
+        max_speed?: number | null
+        moving_time?: number | null
+        name: string
+        raw_data?: Json | null
+        sport_type: string
+        start_date: string
+        start_date_local: string
+        strava_activity_id: number
+        synced_at?: string | null
+        total_elevation_gain?: number | null
+        type: string
+        user_id: string
+      }
+      Update: {
+        achievement_count?: number | null
+        average_heartrate?: number | null
+        average_speed?: number | null
+        created_at?: string | null
+        distance?: number | null
+        elapsed_time?: number | null
+        id?: string
+        kudos_count?: number | null
+        max_heartrate?: number | null
+        max_speed?: number | null
+        moving_time?: number | null
+        name?: string
+        raw_data?: Json | null
+        sport_type?: string
+        start_date?: string
+        start_date_local?: string
+        strava_activity_id?: number
+        synced_at?: string | null
+        total_elevation_gain?: number | null
+        type?: string
+        user_id?: string
+      }
+      Relationships: []
+    }
       buddy_events: {
         Row: {
           contact_id: string
@@ -293,17 +365,80 @@ export type Database = {
           sent_at?: string
           status?: string
           user_id?: string
+      }
+      Relationships: [
+        {
+          foreignKeyName: "messages_contact_id_fkey"
+          columns: ["contact_id"]
+          isOneToOne: false
+          referencedRelation: "contacts"
+          referencedColumns: ["id"]
+        },
+        {
+          foreignKeyName: "messages_user_id_fkey"
+          columns: ["user_id"]
+          isOneToOne: false
+          referencedRelation: "users"
+          referencedColumns: ["id"]
+        },
+      ]
+    }
+      message_queue: {
+        Row: {
+          attempts: number | null
+          contact_id: string
+          created_at: string | null
+          error_message: string | null
+          id: string
+          max_attempts: number | null
+          message_text: string
+          priority: number | null
+          scheduled_for: string
+          sent_at: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          attempts?: number | null
+          contact_id: string
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          max_attempts?: number | null
+          message_text: string
+          priority?: number | null
+          scheduled_for: string
+          sent_at?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          attempts?: number | null
+          contact_id?: string
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          max_attempts?: number | null
+          message_text?: string
+          priority?: number | null
+          scheduled_for?: string
+          sent_at?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "messages_contact_id_fkey"
+            foreignKeyName: "message_queue_contact_id_fkey"
             columns: ["contact_id"]
             isOneToOne: false
             referencedRelation: "contacts"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "messages_user_id_fkey"
+            foreignKeyName: "message_queue_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
@@ -483,6 +618,8 @@ export type Database = {
           access_token: string | null
           birthday: string | null
           created_at: string | null
+          contact_name: string | null
+          contact_phone: string | null
           email: string
           first_name: string | null
           fitness_level: string | null
@@ -490,6 +627,7 @@ export type Database = {
           goal_type: string | null
           goal_value: number | null
           id: string
+          last_login_at: string | null
           last_name: string | null
           measurement_unit: string | null
           message_day: string | null
@@ -498,6 +636,7 @@ export type Database = {
           name: string | null
           notification_enabled: boolean | null
           primary_goal: string | null
+          motivation_type: string | null
           refresh_token: string | null
           push_token: string | null
           reminder_time: string | null
@@ -513,6 +652,8 @@ export type Database = {
           access_token?: string | null
           birthday?: string | null
           created_at?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
           email: string
           first_name?: string | null
           fitness_level?: string | null
@@ -520,6 +661,7 @@ export type Database = {
           goal_type?: string | null
           goal_value?: number | null
           id?: string
+          last_login_at?: string | null
           last_name?: string | null
           measurement_unit?: string | null
           message_day?: string | null
@@ -528,6 +670,7 @@ export type Database = {
           name?: string | null
           notification_enabled?: boolean | null
           primary_goal?: string | null
+          motivation_type?: string | null
           refresh_token?: string | null
           push_token?: string | null
           reminder_time?: string | null
@@ -543,6 +686,8 @@ export type Database = {
           access_token?: string | null
           birthday?: string | null
           created_at?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
           email?: string
           first_name?: string | null
           fitness_level?: string | null
@@ -550,6 +695,7 @@ export type Database = {
           goal_type?: string | null
           goal_value?: number | null
           id?: string
+          last_login_at?: string | null
           last_name?: string | null
           measurement_unit?: string | null
           message_day?: string | null
@@ -558,6 +704,7 @@ export type Database = {
           name?: string | null
           notification_enabled?: boolean | null
           primary_goal?: string | null
+          motivation_type?: string | null
           refresh_token?: string | null
           push_token?: string | null
           reminder_time?: string | null

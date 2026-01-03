@@ -7,6 +7,8 @@ const INITIAL_CONTACTS: Contact[] = [
     id: '1',
     userId: '1',
     name: 'Alice Runner',
+    email: 'alice@example.com',
+    phone: '+1234567890',
     phoneNumber: '+1234567890',
     notificationPreference: 'all',
     isActive: true,
@@ -15,6 +17,8 @@ const INITIAL_CONTACTS: Contact[] = [
     id: '2',
     userId: '1',
     name: 'Bob Jogger',
+    email: 'bob@example.com',
+    phone: '+1987654321',
     phoneNumber: '+1987654321',
     notificationPreference: 'missed-goals',
     isActive: true,
@@ -60,6 +64,8 @@ export class MockContacts {
     const newContact: Contact = {
       ...contact,
       id: `contact-${Date.now()}`,
+      isActive: contact.isActive ?? true,
+      phone: contact.phone || contact.phoneNumber,
     };
 
     this.contacts.push(newContact);

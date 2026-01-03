@@ -5,6 +5,7 @@ import React, { useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { VectorIcon } from '@/components/ui/IconComponent';
 import Animated, {
+    type SharedValue,
     useAnimatedStyle,
     useSharedValue,
     withDelay,
@@ -72,25 +73,25 @@ export function OnboardingSuccessScreen({ navigation }: Props) {
   useEffect(() => {
     // Track onboarding completion
     try {
-      trackOnboardingScreenView(ONBOARDING_SCREENS.SUCCESS, {
+      trackOnboardingScreenView(ONBOARDING_SCREENS.ONBOARDING_SUCCESS, {
         step_number: 9,
         total_steps: 9
       });
       
       analytics.trackEvent(ANALYTICS_EVENTS.ONBOARDING_COMPLETED, {
-        screen: ONBOARDING_SCREENS.SUCCESS,
+        screen: ONBOARDING_SCREENS.ONBOARDING_SUCCESS,
         completion_time: Date.now()
       });
       
       // Set final user properties
       setUserProperties({
         [USER_PROPERTIES.ONBOARDING_COMPLETED]: true,
-        [USER_PROPERTIES.ONBOARDING_COMPLETION_DATE]: new Date().toISOString(),
+        [USER_PROPERTIES.ONBOARDING_COMPLETED_AT]: new Date().toISOString(),
         [USER_PROPERTIES.ONBOARDING_STEP]: 'completed'
       });
     } catch (error) {
       trackOnboardingError(error as Error, {
-        screen: ONBOARDING_SCREENS.SUCCESS,
+        screen: ONBOARDING_SCREENS.ONBOARDING_SUCCESS,
         action: 'completion_tracking'
       });
     }
@@ -102,8 +103,8 @@ export function OnboardingSuccessScreen({ navigation }: Props) {
     );
     
     // Trigger confetti animation
-    confettiAnimation.value = withDelay(200, withSpring(1, { damping: 10, stiffness: 50 }));
-  }, []);
+  confettiAnimation.value = withDelay(200, withSpring(1, { damping: 10, stiffness: 50 }));
+  }, [animation, confettiAnimation]);
 
   const iconStyle = useAnimatedStyle(() => ({
     transform: [
@@ -116,14 +117,14 @@ export function OnboardingSuccessScreen({ navigation }: Props) {
     try {
       analytics.trackEvent(ANALYTICS_EVENTS.BUTTON_CLICK, {
         button_name: 'lets_get_started',
-        screen: ONBOARDING_SCREENS.SUCCESS,
+        screen: ONBOARDING_SCREENS.ONBOARDING_SUCCESS,
         action: 'navigate_to_dashboard'
       });
       
       navigation.navigate('Dashboard');
     } catch (error) {
       trackOnboardingError(error as Error, {
-        screen: ONBOARDING_SCREENS.SUCCESS,
+        screen: ONBOARDING_SCREENS.ONBOARDING_SUCCESS,
         action: 'continue_button_click'
       });
       navigation.navigate('Dashboard');
@@ -133,39 +134,10 @@ export function OnboardingSuccessScreen({ navigation }: Props) {
   return (
     <View style={styles.container}>
       {confetti.map((conf, index) => (
-        <Animated.View
+        <ConfettiPiece
           key={index}
-          style={[
-            styles.confetti,
-            {
-              left: `${conf.x}%`,
-              top: `${conf.y}%`,
-              backgroundColor: conf.color,
-              borderRadius: conf.shape === 'circle' ? 4 : 1,
-            },
-            useAnimatedStyle(() => {
-              const rotationValue = withDelay(conf.delay, withSpring(conf.rotate + (confettiAnimation.value * 360)));
-              return {
-                opacity: withDelay(conf.delay, withSpring(confettiAnimation.value)),
-                transform: [
-                  { scale: withDelay(conf.delay, withSpring(conf.scale * confettiAnimation.value)) },
-                  { rotate: `${rotationValue}deg` },
-                  { 
-                    translateX: withDelay(
-                      conf.delay,
-                      withSpring(conf.velocityX * confettiAnimation.value, { damping: 8, stiffness: 60 })
-                    ) 
-                  },
-                  { 
-                    translateY: withDelay(
-                      conf.delay,
-                      withSpring(conf.velocityY * confettiAnimation.value, { damping: 8, stiffness: 60 })
-                    ) 
-                  },
-                ],
-              };
-            }),
-          ]}
+          conf={conf}
+          confettiAnimation={confettiAnimation}
         />
       ))}
 
@@ -300,4 +272,53 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontWeight: '500',
   },
-}); 
+});
+
+interface ConfettiPieceProps {
+  conf: Confetti;
+  confettiAnimation: SharedValue<number>;
+}
+
+function ConfettiPiece({ conf, confettiAnimation }: ConfettiPieceProps) {
+  const animatedStyle = useAnimatedStyle(() => {
+    const rotationValue = withDelay(
+      conf.delay,
+      withSpring(conf.rotate + (confettiAnimation.value * 360))
+    );
+
+    return {
+      opacity: withDelay(conf.delay, withSpring(confettiAnimation.value)),
+      transform: [
+        { scale: withDelay(conf.delay, withSpring(conf.scale * confettiAnimation.value)) },
+        { rotate: `${rotationValue}deg` },
+        {
+          translateX: withDelay(
+            conf.delay,
+            withSpring(conf.velocityX * confettiAnimation.value, { damping: 8, stiffness: 60 })
+          ),
+        },
+        {
+          translateY: withDelay(
+            conf.delay,
+            withSpring(conf.velocityY * confettiAnimation.value, { damping: 8, stiffness: 60 })
+          ),
+        },
+      ],
+    };
+  });
+
+  return (
+    <Animated.View
+      style={[
+        styles.confetti,
+        {
+          left: `${conf.x}%`,
+          top: `${conf.y}%`,
+          backgroundColor: conf.color,
+          borderRadius: conf.shape === 'circle' ? 4 : 1,
+        },
+        animatedStyle,
+      ]}
+    />
+  );
+}

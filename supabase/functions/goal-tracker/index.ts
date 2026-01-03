@@ -1,2 +1,324 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';\n\nconst SUPABASE_URL = Deno.env.get('SUPABASE_URL');\nconst SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');\n\ninterface Goal {\n  id: string;\n  user_id: string;\n  goal_type: string;\n  target_value: number;\n  target_unit: string;\n  activity_types: string[];\n  time_period: string;\n  start_date?: string;\n  end_date?: string;\n}\n\ninterface Activity {\n  id: string;\n  user_id: string;\n  type: string;\n  start_date: string;\n  distance: number;\n  moving_time: number;\n}\n\nserve(async (req) => {\n  try {\n    const supabase = createClient(\n      SUPABASE_URL!,\n      SUPABASE_SERVICE_ROLE_KEY!\n    );\n\n    const method = req.method;\n    const url = new URL(req.url);\n    const action = url.searchParams.get('action') || 'update_all';\n    const userId = url.searchParams.get('user_id');\n\n    switch (method) {\n      case 'POST':\n        if (action === 'update_all') {\n          return await updateAllUserProgress(supabase);\n        } else if (action === 'update_user' && userId) {\n          return await updateUserProgress(supabase, userId);\n        } else {\n          return new Response(\n            JSON.stringify({ error: 'Invalid action or missing user_id' }),\n            { status: 400 }\n          );\n        }\n      \n      case 'GET':\n        if (action === 'check_missed' && userId) {\n          return await checkMissedGoals(supabase, userId);\n        } else {\n          return new Response(\n            JSON.stringify({ error: 'Invalid action or missing user_id' }),\n            { status: 400 }\n          );\n        }\n\n      default:\n        return new Response(\n          JSON.stringify({ error: 'Method not allowed' }),\n          { status: 405 }\n        );\n    }\n  } catch (error) {\n    console.error('Error in goal-tracker:', error);\n    return new Response(\n      JSON.stringify({ error: error.message }),\n      { status: 500 }\n    );\n  }\n});\n\nasync function updateAllUserProgress(supabase: any) {\n  // Get all users with active goals\n  const { data: users, error: usersError } = await supabase\n    .from('user_goals')\n    .select('user_id')\n    .eq('is_active', true)\n    .distinct();\n\n  if (usersError) throw usersError;\n\n  const results = [];\n  for (const user of users) {\n    try {\n      const result = await updateUserProgress(supabase, user.user_id);\n      results.push({ user_id: user.user_id, status: 'success' });\n    } catch (error) {\n      console.error(`Error updating progress for user ${user.user_id}:`, error);\n      results.push({ user_id: user.user_id, status: 'error', error: error.message });\n    }\n  }\n\n  return new Response(\n    JSON.stringify({ updated_users: results.length, results }),\n    { status: 200 }\n  );\n}\n\nasync function updateUserProgress(supabase: any, userId: string) {\n  // Get all active goals for user\n  const { data: goals, error: goalsError } = await supabase\n    .from('user_goals')\n    .select('*')\n    .eq('user_id', userId)\n    .eq('is_active', true);\n\n  if (goalsError) throw goalsError;\n\n  const updatedGoals = [];\n\n  for (const goal of goals) {\n    try {\n      const periods = generatePeriods(goal);\n      \n      for (const period of periods) {\n        const progress = await calculateGoalProgress(supabase, goal, period);\n        \n        // Upsert progress record\n        const { error: progressError } = await supabase\n          .from('goal_progress')\n          .upsert({\n            goal_id: goal.id,\n            user_id: userId,\n            period_start: period.start,\n            period_end: period.end,\n            current_value: progress.current,\n            target_value: progress.target,\n            last_updated: new Date().toISOString()\n          }, { onConflict: 'goal_id,period_start' });\n\n        if (progressError) {\n          console.error(`Progress update error for goal ${goal.id}:`, progressError);\n        }\n      }\n      \n      updatedGoals.push(goal.id);\n    } catch (error) {\n      console.error(`Error updating goal ${goal.id}:`, error);\n    }\n  }\n\n  return { updated_goals: updatedGoals };\n}\n\nfunction generatePeriods(goal: Goal) {\n  const now = new Date();\n  const periods = [];\n\n  switch (goal.time_period) {\n    case 'weekly':\n      // Current week (Monday to Sunday)\n      const monday = new Date(now);\n      monday.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1));\n      monday.setHours(0, 0, 0, 0);\n      \n      const sunday = new Date(monday);\n      sunday.setDate(monday.getDate() + 6);\n      sunday.setHours(23, 59, 59, 999);\n      \n      periods.push({\n        start: monday.toISOString().split('T')[0],\n        end: sunday.toISOString().split('T')[0]\n      });\n      break;\n\n    case 'monthly':\n      // Current month\n      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);\n      const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);\n      \n      periods.push({\n        start: monthStart.toISOString().split('T')[0],\n        end: monthEnd.toISOString().split('T')[0]\n      });\n      break;\n\n    case 'daily':\n      // Today\n      const today = new Date(now);\n      today.setHours(0, 0, 0, 0);\n      \n      const todayEnd = new Date(now);\n      todayEnd.setHours(23, 59, 59, 999);\n      \n      periods.push({\n        start: today.toISOString().split('T')[0],\n        end: todayEnd.toISOString().split('T')[0]\n      });\n      break;\n\n    case 'custom':\n      if (goal.start_date && goal.end_date) {\n        periods.push({\n          start: goal.start_date,\n          end: goal.end_date\n        });\n      }\n      break;\n  }\n\n  return periods;\n}\n\nasync function calculateGoalProgress(supabase: any, goal: Goal, period: { start: string, end: string }) {\n  const { data: activities, error: activitiesError } = await supabase\n    .from('activities')\n    .select('*')\n    .eq('user_id', goal.user_id)\n    .in('type', goal.activity_types)\n    .gte('start_date', period.start)\n    .lte('start_date', period.end + 'T23:59:59');\n\n  if (activitiesError) throw activitiesError;\n\n  let currentValue = 0;\n\n  switch (goal.goal_type) {\n    case 'weekly_runs':\n    case 'monthly_runs':\n      currentValue = activities.length;\n      break;\n\n    case 'weekly_distance':\n    case 'monthly_distance':\n      currentValue = activities.reduce((sum: number, activity: Activity) => {\n        const distanceInUnit = goal.target_unit === 'miles' \n          ? activity.distance / 1609.34 \n          : activity.distance / 1000; // kilometers\n        return sum + distanceInUnit;\n      }, 0);\n      break;\n\n    case 'streak_days':\n      // Calculate consecutive days with activities\n      const uniqueDays = new Set(\n        activities.map((activity: Activity) => \n          activity.start_date.split('T')[0]\n        )\n      );\n      currentValue = calculateStreak(Array.from(uniqueDays).sort());\n      break;\n\n    case 'custom':\n      // Handle custom goal types based on target_unit\n      if (goal.target_unit === 'runs') {\n        currentValue = activities.length;\n      } else if (goal.target_unit === 'miles' || goal.target_unit === 'kilometers') {\n        currentValue = activities.reduce((sum: number, activity: Activity) => {\n          const distanceInUnit = goal.target_unit === 'miles' \n            ? activity.distance / 1609.34 \n            : activity.distance / 1000;\n          return sum + distanceInUnit;\n        }, 0);\n      } else if (goal.target_unit === 'minutes') {\n        currentValue = activities.reduce((sum: number, activity: Activity) => {\n          return sum + (activity.moving_time / 60);\n        }, 0);\n      }\n      break;\n  }\n\n  return {\n    current: Math.round(currentValue * 100) / 100, // Round to 2 decimal places\n    target: goal.target_value\n  };\n}\n\nfunction calculateStreak(sortedDays: string[]): number {\n  if (sortedDays.length === 0) return 0;\n\n  let currentStreak = 1;\n  let maxStreak = 1;\n\n  for (let i = 1; i < sortedDays.length; i++) {\n    const prevDate = new Date(sortedDays[i - 1]);\n    const currDate = new Date(sortedDays[i]);\n    const dayDiff = (currDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24);\n\n    if (dayDiff === 1) {\n      currentStreak++;\n      maxStreak = Math.max(maxStreak, currentStreak);\n    } else {\n      currentStreak = 1;\n    }\n  }\n\n  return maxStreak;\n}\n\nasync function checkMissedGoals(supabase: any, userId: string) {\n  const now = new Date();\n  const today = now.toISOString().split('T')[0];\n  \n  // Get current period progress for user's goals\n  const { data: progress, error: progressError } = await supabase\n    .from('goal_progress')\n    .select(`\n      *,\n      user_goals!inner(*)\n    `)\n    .eq('user_id', userId)\n    .eq('user_goals.is_active', true)\n    .lte('period_end', today);\n\n  if (progressError) throw progressError;\n\n  const missedGoals = progress.filter((p: any) => \n    !p.is_achieved && new Date(p.period_end) < now\n  );\n\n  const upcomingDeadlines = progress.filter((p: any) => {\n    const deadline = new Date(p.period_end);\n    const daysUntilDeadline = Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));\n    return !p.is_achieved && daysUntilDeadline <= 2 && daysUntilDeadline > 0;\n  });\n\n  return new Response(\n    JSON.stringify({\n      missed_goals: missedGoals,\n      upcoming_deadlines: upcomingDeadlines,\n      should_notify: missedGoals.length > 0 || upcomingDeadlines.length > 0\n    }),\n    { status: 200 }\n  );\n}"
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
+
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+
+interface Goal {
+  id: string;
+  user_id: string;
+  goal_type: string;
+  target_value: number;
+  target_unit: string;
+  activity_types: string[];
+  time_period: string;
+  start_date?: string;
+  end_date?: string;
+}
+
+interface Activity {
+  id: string;
+  user_id: string;
+  type: string;
+  start_date: string;
+  distance: number;
+  moving_time: number;
+}
+
+export async function handleRequest(req: Request): Promise<Response> {
+  try {
+    const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
+    const url = new URL(req.url);
+    const action = url.searchParams.get('action') || 'update_all';
+    const userId = url.searchParams.get('user_id');
+
+    if (req.method === 'POST') {
+      if (action === 'update_all') {
+        return await updateAllUserProgress(supabase);
+      }
+      if (action === 'update_user' && userId) {
+        const result = await updateUserProgress(supabase, userId);
+        return new Response(JSON.stringify(result), { status: 200 });
+      }
+      return invalidActionResponse();
+    }
+
+    if (req.method === 'GET' && action === 'check_missed' && userId) {
+      return await checkMissedGoals(supabase, userId);
+    }
+
+    return new Response('Method not allowed', { status: 405 });
+  } catch (error) {
+    console.error('Error in goal-tracker:', error);
+    return new Response(
+      JSON.stringify({ error: (error as Error).message }),
+      { status: 500 }
+    );
+  }
+}
+
+if (import.meta.main) {
+  serve(handleRequest);
+}
+
+function invalidActionResponse(): Response {
+  return new Response(
+    JSON.stringify({ error: 'Invalid action or missing user_id' }),
+    { status: 400 }
+  );
+}
+
+async function updateAllUserProgress(supabase: any): Promise<Response> {
+  const { data: users, error: usersError } = await supabase
+    .from('user_goals')
+    .select('user_id')
+    .eq('is_active', true)
+    .distinct();
+
+  if (usersError) throw usersError;
+
+  const results = [];
+  for (const user of users) {
+    try {
+      await updateUserProgress(supabase, user.user_id);
+      results.push({ user_id: user.user_id, status: 'success' });
+    } catch (error) {
+      console.error(`Error updating progress for user ${user.user_id}:`, error);
+      results.push({
+        user_id: user.user_id,
+        status: 'error',
+        error: (error as Error).message
+      });
+    }
+  }
+
+  return new Response(
+    JSON.stringify({ updated_users: results.length, results }),
+    { status: 200 }
+  );
+}
+
+async function updateUserProgress(supabase: any, userId: string) {
+  const { data: goals, error: goalsError } = await supabase
+    .from('user_goals')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('is_active', true);
+
+  if (goalsError) throw goalsError;
+
+  const updatedGoals: string[] = [];
+
+  for (const goal of goals) {
+    try {
+      const periods = generatePeriods(goal);
+      for (const period of periods) {
+        const progress = await calculateGoalProgress(supabase, goal, period);
+        const { error: progressError } = await supabase
+          .from('goal_progress')
+          .upsert(
+            {
+              goal_id: goal.id,
+              user_id: userId,
+              period_start: period.start,
+              period_end: period.end,
+              current_value: progress.current,
+              target_value: progress.target,
+              last_updated: new Date().toISOString()
+            },
+            { onConflict: 'goal_id,period_start' }
+          );
+
+        if (progressError) {
+          console.error(
+            `Progress update error for goal ${goal.id}:`,
+            progressError
+          );
+        }
+      }
+      updatedGoals.push(goal.id);
+    } catch (error) {
+      console.error(`Error updating goal ${goal.id}:`, error);
+    }
+  }
+
+  return { updated_goals: updatedGoals };
+}
+
+export function generatePeriods(goal: Goal) {
+  const now = new Date();
+  const periods: { start: string; end: string }[] = [];
+
+  switch (goal.time_period) {
+    case 'weekly': {
+      const monday = new Date(now);
+      monday.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1));
+      monday.setHours(0, 0, 0, 0);
+
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+      sunday.setHours(23, 59, 59, 999);
+
+      periods.push({
+        start: monday.toISOString().split('T')[0],
+        end: sunday.toISOString().split('T')[0]
+      });
+      break;
+    }
+    case 'monthly': {
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      periods.push({
+        start: monthStart.toISOString().split('T')[0],
+        end: monthEnd.toISOString().split('T')[0]
+      });
+      break;
+    }
+    case 'daily': {
+      const today = new Date(now);
+      today.setHours(0, 0, 0, 0);
+
+      const todayEnd = new Date(now);
+      todayEnd.setHours(23, 59, 59, 999);
+      periods.push({
+        start: today.toISOString().split('T')[0],
+        end: todayEnd.toISOString().split('T')[0]
+      });
+      break;
+    }
+    case 'custom':
+      if (goal.start_date && goal.end_date) {
+        periods.push({ start: goal.start_date, end: goal.end_date });
+      }
+      break;
+  }
+
+  return periods;
+}
+
+export async function calculateGoalProgress(
+  supabase: any,
+  goal: Goal,
+  period: { start: string; end: string }
+) {
+  const { data: activities, error: activitiesError } = await supabase
+    .from('activities')
+    .select('*')
+    .eq('user_id', goal.user_id)
+    .in('type', goal.activity_types)
+    .gte('start_date', period.start)
+    .lte('start_date', `${period.end}T23:59:59`);
+
+  if (activitiesError) throw activitiesError;
+
+  let currentValue = 0;
+
+  switch (goal.goal_type) {
+    case 'weekly_runs':
+    case 'monthly_runs':
+      currentValue = activities.length;
+      break;
+    case 'weekly_distance':
+    case 'monthly_distance':
+      currentValue = activities.reduce((sum: number, activity: Activity) => {
+        const distanceInUnit =
+          goal.target_unit === 'miles'
+            ? activity.distance / 1609.34
+            : activity.distance / 1000;
+        return sum + distanceInUnit;
+      }, 0);
+      break;
+    case 'streak_days': {
+      const uniqueDays = new Set(
+        activities.map((activity: Activity) =>
+          activity.start_date.split('T')[0]
+        )
+      );
+      currentValue = calculateStreak(Array.from(uniqueDays).sort());
+      break;
+    }
+    case 'custom':
+      if (goal.target_unit === 'runs') {
+        currentValue = activities.length;
+      } else if (
+        goal.target_unit === 'miles' ||
+        goal.target_unit === 'kilometers'
+      ) {
+        currentValue = activities.reduce((sum: number, activity: Activity) => {
+          const distanceInUnit =
+            goal.target_unit === 'miles'
+              ? activity.distance / 1609.34
+              : activity.distance / 1000;
+          return sum + distanceInUnit;
+        }, 0);
+      } else if (goal.target_unit === 'minutes') {
+        currentValue = activities.reduce((sum: number, activity: Activity) => {
+          return sum + activity.moving_time / 60;
+        }, 0);
+      }
+      break;
+  }
+
+  return {
+    current: Math.round(currentValue * 100) / 100,
+    target: goal.target_value
+  };
+}
+
+function calculateStreak(sortedDays: string[]): number {
+  if (sortedDays.length === 0) return 0;
+
+  let currentStreak = 1;
+  let maxStreak = 1;
+
+  for (let i = 1; i < sortedDays.length; i++) {
+    const prevDate = new Date(sortedDays[i - 1]);
+    const currDate = new Date(sortedDays[i]);
+    const dayDiff =
+      (currDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24);
+
+    if (dayDiff === 1) {
+      currentStreak++;
+      maxStreak = Math.max(maxStreak, currentStreak);
+    } else {
+      currentStreak = 1;
+    }
+  }
+
+  return maxStreak;
+}
+
+export async function checkMissedGoals(supabase: any, userId: string) {
+  const now = new Date();
+  const today = now.toISOString().split('T')[0];
+
+  const { data: progress, error: progressError } = await supabase
+    .from('goal_progress')
+    .select('*, user_goals!inner(*)')
+    .eq('user_id', userId)
+    .eq('user_goals.is_active', true)
+    .lte('period_end', today);
+
+  if (progressError) throw progressError;
+
+  const missedGoals = progress.filter(
+    (p: any) => !p.is_achieved && new Date(p.period_end) < now
+  );
+
+  const upcomingDeadlines = progress.filter((p: any) => {
+    const deadline = new Date(p.period_end);
+    const daysUntilDeadline = Math.ceil(
+      (deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+    );
+    return !p.is_achieved && daysUntilDeadline <= 2 && daysUntilDeadline > 0;
+  });
+
+  return new Response(
+    JSON.stringify({
+      missed_goals: missedGoals,
+      upcoming_deadlines: upcomingDeadlines,
+      should_notify: missedGoals.length > 0 || upcomingDeadlines.length > 0
+    }),
+    { status: 200 }
+  );
+}

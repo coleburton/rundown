@@ -91,7 +91,7 @@ export function PaywallScreen() {
     setSelectedPlan(planId);
     
     // Track plan selection
-    analytics.trackEvent(ANALYTICS_EVENTS.SUBSCRIPTION_PLAN_SELECTED, {
+    analytics.trackEvent(ANALYTICS_EVENTS.PAYWALL_PLAN_SELECTED, {
       plan_id: planId,
       plan_type: planId === 'yearly' ? 'annual' : 'monthly',
       timestamp: new Date().toISOString()

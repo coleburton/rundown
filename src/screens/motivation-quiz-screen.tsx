@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { Button } from '@/components/ui/button';
 import { VectorIcon } from '@/components/ui/IconComponent';
+import type { ICON_MAP } from '@/components/ui/IconComponent';
 import { useMockAuth } from '@/hooks/useMockAuth';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -37,7 +38,7 @@ interface MotivationOption {
   id: MotivationType;
   title: string;
   description: string;
-  emoji: string;
+  emoji: keyof typeof ICON_MAP;
 }
 
 const MOTIVATION_OPTIONS: MotivationOption[] = [
@@ -88,7 +89,7 @@ export function MotivationQuizScreen({ navigation }: Props) {
         total_steps: 9
       });
       
-      analytics.trackEvent(ANALYTICS_EVENTS.MOTIVATION_QUIZ_STARTED);
+      analytics.trackEvent(ANALYTICS_EVENTS.ONBOARDING_MOTIVATION_QUIZ_STARTED);
     } catch (error) {
       trackOnboardingError(error as Error, {
         screen: ONBOARDING_SCREENS.MOTIVATION_QUIZ,
@@ -102,7 +103,7 @@ export function MotivationQuizScreen({ navigation }: Props) {
       setSelectedMotivation(motivation);
       
       // Track motivation selection
-      analytics.trackEvent(ANALYTICS_EVENTS.MOTIVATION_SELECTED, {
+      analytics.trackEvent(ANALYTICS_EVENTS.ONBOARDING_MOTIVATION_SELECTED, {
         motivation_type: motivation,
         screen: ONBOARDING_SCREENS.MOTIVATION_QUIZ,
         time_to_select_ms: Date.now() - screenStartTime

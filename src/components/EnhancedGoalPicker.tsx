@@ -5,6 +5,13 @@ import { VectorIcon, IconComponent } from './ui/IconComponent';
 
 export type GoalType = 'total_activities' | 'total_runs' | 'total_miles_running' | 'total_rides_biking' | 'total_miles_biking';
 
+type MotivationMessage = {
+  title: string;
+  description: string;
+  icon: string;
+  color: string;
+};
+
 export interface Goal {
   type: GoalType;
   value: number;
@@ -65,7 +72,7 @@ const GOAL_TYPES = [
   }
 ];
 
-const MOTIVATION_MESSAGES = {
+const MOTIVATION_MESSAGES: Record<GoalType, Record<number, MotivationMessage>> = {
   total_activities: {
     2: { title: 'Steady Start!', description: 'Perfect for sustainable growth', icon: 'Sprout', color: '#10b981' },
     3: { title: 'Well Balanced!', description: 'Great commitment level', icon: 'Scale', color: '#3b82f6' },
@@ -112,8 +119,11 @@ export function EnhancedGoalPicker({ value, onChange, style }: EnhancedGoalPicke
   const safeValue = currentGoalType.options.includes(value.value) ? value.value : currentGoalType.options[1];
   
   const motivationMessages = MOTIVATION_MESSAGES[selectedType];
-  const motivationMessage = motivationMessages?.[safeValue as keyof typeof motivationMessages] || 
-    (motivationMessages ? Object.values(motivationMessages)[0] : { title: 'Goal Set!', description: 'Keep going!', icon: 'Target', color: '#10b981' });
+  const defaultMotivation: MotivationMessage = { title: 'Goal Set!', description: 'Keep going!', icon: 'Target', color: '#10b981' };
+  const motivationMessage: MotivationMessage =
+    motivationMessages?.[safeValue] ??
+    Object.values(motivationMessages ?? {})[0] ??
+    defaultMotivation;
 
   const handleTypeChange = (type: GoalType) => {
     setSelectedType(type);

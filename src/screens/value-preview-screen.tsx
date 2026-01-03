@@ -132,7 +132,7 @@ export function ValuePreviewScreen({ navigation }: Props) {
         total_steps: 9
       });
       
-      analytics.trackEvent(ANALYTICS_EVENTS.VALUE_PREVIEW_VIEWED);
+      analytics.trackEvent(ANALYTICS_EVENTS.ONBOARDING_VALUE_PREVIEW_VIEWED);
     } catch (error) {
       trackOnboardingError(error as Error, {
         screen: ONBOARDING_SCREENS.VALUE_PREVIEW,

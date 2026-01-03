@@ -1,29 +1,9 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuthContext } from '@/lib/auth-context';
+import { Database } from '@/types/supabase';
 
-export interface Activity {
-  id: string;
-  strava_activity_id: number;
-  name: string;
-  type: string;
-  sport_type: string;
-  start_date: string;
-  start_date_local: string;
-  distance: number; // meters
-  moving_time: number; // seconds
-  elapsed_time: number; // seconds
-  total_elevation_gain: number; // meters
-  average_speed: number; // m/s
-  max_speed: number; // m/s
-  average_heartrate?: number;
-  max_heartrate?: number;
-  kudos_count: number;
-  achievement_count: number;
-  raw_data: any;
-  synced_at: string;
-  created_at: string;
-}
+export type Activity = Database['public']['Tables']['activities']['Row'];
 
 export function useStravaActivities() {
   const { user } = useAuthContext();
@@ -41,6 +21,12 @@ export function useStravaActivities() {
 
   const fetchActivities = async () => {
     try {
+      if (!user?.id) {
+        setActivities([]);
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
       setError(null);
 
@@ -58,7 +44,7 @@ export function useStravaActivities() {
       const { data, error: fetchError } = await supabase
         .from('activities')
         .select('*')
-        .eq('user_id', user?.id)
+        .eq('user_id', user.id)
         .gte('start_date_local', twelveWeeksAgo.toISOString())
         .order('start_date', { ascending: false });
 
@@ -71,7 +57,7 @@ export function useStravaActivities() {
 
       if (fetchError) throw fetchError;
 
-      setActivities(data || []);
+      setActivities((data as Activity[]) || []);
       console.log('fetchActivities - Activities set:', (data || []).length);
     } catch (err) {
       console.error('Error fetching activities:', err);
@@ -187,32 +173,44 @@ export function useStravaActivities() {
     return activities
       .filter(activity => ['Run', 'VirtualRun'].includes(activity.type))
       .slice(0, limit)
-      .map(activity => ({
-        id: activity.strava_activity_id.toString(),
-        name: activity.name,
-        date: activity.start_date_local,
-        distance: Math.round(activity.distance / 1609.34 * 100) / 100, // Convert to miles
-        duration: Math.round(activity.moving_time / 60), // Convert to minutes
-        pace: activity.distance > 0 ? 
-          Math.round((activity.moving_time / 60) / (activity.distance / 1609.34) * 100) / 100 : 0,
-      }));
+      .map(activity => {
+        const distance = activity.distance ?? 0;
+        const movingTime = activity.moving_time ?? 0;
+
+        return {
+          id: activity.strava_activity_id.toString(),
+          name: activity.name,
+          date: activity.start_date_local,
+          distance: Math.round((distance / 1609.34) * 100) / 100,
+          duration: Math.round(movingTime / 60),
+          pace: distance > 0
+            ? Math.round(((movingTime / 60) / (distance / 1609.34)) * 100) / 100
+            : 0,
+        };
+      });
   };
 
   const getRecentActivities = (limit: number = 5) => {
     return activities
       .slice(0, limit)
-      .map(activity => ({
-        id: activity.strava_activity_id.toString(),
-        name: activity.name,
-        type: activity.type,
-        sport_type: activity.sport_type,
-        date: activity.start_date_local,
-        distance: Math.round(activity.distance / 1609.34 * 100) / 100, // Convert to miles
-        duration: Math.round(activity.moving_time / 60), // Convert to minutes
-        pace: activity.distance > 0 ? 
-          Math.round((activity.moving_time / 60) / (activity.distance / 1609.34) * 100) / 100 : 0,
-        countsTowardGoal: ['Run', 'VirtualRun'].includes(activity.type),
-      }));
+      .map(activity => {
+        const distance = activity.distance ?? 0;
+        const movingTime = activity.moving_time ?? 0;
+
+        return {
+          id: activity.strava_activity_id.toString(),
+          name: activity.name,
+          type: activity.type,
+          sport_type: activity.sport_type,
+          date: activity.start_date_local,
+          distance: Math.round((distance / 1609.34) * 100) / 100,
+          duration: Math.round(movingTime / 60),
+          pace: distance > 0
+            ? Math.round(((movingTime / 60) / (distance / 1609.34)) * 100) / 100
+            : 0,
+          countsTowardGoal: ['Run', 'VirtualRun'].includes(activity.type),
+        };
+      });
   };
 
   const doesActivityCountTowardGoal = (activityType: string) => {

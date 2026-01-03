@@ -1,13 +1,13 @@
 import { TextStyle } from 'react-native';
 
-// Inter font family constants with system font fallbacks
+// DM Sans font family constants with system font fallbacks
 export const FONT_FAMILIES = {
-  regular: 'Inter',
-  medium: 'Inter-Medium',
-  semiBold: 'Inter-SemiBold',
+  regular: 'DMSans-Regular',
+  medium: 'DMSans-Medium',
+  semiBold: 'DMSans-Bold',
 } as const;
 
-// Typography styles using Inter font
+// Typography styles using DM Sans font
 export const TYPOGRAPHY_STYLES = {
   // Headings
   h1: {
@@ -118,7 +118,7 @@ export const getFontFamily = (weight: 'regular' | 'medium' | 'semiBold' = 'regul
   return FONT_FAMILIES[weight];
 };
 
-// Helper function to create text style with Inter font
+// Helper function to create text style with DM Sans font
 export const createTextStyle = (
   fontSize: number,
   weight: 'regular' | 'medium' | 'semiBold' = 'regular',

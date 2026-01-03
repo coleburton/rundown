@@ -1,0 +1,23 @@
+export type RootStackParamList = {
+  Splash: undefined;
+  Onboarding: undefined;
+  UserInfo: undefined;
+  Login: undefined;
+  WhyAccountability: undefined;
+  SocialProof: undefined;
+  MotivationQuiz: undefined;
+  GoalSetup: { fromSettings?: boolean } | undefined;
+  ValuePreview: undefined;
+  FitnessAppConnect: undefined;
+  ContactSetup: undefined;
+  MessageStyle: undefined;
+  OnboardingSuccess: undefined;
+  Dashboard: undefined;
+  Settings: undefined;
+  MessageHistory: undefined;
+  ActivityHistory: undefined;
+  Paywall: undefined;
+  PaywallFreeTrial: undefined;
+  PostPaywallOnboarding: undefined;
+  ActivityDetail: { activityId: string };
+};

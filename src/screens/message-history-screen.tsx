@@ -14,12 +14,14 @@ type Message = Database['public']['Tables']['messages']['Row'];
 type QueuedMessage = Database['public']['Tables']['message_queue']['Row'];
 type Contact = Database['public']['Tables']['contacts']['Row'];
 
+type ContactPreview = Pick<Contact, 'id' | 'name' | 'email' | 'relationship'>;
+
 type MessageWithContact = Message & {
-  contacts: Contact;
+  contacts: ContactPreview;
 };
 
 type QueuedMessageWithContact = QueuedMessage & {
-  contacts: Contact;
+  contacts: ContactPreview;
 };
 
 type RootStackParamList = {
@@ -144,7 +146,17 @@ export function MessageHistoryScreen({ navigation }: Props) {
   const renderMessageCard = (
     message: MessageWithContact | QueuedMessageWithContact, 
     isQueued: boolean = false
-  ) => (
+  ) => {
+    const contact = message.contacts;
+
+    const queuedMessage = message as QueuedMessageWithContact;
+    const sentMessage = message as MessageWithContact;
+    const scheduledFor = queuedMessage.scheduled_for;
+    const sentAt = sentMessage.sent_at;
+    const attempts = queuedMessage.attempts ?? 0;
+    const maxAttempts = queuedMessage.max_attempts ?? 0;
+
+    return (
     <View
       key={message.id}
       style={{
@@ -165,10 +177,10 @@ export function MessageHistoryScreen({ navigation }: Props) {
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
         <View style={{ flex: 1 }}>
           <Text style={{ fontSize: 16, fontWeight: '600', color: '#111827', marginBottom: 2 }}>
-            {message.contacts.name}
+            {contact?.name || 'Contact'}
           </Text>
           <Text style={{ fontSize: 14, color: '#6b7280' }}>
-            {message.contacts.relationship || 'Contact'} • {message.contacts.email}
+            {contact?.relationship || 'Contact'} • {contact?.email || 'No email'}
           </Text>
         </View>
         
@@ -207,19 +219,20 @@ export function MessageHistoryScreen({ navigation }: Props) {
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
         <Text style={{ fontSize: 12, color: '#9ca3af' }}>
           {isQueued 
-            ? `Scheduled for ${formatDate((message as QueuedMessageWithContact).scheduled_for)}`
-            : `Sent ${formatDate((message as MessageWithContact).sent_at)}`
+            ? scheduledFor ? `Scheduled for ${formatDate(scheduledFor)}` : 'Not scheduled'
+            : sentAt ? `Sent ${formatDate(sentAt)}` : 'Pending'
           }
         </Text>
         
-        {isQueued && (message as QueuedMessageWithContact).attempts > 0 && (
+        {isQueued && attempts > 0 && (
           <Text style={{ fontSize: 12, color: '#f59e0b' }}>
-            Attempt {(message as QueuedMessageWithContact).attempts}/{(message as QueuedMessageWithContact).max_attempts}
+            Attempt {attempts}/{maxAttempts}
           </Text>
         )}
       </View>
     </View>
-  );
+    );
+  };
 
   if (loading) {
     return (

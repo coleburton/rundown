@@ -15,7 +15,7 @@ export default function MixpanelProvider({ children }: MixpanelProviderProps) {
       await analytics.initMixpanel();
       
       // Track app open event
-      analytics.trackEvent(ANALYTICS_EVENTS.APP_OPEN);
+      analytics.trackEvent(ANALYTICS_EVENTS.APP_LAUNCHED);
     };
     
     initializeAnalytics();

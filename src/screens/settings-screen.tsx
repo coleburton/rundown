@@ -15,16 +15,9 @@ import { Database } from '../types/supabase';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { TYPOGRAPHY_STYLES } from '../constants/Typography';
 import { AddContactModal } from '../components/AddContactModal';
+import type { RootStackParamList } from '@/types/navigation';
 
 type Contact = Database['public']['Tables']['contacts']['Row'];
-
-type RootStackParamList = {
-  Dashboard: undefined;
-  Settings: undefined;
-  GoalSetup: undefined;
-  MessageHistory: undefined;
-  ActivityHistory: undefined;
-};
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Settings'>;
 
@@ -32,6 +25,17 @@ export function SettingsScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const { user, signOut, signInWithStrava, refreshUser } = useAuthContext();
   const { activeGoal, refreshGoals } = useUserGoals(user?.id);
+
+  const GOAL_TYPE_VALUES: Goal['type'][] = [
+    'total_activities',
+    'total_runs',
+    'total_miles_running',
+    'total_rides_biking',
+    'total_miles_biking'
+  ];
+
+  const isValidGoalType = (type: string | null | undefined): type is Goal['type'] =>
+    !!type && GOAL_TYPE_VALUES.includes(type as Goal['type']);
 
   const getGoalTypeLabel = (type: string) => {
     const labels = {
@@ -99,13 +103,13 @@ export function SettingsScreen({ navigation }: Props) {
   useEffect(() => {
     if (activeGoal) {
       setUserGoal({
-        type: activeGoal.goal_type,
+        type: isValidGoalType(activeGoal.goal_type) ? activeGoal.goal_type : 'total_activities',
         value: Number(activeGoal.target_value)
       });
     } else if (user) {
       // Fallback to users table if no active goal found
       setUserGoal({
-        type: user.goal_type || 'total_activities',
+        type: isValidGoalType(user.goal_type) ? user.goal_type : 'total_activities',
         value: user.goal_value || user.goal_per_week || 3
       });
     }
@@ -352,33 +356,48 @@ export function SettingsScreen({ navigation }: Props) {
     <ThemedView style={{ flex: 1, paddingTop: insets.top }}>
       <ScrollView contentContainerStyle={{ padding: 20 }}>
         {/* Header with back button */}
-        <View style={{ 
-          flexDirection: 'row', 
-          alignItems: 'center', 
-          marginBottom: 20,
-          paddingHorizontal: 4
+        <View style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          marginBottom: 24,
         }}>
           <TouchableOpacity
             onPress={() => navigation.goBack()}
-            style={{ 
-              padding: 8, 
+            style={{
+              backgroundColor: '#f3f4f6',
+              borderRadius: 20,
+              width: 40,
+              height: 40,
+              alignItems: 'center',
+              justifyContent: 'center',
               marginRight: 12,
-              borderRadius: 8,
-              backgroundColor: '#f3f4f6'
             }}
           >
-            <Text style={{ fontSize: 18 }}>←</Text>
+            <Text style={{ fontSize: 20, color: '#374151' }}>←</Text>
           </TouchableOpacity>
-          <ThemedText style={[TYPOGRAPHY_STYLES.h3, { fontWeight: '600' }]}>
+          <Text style={{
+            fontFamily: 'DMSans-Bold',
+            fontSize: 28,
+            lineHeight: 32,
+            letterSpacing: -0.5,
+            color: '#111827'
+          }}>
             Settings
-          </ThemedText>
+          </Text>
         </View>
 
         {/* Fitness Providers Section */}
         <View style={{ marginBottom: 20 }}>
-          <ThemedText style={[TYPOGRAPHY_STYLES.h5, { marginBottom: 10 }]}>
+          <Text style={{
+            fontFamily: 'DMSans-Bold',
+            fontSize: 11,
+            letterSpacing: 1.2,
+            textTransform: 'uppercase',
+            color: '#9ca3af',
+            marginBottom: 16
+          }}>
             Fitness Providers
-          </ThemedText>
+          </Text>
           
           {renderSectionCard(
             <View style={{ gap: 12 }}>
@@ -399,7 +418,7 @@ export function SettingsScreen({ navigation }: Props) {
                   paddingVertical: 2, 
                   borderRadius: 8 
                 }}>
-                  <Text style={{ color: 'white', fontSize: 10, fontWeight: '500' }}>
+                  <Text style={{ fontFamily: 'DMSans-Medium', color: 'white', fontSize: 10 }}>
                     {user?.strava_id ? 'Connected' : 'Disconnected'}
                   </Text>
                 </View>
@@ -422,7 +441,7 @@ export function SettingsScreen({ navigation }: Props) {
                   paddingVertical: 2,
                   borderRadius: 8
                 }}>
-                  <Text style={{ color: 'white', fontSize: 10, fontWeight: '500' }}>
+                  <Text style={{ color: 'white', fontSize: 10, fontFamily: 'DMSans-Medium' }}>
                     Coming Soon
                   </Text>
                 </View>
@@ -445,7 +464,7 @@ export function SettingsScreen({ navigation }: Props) {
                   paddingVertical: 2, 
                   borderRadius: 8 
                 }}>
-                  <Text style={{ color: 'white', fontSize: 10, fontWeight: '500' }}>
+                  <Text style={{ color: 'white', fontSize: 10, fontFamily: 'DMSans-Medium' }}>
                     Coming Soon
                   </Text>
                 </View>
@@ -505,9 +524,16 @@ export function SettingsScreen({ navigation }: Props) {
 
         {/* Goals Section */}
         <View style={{ marginBottom: 20 }}>
-          <ThemedText style={{ fontSize: 18, fontWeight: '600', marginBottom: 10 }}>
+          <Text style={{
+            fontFamily: 'DMSans-Bold',
+            fontSize: 11,
+            letterSpacing: 1.2,
+            textTransform: 'uppercase',
+            color: '#9ca3af',
+            marginBottom: 16
+          }}>
             Weekly Goal
-          </ThemedText>
+          </Text>
           
           {renderSectionCard(
             <View>
@@ -533,14 +559,14 @@ export function SettingsScreen({ navigation }: Props) {
                       color="#10b981"
                     />
                   </View>
-                  <Text style={{ fontSize: 16, fontWeight: '600', color: '#065f46' }}>
+                  <Text style={{ fontSize: 16, fontFamily: 'DMSans-Medium', color: '#065f46' }}>
                     Current Goal
                   </Text>
                 </View>
-                <Text style={{ fontSize: 18, fontWeight: '700', color: '#047857', marginBottom: 4 }}>
+                <Text style={{ fontSize: 18, fontFamily: 'DMSans-Bold', color: '#047857', marginBottom: 4 }}>
                   {userGoal.value} {getGoalTypeLabel(userGoal.type)}
                 </Text>
-                <Text style={{ fontSize: 14, color: '#059669' }}>
+                <Text style={{ fontFamily: 'DMSans-Regular', fontSize: 14, color: '#059669' }}>
                   {getGoalTypeDescription(userGoal.type)}
                 </Text>
               </View>
@@ -557,9 +583,16 @@ export function SettingsScreen({ navigation }: Props) {
 
         {/* Message Timing Section */}
         <View style={{ marginBottom: 20 }}>
-          <ThemedText style={{ fontSize: 18, fontWeight: '600', marginBottom: 10 }}>
+          <Text style={{
+            fontFamily: 'DMSans-Bold',
+            fontSize: 11,
+            letterSpacing: 1.2,
+            textTransform: 'uppercase',
+            color: '#9ca3af',
+            marginBottom: 16
+          }}>
             Message Timing
-          </ThemedText>
+          </Text>
           
           {renderSectionCard(
             <View>
@@ -569,7 +602,7 @@ export function SettingsScreen({ navigation }: Props) {
               
               {/* Day Selection */}
               <View style={{ marginBottom: 16 }}>
-                <Text style={{ fontSize: 15, fontWeight: '500', color: '#374151', marginBottom: 8 }}>
+                <Text style={{ fontSize: 15, fontFamily: 'DMSans-Medium', color: '#374151', marginBottom: 8 }}>
                   Day of Week
                 </Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -4 }}>
@@ -591,7 +624,7 @@ export function SettingsScreen({ navigation }: Props) {
                       >
                         <Text style={{
                           fontSize: 14,
-                          fontWeight: '500',
+                          fontFamily: 'DMSans-Medium',
                           color: isSelected ? '#ffffff' : '#374151',
                         }}>
                           {day}
@@ -604,7 +637,7 @@ export function SettingsScreen({ navigation }: Props) {
               
               {/* Time Period Selection */}
               <View>
-                <Text style={{ fontSize: 15, fontWeight: '500', color: '#374151', marginBottom: 8 }}>
+                <Text style={{ fontSize: 15, fontFamily: 'DMSans-Medium', color: '#374151', marginBottom: 8 }}>
                   Time of Day
                 </Text>
                 <View style={{ flexDirection: 'row', gap: 8 }}>
@@ -626,7 +659,7 @@ export function SettingsScreen({ navigation }: Props) {
                       >
                         <Text style={{
                           fontSize: 14,
-                          fontWeight: '500',
+                          fontFamily: 'DMSans-Medium',
                           color: isSelected ? '#ffffff' : '#374151',
                         }}>
                           {period.label}
@@ -657,7 +690,7 @@ export function SettingsScreen({ navigation }: Props) {
                     fontSize: 12,
                     color: '#15803d',
                     marginLeft: 4,
-                    fontWeight: '500'
+                    fontFamily: 'DMSans-Medium'
                   }}>
                     Messages will be sent {messageTiming.day} {messageTiming.timePeriod} if you miss your goal
                   </Text>
@@ -669,9 +702,16 @@ export function SettingsScreen({ navigation }: Props) {
 
         {/* Contacts Section */}
         <View style={{ marginBottom: 20 }}>
-          <ThemedText style={{ fontSize: 18, fontWeight: '600', marginBottom: 10 }}>
+          <Text style={{
+            fontFamily: 'DMSans-Bold',
+            fontSize: 11,
+            letterSpacing: 1.2,
+            textTransform: 'uppercase',
+            color: '#9ca3af',
+            marginBottom: 16
+          }}>
             Accountability Contacts
-          </ThemedText>
+          </Text>
           
           {loadingContacts ? (
             renderSectionCard(
@@ -691,32 +731,68 @@ export function SettingsScreen({ navigation }: Props) {
             )
           ) : (
             <View>
-              {contacts.map((contact) => (
-                <View key={contact.id} style={{ 
-                  backgroundColor: '#ffffff', 
-                  borderRadius: 8, 
-                  padding: 12,
-                  marginBottom: 8,
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  alignItems: 'center'
-                }}>
-                  <View>
-                    <ThemedText style={{ fontSize: 16, fontWeight: '500' }}>
-                      {contact.name}
-                    </ThemedText>
-                    <ThemedText style={{ fontSize: 14, color: '#6b7280' }}>
-                      {contact.relationship || 'Contact'} • {contact.email}
-                    </ThemedText>
-                  </View>
-                  <TouchableOpacity
-                    onPress={() => handleDeleteContact(contact.id)}
-                    style={{ padding: 8 }}
+              {contacts.map((contact) => {
+                const isOptedOut = Boolean(contact.opted_out_at);
+                return (
+                  <View
+                    key={contact.id}
+                    style={{ 
+                      backgroundColor: isOptedOut ? '#fff7ed' : '#ffffff', 
+                      borderRadius: 8, 
+                      padding: 12,
+                      marginBottom: 8,
+                      flexDirection: 'row',
+                      justifyContent: 'space-between',
+                      alignItems: 'flex-start',
+                      borderWidth: 1,
+                      borderColor: isOptedOut ? '#fdba74' : '#e5e7eb'
+                    }}
                   >
-                    <Text style={{ color: '#ef4444', fontSize: 18, fontWeight: 'bold' }}>×</Text>
-                  </TouchableOpacity>
-                </View>
-              ))}
+                    <View style={{ flex: 1, marginRight: 8 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
+                        <ThemedText style={{ 
+                          fontSize: 16, 
+                          fontFamily: 'DMSans-Medium',
+                          color: isOptedOut ? '#9a3412' : '#111827'
+                        }}>
+                          {contact.name}
+                        </ThemedText>
+                        {isOptedOut && (
+                          <View style={{ 
+                            marginLeft: 8,
+                            backgroundColor: '#fee2e2',
+                            paddingHorizontal: 6,
+                            paddingVertical: 2,
+                            borderRadius: 999
+                          }}>
+                            <Text style={{ 
+                              fontSize: 10, 
+                              fontFamily: 'DMSans-Medium',
+                              color: '#b91c1c'
+                            }}>
+                              Opted Out
+                            </Text>
+                          </View>
+                        )}
+                      </View>
+                      <ThemedText style={{ fontSize: 14, color: isOptedOut ? '#b45309' : '#6b7280' }}>
+                        {contact.relationship || 'Contact'} • {contact.email}
+                      </ThemedText>
+                      {isOptedOut && (
+                        <Text style={{ fontFamily: 'DMSans-Regular', fontSize: 12, color: '#b45309', marginTop: 4 }}>
+                          This buddy is not receiving accountability emails.
+                        </Text>
+                      )}
+                    </View>
+                    <TouchableOpacity
+                      onPress={() => handleDeleteContact(contact.id)}
+                      style={{ padding: 8 }}
+                    >
+                      <Text style={{ fontFamily: 'DMSans-Bold', color: '#ef4444', fontSize: 18 }}>×</Text>
+                    </TouchableOpacity>
+                  </View>
+                );
+              })}
               
               <Button
                 variant="outline"
@@ -737,9 +813,16 @@ export function SettingsScreen({ navigation }: Props) {
 
         {/* Message History Section */}
         <View style={{ marginBottom: 20 }}>
-          <ThemedText style={{ fontSize: 18, fontWeight: '600', marginBottom: 10 }}>
+          <Text style={{
+            fontFamily: 'DMSans-Bold',
+            fontSize: 11,
+            letterSpacing: 1.2,
+            textTransform: 'uppercase',
+            color: '#9ca3af',
+            marginBottom: 16
+          }}>
             Message History
-          </ThemedText>
+          </Text>
           
           {renderSectionCard(
             <View>
@@ -763,9 +846,16 @@ export function SettingsScreen({ navigation }: Props) {
 
         {/* Activity History Section */}
         <View style={{ marginBottom: 20 }}>
-          <ThemedText style={{ fontSize: 18, fontWeight: '600', marginBottom: 10 }}>
+          <Text style={{
+            fontFamily: 'DMSans-Bold',
+            fontSize: 11,
+            letterSpacing: 1.2,
+            textTransform: 'uppercase',
+            color: '#9ca3af',
+            marginBottom: 16
+          }}>
             Activity History
-          </ThemedText>
+          </Text>
           
           {renderSectionCard(
             <View>
@@ -789,9 +879,16 @@ export function SettingsScreen({ navigation }: Props) {
 
         {/* Account Section */}
         <View style={{ marginBottom: 20 }}>
-          <ThemedText style={{ fontSize: 18, fontWeight: '600', marginBottom: 10 }}>
+          <Text style={{
+            fontFamily: 'DMSans-Bold',
+            fontSize: 11,
+            letterSpacing: 1.2,
+            textTransform: 'uppercase',
+            color: '#9ca3af',
+            marginBottom: 16
+          }}>
             Account
-          </ThemedText>
+          </Text>
           
           {renderSectionCard(
             <View>
@@ -808,9 +905,16 @@ export function SettingsScreen({ navigation }: Props) {
 
         {/* Developer Options Section */}
         <View style={{ marginBottom: 20 }}>
-          <ThemedText style={{ fontSize: 18, fontWeight: '600', marginBottom: 10 }}>
+          <Text style={{
+            fontFamily: 'DMSans-Bold',
+            fontSize: 11,
+            letterSpacing: 1.2,
+            textTransform: 'uppercase',
+            color: '#9ca3af',
+            marginBottom: 16
+          }}>
             Developer Options
-          </ThemedText>
+          </Text>
           
           {renderSectionCard(
             <Button
