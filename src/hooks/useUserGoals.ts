@@ -16,6 +16,21 @@ export function useUserGoals(userId: string | undefined) {
   const [allGoals, setAllGoals] = useState<UserGoal[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const getWeekStart = (baseDate: Date = new Date()) => {
+    const day = baseDate.getDay();
+    const diff = day === 0 ? -6 : 1 - day; // Start weeks on Monday
+    const weekStart = new Date(baseDate);
+    weekStart.setDate(baseDate.getDate() + diff);
+    weekStart.setHours(0, 0, 0, 0);
+    return weekStart;
+  };
+
+  const getNextWeekStart = (baseDate: Date = new Date()) => {
+    const nextWeek = new Date(getWeekStart(baseDate));
+    nextWeek.setDate(nextWeek.getDate() + 7);
+    return nextWeek;
+  };
+
   const fetchUserGoals = useCallback(async () => {
     if (!userId) return;
 
@@ -49,10 +64,67 @@ export function useUserGoals(userId: string | undefined) {
     }
   }, [userId, fetchUserGoals]);
 
+  const ensureCurrentGoalHistoryEntry = useCallback(async () => {
+    if (!userId) return;
+
+    try {
+      let goalType: string | null = null;
+      let goalValue: number | null = null;
+      let effectiveDate: Date | null = null;
+
+      if (activeGoal) {
+        goalType = activeGoal.goal_type;
+        goalValue = Number(activeGoal.target_value);
+        const createdAt = activeGoal.created_at ? new Date(activeGoal.created_at) : new Date();
+        effectiveDate = getWeekStart(createdAt);
+      } else {
+        const { data: fallbackUser, error: fallbackError } = await supabase
+          .from('users')
+          .select('goal_type, goal_value, goal_per_week, created_at')
+          .eq('id', userId)
+          .single();
+
+        if (!fallbackError && fallbackUser?.goal_type) {
+          goalType = fallbackUser.goal_type;
+          goalValue = Number(fallbackUser.goal_value || fallbackUser.goal_per_week || 3);
+          const createdAt = fallbackUser.created_at ? new Date(fallbackUser.created_at) : new Date(0);
+          effectiveDate = getWeekStart(createdAt);
+        }
+      }
+
+      if (!goalType || goalValue == null || !effectiveDate) {
+        return;
+      }
+
+      const { data } = await supabase
+        .from('goal_history')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('goal_type', goalType)
+        .eq('goal_value', goalValue)
+        .lte('effective_date', effectiveDate.toISOString())
+        .limit(1)
+        .maybeSingle();
+
+      if (!data) {
+        await supabase.from('goal_history').insert({
+          user_id: userId,
+          goal_type: goalType,
+          goal_value: goalValue,
+          effective_date: effectiveDate.toISOString(),
+        });
+      }
+    } catch (error) {
+      console.error('Error ensuring goal history entry:', error);
+    }
+  }, [userId, activeGoal]);
+
   const createOrUpdateGoal = useCallback(async (goal: Goal): Promise<UserGoal | null> => {
     if (!userId) throw new Error('User ID is required');
 
     try {
+      await ensureCurrentGoalHistoryEntry();
+
       // Deactivate any existing active goals
       if (activeGoal) {
         await supabase
@@ -85,6 +157,30 @@ export function useUserGoals(userId: string | undefined) {
 
       if (error) throw error;
 
+      const now = new Date();
+      const currentWeekStart = getWeekStart(now);
+      const effectiveDate = activeGoal ? getNextWeekStart(now) : currentWeekStart;
+
+      if (activeGoal) {
+        // Remove any pending goal history entries that haven't started yet
+        await supabase
+          .from('goal_history')
+          .delete()
+          .eq('user_id', userId)
+          .gte('effective_date', effectiveDate.toISOString());
+      }
+
+      const { error: historyError } = await supabase
+        .from('goal_history')
+        .insert({
+          user_id: userId,
+          goal_type: goal.type,
+          goal_value: goal.value,
+          effective_date: effectiveDate.toISOString(),
+        });
+
+      if (historyError) throw historyError;
+
       // Update state
       setActiveGoal(data);
       await fetchUserGoals();
@@ -106,7 +202,7 @@ export function useUserGoals(userId: string | undefined) {
       console.error('Error creating/updating goal:', error);
       throw error;
     }
-  }, [userId, activeGoal, fetchUserGoals]);
+  }, [userId, activeGoal, fetchUserGoals, ensureCurrentGoalHistoryEntry]);
 
   const deactivateGoal = useCallback(async (goalId: string) => {
     try {

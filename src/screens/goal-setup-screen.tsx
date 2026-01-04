@@ -27,7 +27,9 @@ export function GoalSetupScreen({ navigation, route }: Props) {
   const { user } = useAuth();
   const { activeGoal, createOrUpdateGoal, toSimpleGoal, loading: goalsLoading } = useUserGoals(user?.id);
   const insets = useSafeAreaInsets();
+  const safeTopPadding = Math.max(insets.top, 16);
   const fromSettings = route.params?.fromSettings;
+  const showBackButton = Boolean(fromSettings);
   const [selectedGoal, setSelectedGoal] = useState<Goal>({
     type: 'total_activities',
     value: 3
@@ -192,6 +194,10 @@ export function GoalSetupScreen({ navigation, route }: Props) {
   };
 
   const handleBack = () => {
+    if (!showBackButton) {
+      return;
+    }
+
     try {
       const timeSpent = Date.now() - screenStartTime;
       
@@ -201,16 +207,6 @@ export function GoalSetupScreen({ navigation, route }: Props) {
         time_spent_ms: timeSpent,
         current_goal_type: selectedGoal.type,
         current_goal_value: selectedGoal.value
-      });
-      
-      analytics.trackEvent(ANALYTICS_EVENTS.ONBOARDING_STEP_ABANDONED, {
-        screen: ONBOARDING_SCREENS.GOAL_SETUP,
-        step_number: 4,
-        total_steps: 9,
-        time_spent_ms: timeSpent,
-        abandonment_reason: 'back_button',
-        goal_type: selectedGoal.type,
-        goal_value: selectedGoal.value
       });
       
       navigation.goBack();
@@ -225,23 +221,36 @@ export function GoalSetupScreen({ navigation, route }: Props) {
 
   return (
     <View style={{ flex: 1, backgroundColor: '#ffffff' }}>
-      {/* Back Button */}
-      <View style={{ paddingHorizontal: 16, paddingTop: fromSettings ? 48 : 8, paddingBottom: 4 }}>
-        <TouchableOpacity 
-          onPress={handleBack}
+      {showBackButton && (
+        <View
           style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            paddingVertical: 8,
-            paddingHorizontal: 4
+            paddingHorizontal: 16,
+            paddingTop: safeTopPadding,
+            paddingBottom: 4
           }}
         >
-          <Text style={{ fontSize: 16, color: '#6b7280', marginRight: 8 }}>←</Text>
-          <Text style={{ fontSize: 14, color: '#6b7280', fontWeight: '500' }}>Back</Text>
-        </TouchableOpacity>
-      </View>
+          <TouchableOpacity 
+            onPress={handleBack}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              paddingVertical: 8,
+              paddingHorizontal: 4
+            }}
+          >
+            <Text style={{ fontSize: 16, color: '#6b7280', marginRight: 8 }}>←</Text>
+            <Text style={{ fontSize: 14, color: '#6b7280', fontWeight: '500' }}>Back</Text>
+          </TouchableOpacity>
+        </View>
+      )}
       
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 16 }}>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{
+          paddingHorizontal: 16,
+          paddingTop: showBackButton ? 0 : safeTopPadding
+        }}
+      >
         {/* Header */}
         <View style={{ alignItems: 'center', marginBottom: 16, marginTop: fromSettings ? 0 : 12 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>

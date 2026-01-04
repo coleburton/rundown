@@ -42,6 +42,14 @@ type RootStackParamList = {
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Dashboard'>;
 
+type GoalHistoryRow = {
+  id: string;
+  user_id: string;
+  goal_type: string;
+  goal_value: number;
+  effective_date: string;
+};
+
 // SVG-based progress ring component with animation
 const ProgressRing = ({ progress, goal, isOnTrack, isBehind, goalType, goalDisplay, animationTrigger, daysLeft }: {
   progress: number;
@@ -130,10 +138,10 @@ const ProgressRing = ({ progress, goal, isOnTrack, isBehind, goalType, goalDispl
           <Text style={{
             fontFamily: 'DMSans-Bold',
             fontSize: 64,
-            lineHeight: 64,
             letterSpacing: -2,
             color: '#111827',
-            textAlign: 'center'
+            textAlign: 'center',
+            lineHeight: 72
           }}>
             {goalType.includes('miles') ? progress.toFixed(1) : progress}
           </Text>
@@ -367,8 +375,9 @@ interface WeeklyData {
 
 export function DashboardScreen({ navigation }: Props) {
   const { user, signOut } = useAuthContext();
-  const { activeGoal } = useUserGoals(user?.id);
+  const { activeGoal, allGoals } = useUserGoals(user?.id);
   const insets = useSafeAreaInsets();
+  const [goalHistory, setGoalHistory] = useState<GoalHistoryRow[]>([]);
   const [selectedWeekOffset, setSelectedWeekOffset] = useState(0); // 0 = current week, 1 = last week, etc.
   const [weeklyData, setWeeklyData] = useState<WeeklyData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -518,20 +527,86 @@ export function DashboardScreen({ navigation }: Props) {
     return `${formatDate(startOfWeek)}–${formatDate(endOfWeek)}`;
   };
 
-  // Helper to get current goal values (from activeGoal or fallback to user table)
-  const getCurrentGoal = useCallback(() => {
-    if (activeGoal) {
-      return {
-        goalType: activeGoal.goal_type,
-        goalValue: Number(activeGoal.target_value)
-      };
+  const getWeekStart = (date: Date) => {
+    const start = new Date(date);
+    const day = start.getDay();
+    const diff = day === 0 ? -6 : 1 - day; // Monday start
+    start.setDate(start.getDate() + diff);
+    start.setHours(0, 0, 0, 0);
+    return start;
+  };
+
+  const resolveGoalFromUserGoals = (weekStart: Date) => {
+    if (!allGoals || allGoals.length === 0) {
+      return null;
     }
-    // Fallback to users table
+
+    const sortedGoals = [...allGoals].sort((a, b) => {
+      const aDate = new Date(a.created_at || 0).getTime();
+      const bDate = new Date(b.created_at || 0).getTime();
+      return aDate - bDate;
+    });
+
+    const normalizedStarts = sortedGoals.map((goal) => getWeekStart(new Date(goal.created_at || 0)));
+    const targetTime = weekStart.getTime();
+
+    for (let i = sortedGoals.length - 1; i >= 0; i -= 1) {
+      if (targetTime >= normalizedStarts[i].getTime()) {
+        return {
+          goalType: sortedGoals[i].goal_type,
+          goalValue: Number(sortedGoals[i].target_value),
+        };
+      }
+    }
+
+    const firstGoal = sortedGoals[0];
     return {
-      goalType: user?.goal_type || 'total_activities',
-      goalValue: user?.goal_value || user?.goal_per_week || 3
+      goalType: firstGoal.goal_type,
+      goalValue: Number(firstGoal.target_value),
     };
-  }, [activeGoal, user]);
+  };
+
+  const resolveGoalForWeek = useCallback(
+    (weekStart: Date, historyOverride?: GoalHistoryRow[]) => {
+      const sourceHistory = historyOverride ?? goalHistory;
+      if (sourceHistory && sourceHistory.length > 0) {
+        const targetTime = weekStart.getTime();
+        const match = sourceHistory.find((goal) => {
+          const effectiveTime = new Date(goal.effective_date).getTime();
+          return effectiveTime <= targetTime;
+        });
+
+        if (match) {
+          return {
+            goalType: match.goal_type,
+            goalValue: Number(match.goal_value),
+          };
+        }
+      }
+
+      const goalFromUserGoals = resolveGoalFromUserGoals(weekStart);
+      if (goalFromUserGoals) {
+        return goalFromUserGoals;
+      }
+
+      if (activeGoal) {
+        return {
+          goalType: activeGoal.goal_type,
+          goalValue: Number(activeGoal.target_value),
+        };
+      }
+
+      return {
+        goalType: user?.goal_type || 'total_activities',
+        goalValue: user?.goal_value || user?.goal_per_week || 3,
+      };
+    },
+    [goalHistory, allGoals, activeGoal, user]
+  );
+
+  const getCurrentGoal = useCallback(() => {
+    return resolveGoalForWeek(getWeekStart(new Date()));
+  }, [resolveGoalForWeek]);
 
   // Preload all weekly data (12 weeks) - with goal history from database
   const preloadWeeklyData = useCallback(async () => {
@@ -546,19 +621,17 @@ export function DashboardScreen({ navigation }: Props) {
     const now = new Date();
 
     try {
-      // Fetch goal history for the user for the last 12 weeks
-      const twelveWeeksAgo = new Date();
-      twelveWeeksAgo.setDate(now.getDate() - (12 * 7));
-      
-      const { data: goalHistory, error: goalError } = await supabase
+      const { data: goalHistoryData, error: goalError } = await supabase
         .from('goal_history')
         .select('*')
         .eq('user_id', user.id)
-        .gte('effective_date', twelveWeeksAgo.toISOString().split('T')[0])
         .order('effective_date', { ascending: false });
 
       if (goalError) {
         console.error('Error fetching goal history:', goalError);
+      }
+      if (goalHistoryData) {
+        setGoalHistory(goalHistoryData);
       }
     
       // Convert Supabase activities to the format expected by existing components
@@ -578,28 +651,8 @@ export function DashboardScreen({ navigation }: Props) {
       });
 
       // Helper function to get goal for a specific week
-      const getGoalForWeek = (weekStart: Date) => {
-        const currentGoal = getCurrentGoal();
-
-        if (!goalHistory || goalHistory.length === 0) {
-          // Fallback to current goal settings
-          return currentGoal;
-        }
-
-        // Find the most recent goal that was effective before or on this week
-        const weekDateString = weekStart.toISOString().split('T')[0];
-        const applicableGoal = goalHistory.find(goal => goal.effective_date <= weekDateString);
-
-        if (applicableGoal) {
-          return {
-            goalType: applicableGoal.goal_type,
-            goalValue: applicableGoal.goal_value
-          };
-        }
-
-        // Fallback to current goal settings
-        return currentGoal;
-      };
+      const getGoalForWeek = (weekStart: Date) =>
+        resolveGoalForWeek(weekStart, goalHistoryData || []);
 
     for (let i = 0; i < 12; i++) {
       // Calculate week start (Monday) for i weeks ago
@@ -763,7 +816,7 @@ export function DashboardScreen({ navigation }: Props) {
       setWeeklyData(fallbackWeeks);
       setIsLoading(false);
     }
-  }, [user?.id, stravaActivities]);
+  }, [user?.id, loading, stravaActivities, resolveGoalForWeek, getCurrentGoal]);
 
   // Trigger preloading when user logs in or activities change
   useEffect(() => {
@@ -797,7 +850,7 @@ export function DashboardScreen({ navigation }: Props) {
         clearTimeout(timeoutId);
       }
     };
-  }, [user?.id, stravaActivities.length, loading, weeklyData.length, isLoading]);
+  }, [user?.id, stravaActivities.length, loading, weeklyData.length, isLoading, preloadWeeklyData]);
 
   // Also reload if user goal settings change
   useEffect(() => {
@@ -1085,10 +1138,9 @@ export function DashboardScreen({ navigation }: Props) {
   const shouldShowSimpleDashboard = loading || weeklyData.length === 0;
   
   // Create simple current week data if preloading hasn't finished
-  const calculateSimpleProgress = () => {
+  const calculateSimpleProgress = (goalType: string) => {
     if (!user || loading || stravaActivities.length === 0) return 0;
     
-    const goalType = getCurrentGoal().goalType;
     const now = new Date();
     const startOfWeek = new Date(now);
     startOfWeek.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1));
@@ -1155,8 +1207,9 @@ export function DashboardScreen({ navigation }: Props) {
       .reduce((sum, activity) => sum + activity.distance, 0); // stravaActivities already converted to miles
   };
 
-  const simpleProgress = calculateSimpleProgress();
-  const simpleGoal = getCurrentGoal().goalValue;
+  const currentGoalSettings = getCurrentGoal();
+  const simpleProgress = calculateSimpleProgress(currentGoalSettings.goalType);
+  const simpleGoal = currentGoalSettings.goalValue;
   const simpleWeeklyDistance = calculateSimpleWeeklyDistance();
   
   const simpleCurrentWeekData = {
@@ -1165,8 +1218,8 @@ export function DashboardScreen({ navigation }: Props) {
     weekEnd: new Date(),
     progress: simpleProgress,
     goal: simpleGoal,
-    goalType: getCurrentGoal().goalType,
-    goalDisplay: getGoalDisplayText(getCurrentGoal().goalType),
+    goalType: currentGoalSettings.goalType,
+    goalDisplay: getGoalDisplayText(currentGoalSettings.goalType),
     isOnTrack: simpleProgress >= simpleGoal,
     isBehind: false,
     motivationalMessage: {
@@ -1306,7 +1359,9 @@ export function DashboardScreen({ navigation }: Props) {
                 letterSpacing: 0.5,
                 color: selectedWeekOffset === 0 ? '#10b981' : '#6b7280'
               }}>
-                {selectedWeekOffset === 0 ? 'THIS WEEK' : `${selectedWeekOffset} WEEKS AGO`}
+                {selectedWeekOffset === 0
+                  ? 'THIS WEEK'
+                  : `${selectedWeekOffset} WEEK${selectedWeekOffset === 1 ? '' : 'S'} AGO`}
               </Text>
             </View>
 
