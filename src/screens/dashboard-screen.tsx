@@ -1,34 +1,31 @@
 // @ts-nocheck
-import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
-import { Button } from '@/components/ui/button';
-import { useAuthContext } from '@/lib/auth-context';
+import { DebugOnboardingPanel } from '@/components/DebugOnboardingPanel';
+import { SubscriptionCancelledModal } from '@/components/SubscriptionCancelledModal';
+import { IconComponent } from '@/components/ui/IconComponent';
 import { useStravaActivities } from '@/hooks/useStravaActivities';
 import { useUserGoals } from '@/hooks/useUserGoals';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useFocusEffect } from '@react-navigation/native';
-import { formatActivityDate, getWeekDateRange, isValidDate } from '@/lib/utils';
-import { calculateGoalProgress, calculateGoalProgressWithHistory, getGoalDisplayText, getMotivationalMessage } from '@/lib/goalUtils';
-import Svg, { Circle, Rect, Defs, LinearGradient as SvgLinearGradient, Stop } from 'react-native-svg';
-import { LinearGradient } from 'expo-linear-gradient';
-import Animated, { 
-  useSharedValue, 
-  useAnimatedStyle, 
-  withTiming, 
-  interpolate,
-  useAnimatedProps,
-  runOnJS
-} from 'react-native-reanimated';
-import { supabase } from '@/lib/supabase';
-import { DebugOnboardingPanel } from '@/components/DebugOnboardingPanel';
-import { VectorIcon, IconComponent } from '@/components/ui/IconComponent';
-import { SubscriptionCancelledModal } from '@/components/SubscriptionCancelledModal';
-import { revenueCat } from '@/services/RevenueCat';
-import { isDebugMode } from '@/lib/debug-mode';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { analytics, calculateDaysSinceSignup, getSessionId } from '@/lib/analytics/index';
 import { ANALYTICS_EVENTS } from '@/lib/analytics/events';
+import { analytics, calculateDaysSinceSignup, getSessionId } from '@/lib/analytics/index';
+import { useAuthContext } from '@/lib/auth-context';
+import { isDebugMode } from '@/lib/debug-mode';
+import { getGoalDisplayText } from '@/lib/goalUtils';
+import { supabase } from '@/lib/supabase';
+import { formatActivityDate } from '@/lib/utils';
+import { revenueCat } from '@/services/RevenueCat';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { LinearGradient } from 'expo-linear-gradient';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import Animated, {
+	interpolate,
+	useAnimatedProps,
+	useSharedValue,
+	withTiming
+} from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Svg, { Circle } from 'react-native-svg';
 
 // Create animated Circle component for react-native-svg
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
@@ -96,7 +93,7 @@ const ProgressRing = ({ progress, goal, isOnTrack, isBehind, goalType, goalDispl
   });
 
   return (
-    <View style={{ alignItems: 'center', marginBottom: 48 }}> {/* Centered */}
+    <View style={{ alignItems: 'center', marginBottom: 48 }}>
       <View style={{ width: size, height: size, position: 'relative' }}>
         <Svg width={size} height={size} style={{ transform: [{ rotate: '-90deg' }] }}>
           {/* Background Circle */}
@@ -143,7 +140,7 @@ const ProgressRing = ({ progress, goal, isOnTrack, isBehind, goalType, goalDispl
             textAlign: 'center',
             lineHeight: 72
           }}>
-            {goalType.includes('miles') ? progress.toFixed(1) : progress}
+            {goalType.includes('miles') ? progress.toFixed(1) : String(progress)}
           </Text>
           <Text style={{
             fontFamily: 'DMSans-Regular',
@@ -152,7 +149,7 @@ const ProgressRing = ({ progress, goal, isOnTrack, isBehind, goalType, goalDispl
             marginTop: 4,
             textAlign: 'center'
           }}>
-            of {goalType.includes('miles') ? goal.toFixed(1) : goal} {goalDisplay.unit}
+            {`of ${goalType.includes('miles') ? goal.toFixed(1) : goal} ${goalDisplay.unit}`}
           </Text>
           <View style={{ height: 36, marginTop: 4, justifyContent: 'center', alignItems: 'center' }}>
             {isOnTrack && (
@@ -901,7 +898,7 @@ export function DashboardScreen({ navigation }: Props) {
         id: activity.strava_activity_id.toString(),
         date: activity.start_date_local,
         distance: activity.distance, // Keep as number in meters (will be converted in rendering)
-        duration: Math.round(activity.moving_time / 60), // Convert to minutes
+        duration: activity.moving_time, // Keep in seconds for consistency with weekActivities
         type: activity.type,
         name: activity.name || 'Activity',
         countsTowardGoal: checkActivityCountsTowardGoal({
@@ -1726,7 +1723,7 @@ export function DashboardScreen({ navigation }: Props) {
                 )}
               </View>
             ) : (
-              <View style={{ gap: 2 }}> {/* Tighter gap for density */}
+              <View style={{ gap: 2 }}>
                 {displayActivities.map((activity, index) => (
                   <TouchableOpacity
                     key={activity.id}
@@ -1765,17 +1762,17 @@ export function DashboardScreen({ navigation }: Props) {
                         }}>
                           {formatActivityDate(activity.date)}
                         </Text>
-                        {activity.distance > 0 && (
-                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                        {(activity.distance || 0) > 0 && (
+                          <>
                             <Text style={{ color: '#d1d5db' }}>•</Text>
                             <Text style={{
                               fontFamily: 'DMSans-Medium',
                               fontSize: 13,
                               color: '#6b7280'
                             }}>
-                              {`${(activity.distance / 1609.34).toFixed(1)}mi`}
+                              {`${((activity.distance || 0) / 1609.34).toFixed(1)}mi`}
                             </Text>
-                          </View>
+                          </>
                         )}
                         <Text style={{ color: '#d1d5db' }}>•</Text>
                         <Text style={{
@@ -1783,7 +1780,7 @@ export function DashboardScreen({ navigation }: Props) {
                           fontSize: 13,
                           color: '#9ca3af'
                         }}>
-                          {`${Math.round(activity.duration / 60)}m`}
+                          {`${Math.round((activity.duration || 0) / 60)}m`}
                         </Text>
                       </View>
                     </View>
