@@ -77,6 +77,7 @@ const MOTIVATION_OPTIONS: MotivationOption[] = [
 export function MotivationQuizScreen({ navigation }: Props) {
   const { updateUser } = useMockAuth();
   const insets = useSafeAreaInsets();
+  const safeTopPadding = Math.max(insets.top, 16);
   const [selectedMotivation, setSelectedMotivation] = useState<MotivationType | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [screenStartTime] = useState(Date.now());
@@ -209,57 +210,15 @@ export function MotivationQuizScreen({ navigation }: Props) {
     }
   };
 
-  const handleBack = () => {
-    try {
-      const timeSpent = Date.now() - screenStartTime;
-      
-      analytics.trackEvent(ANALYTICS_EVENTS.BUTTON_CLICK, {
-        button_name: 'back_motivation_quiz',
-        screen: ONBOARDING_SCREENS.MOTIVATION_QUIZ,
-        time_spent_ms: timeSpent,
-        had_selection: !!selectedMotivation,
-        selection: selectedMotivation
-      });
-      
-      analytics.trackEvent(ANALYTICS_EVENTS.ONBOARDING_STEP_ABANDONED, {
-        screen: ONBOARDING_SCREENS.MOTIVATION_QUIZ,
-        step_number: 3,
-        total_steps: 9,
-        time_spent_ms: timeSpent,
-        abandonment_reason: 'back_button',
-        had_selection: !!selectedMotivation,
-        selection: selectedMotivation
-      });
-      
-      navigation.goBack();
-    } catch (error) {
-      trackOnboardingError(error as Error, {
-        screen: ONBOARDING_SCREENS.MOTIVATION_QUIZ,
-        action: 'back_button_click'
-      });
-      navigation.goBack();
-    }
-  };
-
   return (
     <View style={{ flex: 1, backgroundColor: '#ffffff' }}>
-      {/* Back Button */}
-      <View style={{ paddingHorizontal: 24, paddingTop: 8, paddingBottom: 4 }}>
-        <TouchableOpacity 
-          onPress={handleBack}
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            paddingVertical: 8,
-            paddingHorizontal: 4
-          }}
-        >
-          <Text style={{ fontSize: 16, color: '#6b7280', marginRight: 8 }}>←</Text>
-          <Text style={{ fontSize: 14, color: '#6b7280', fontWeight: '500' }}>Back</Text>
-        </TouchableOpacity>
-      </View>
-      
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 8 }}>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{
+          paddingHorizontal: 24,
+          paddingTop: safeTopPadding
+        }}
+      >
         {/* Header */}
         <View style={{ alignItems: 'center', marginBottom: 20 }}>
           <Text style={{ 

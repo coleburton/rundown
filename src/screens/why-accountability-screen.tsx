@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView } from 'react-native';
 import { Button } from '@/components/ui/button';
 import { IconComponent } from '@/components/ui/IconComponent';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -73,6 +73,7 @@ const benefits: Benefit[] = [
 
 export function WhyAccountabilityScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
+  const safeTopPadding = Math.max(insets.top, 16);
   const [screenStartTime] = useState(Date.now());
   
   // Track screen view on mount
@@ -127,55 +128,17 @@ export function WhyAccountabilityScreen({ navigation }: Props) {
     }
   };
 
-  const handleBack = () => {
-    try {
-      const timeSpent = Date.now() - screenStartTime;
-      
-      analytics.trackEvent(ANALYTICS_EVENTS.BUTTON_CLICK, {
-        button_name: 'back_why_accountability',
-        screen: ONBOARDING_SCREENS.WHY_ACCOUNTABILITY,
-        time_spent_ms: timeSpent
-      });
-      
-      analytics.trackEvent(ANALYTICS_EVENTS.ONBOARDING_STEP_ABANDONED, {
-        screen: ONBOARDING_SCREENS.WHY_ACCOUNTABILITY,
-        step_number: 1,
-        total_steps: 9,
-        time_spent_ms: timeSpent,
-        abandonment_reason: 'back_button'
-      });
-      
-      navigation.goBack();
-    } catch (error) {
-      trackOnboardingError(error as Error, {
-        screen: ONBOARDING_SCREENS.WHY_ACCOUNTABILITY,
-        action: 'back_button_click'
-      });
-      navigation.goBack();
-    }
-  };
-
   return (
     <View style={{ flex: 1, backgroundColor: '#ffffff' }}>
-      {/* Back Button */}
-      <View style={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 4 }}>
-        <TouchableOpacity 
-          onPress={handleBack}
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            paddingVertical: 8,
-            paddingHorizontal: 4
-          }}
-        >
-          <Text style={{ fontSize: 16, color: '#6b7280', marginRight: 8 }}>←</Text>
-          <Text style={{ fontSize: 14, color: '#6b7280', fontWeight: '500' }}>Back</Text>
-        </TouchableOpacity>
-      </View>
-      
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 16 }}>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{
+          paddingHorizontal: 16,
+          paddingTop: safeTopPadding,
+        }}
+      >
         {/* Header */}
-        <View style={{ alignItems: 'center', marginBottom: 20, marginTop: 16 }}>
+        <View style={{ alignItems: 'center', marginBottom: 20 }}>
           <Text style={[TYPOGRAPHY_STYLES.h2, { 
             color: '#111827', 
             textAlign: 'center',

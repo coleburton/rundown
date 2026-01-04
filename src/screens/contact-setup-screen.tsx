@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, KeyboardAvoidingView, Platform, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useMockAuth } from '@/hooks/useMockAuth';
@@ -40,6 +40,7 @@ type Contact = {
 export function ContactSetupScreen({ navigation }: Props) {
   const { user } = useMockAuth();
   const insets = useSafeAreaInsets();
+  const safeTopPadding = Math.max(insets.top, 16);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [newContact, setNewContact] = useState<Contact>({ name: '', email: '', role: 'Coach' });
   const [error, setError] = useState<string | null>(null);
@@ -145,34 +146,18 @@ export function ContactSetupScreen({ navigation }: Props) {
     navigation.navigate('MessageStyle');
   };
 
-  const handleBack = () => {
-    navigation.goBack();
-  };
-
   return (
     <KeyboardAvoidingView 
       style={{ flex: 1, backgroundColor: '#ffffff' }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      {/* Back Button */}
-      <View style={{ paddingHorizontal: 24, paddingTop: 8, paddingBottom: 4 }}>
-        <TouchableOpacity 
-          onPress={handleBack}
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            paddingVertical: 8,
-            paddingHorizontal: 4
-          }}
-        >
-          <Text style={{ fontSize: 16, color: '#6b7280', marginRight: 8 }}>←</Text>
-          <Text style={{ fontSize: 14, color: '#6b7280', fontWeight: '500' }}>Back</Text>
-        </TouchableOpacity>
-      </View>
-      
       <ScrollView 
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 16, paddingBottom: 24 }}
+        contentContainerStyle={{
+          paddingHorizontal: 24,
+          paddingTop: safeTopPadding,
+          paddingBottom: 24
+        }}
       >
         <View style={{ marginBottom: 20 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>

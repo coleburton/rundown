@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Animated } from 'react-native';
+import { View, Text, ScrollView, Animated } from 'react-native';
 import { Button } from '@/components/ui/button';
 import { IconComponent } from '@/components/ui/IconComponent';
 import { useAuth } from '@/hooks/useAuth';
@@ -121,6 +121,7 @@ const MockProgressRing = ({ progress, goal }: { progress: number; goal: number }
 export function ValuePreviewScreen({ navigation }: Props) {
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
+  const safeTopPadding = Math.max(insets.top, 16);
   const [currentPreview, setCurrentPreview] = useState(0);
   const [screenStartTime] = useState(Date.now());
 
@@ -425,55 +426,15 @@ export function ValuePreviewScreen({ navigation }: Props) {
     }
   };
 
-  const handleBack = () => {
-    try {
-      const timeSpent = Date.now() - screenStartTime;
-      
-      analytics.trackEvent(ANALYTICS_EVENTS.BUTTON_CLICK, {
-        button_name: 'back_value_preview',
-        screen: ONBOARDING_SCREENS.VALUE_PREVIEW,
-        time_spent_ms: timeSpent,
-        preview_index: currentPreview
-      });
-      
-      analytics.trackEvent(ANALYTICS_EVENTS.ONBOARDING_STEP_ABANDONED, {
-        screen: ONBOARDING_SCREENS.VALUE_PREVIEW,
-        step_number: 5,
-        total_steps: 9,
-        time_spent_ms: timeSpent,
-        abandonment_reason: 'back_button',
-        preview_index: currentPreview
-      });
-      
-      navigation.goBack();
-    } catch (error) {
-      trackOnboardingError(error as Error, {
-        screen: ONBOARDING_SCREENS.VALUE_PREVIEW,
-        action: 'back_button_click'
-      });
-      navigation.goBack();
-    }
-  };
-
   return (
     <View style={{ flex: 1, backgroundColor: '#ffffff' }}>
-      {/* Back Button */}
-      <View style={{ paddingHorizontal: 24, paddingTop: 8, paddingBottom: 4 }}>
-        <TouchableOpacity 
-          onPress={handleBack}
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            paddingVertical: 8,
-            paddingHorizontal: 4
-          }}
-        >
-          <Text style={{ fontSize: 16, color: '#6b7280', marginRight: 8 }}>←</Text>
-          <Text style={{ fontSize: 14, color: '#6b7280', fontWeight: '500' }}>Back</Text>
-        </TouchableOpacity>
-      </View>
-      
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 16 }}>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{
+          paddingHorizontal: 24,
+          paddingTop: safeTopPadding
+        }}
+      >
         {/* Header */}
         <View style={{ alignItems: 'center', marginBottom: 32 }}>
           <Text style={{ 

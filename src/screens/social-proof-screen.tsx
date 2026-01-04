@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView } from 'react-native';
 import { Button } from '@/components/ui/button';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -49,6 +49,7 @@ const TESTIMONIALS = [
 
 export function SocialProofScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
+  const safeTopPadding = Math.max(insets.top, 16);
   const [screenStartTime] = useState(Date.now());
 
   // Track screen view on mount
@@ -102,53 +103,15 @@ export function SocialProofScreen({ navigation }: Props) {
     }
   };
 
-  const handleBack = () => {
-    try {
-      const timeSpent = Date.now() - screenStartTime;
-      
-      analytics.trackEvent(ANALYTICS_EVENTS.BUTTON_CLICK, {
-        button_name: 'back_social_proof',
-        screen: ONBOARDING_SCREENS.SOCIAL_PROOF,
-        time_spent_ms: timeSpent
-      });
-      
-      analytics.trackEvent(ANALYTICS_EVENTS.ONBOARDING_STEP_ABANDONED, {
-        screen: ONBOARDING_SCREENS.SOCIAL_PROOF,
-        step_number: 2,
-        total_steps: 9,
-        time_spent_ms: timeSpent,
-        abandonment_reason: 'back_button'
-      });
-      
-      navigation.goBack();
-    } catch (error) {
-      trackOnboardingError(error as Error, {
-        screen: ONBOARDING_SCREENS.SOCIAL_PROOF,
-        action: 'back_button_click'
-      });
-      navigation.goBack();
-    }
-  };
-
   return (
     <View style={{ flex: 1, backgroundColor: '#ffffff' }}>
-      {/* Back Button */}
-      <View style={{ paddingHorizontal: 24, paddingTop: 8, paddingBottom: 4 }}>
-        <TouchableOpacity 
-          onPress={handleBack}
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            paddingVertical: 8,
-            paddingHorizontal: 4
-          }}
-        >
-          <Text style={{ fontSize: 16, color: '#6b7280', marginRight: 8 }}>←</Text>
-          <Text style={{ fontSize: 14, color: '#6b7280', fontWeight: '500' }}>Back</Text>
-        </TouchableOpacity>
-      </View>
-      
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 16 }}>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{
+          paddingHorizontal: 24,
+          paddingTop: safeTopPadding
+        }}
+      >
         {/* Header */}
         <View style={{ alignItems: 'center', marginBottom: 32 }}>
           <Text style={{ 

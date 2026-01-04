@@ -117,6 +117,7 @@ const getRecommendedStyle = (motivationType: string | null): MessageStyle => {
 export function MessageStyleScreen({ navigation }: Props) {
   const { user, updateUser } = useAuth();
   const insets = useSafeAreaInsets();
+  const safeTopPadding = Math.max(insets.top, 16);
   const [selectedStyle, setSelectedStyle] = useState<MessageStyle>('supportive');
   const [recommendedStyle, setRecommendedStyle] = useState<MessageStyle>('supportive');
   const [screenStartTime] = useState(Date.now());
@@ -219,31 +220,17 @@ export function MessageStyleScreen({ navigation }: Props) {
     }
   };
 
-  const handleBack = () => {
-    navigation.goBack();
-  };
-
   const selectedOption = STYLE_OPTIONS.find(style => style.id === selectedStyle);
 
   return (
     <View style={{ flex: 1, backgroundColor: '#ffffff' }}>
-      {/* Back Button */}
-      <View style={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 4 }}>
-        <TouchableOpacity 
-          onPress={handleBack}
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            paddingVertical: 8,
-            paddingHorizontal: 4
-          }}
-        >
-          <Text style={{ fontSize: 16, color: '#6b7280', marginRight: 8 }}>←</Text>
-          <Text style={{ fontSize: 14, color: '#6b7280', fontWeight: '500' }}>Back</Text>
-        </TouchableOpacity>
-      </View>
-      
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 4 }}>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{
+          paddingHorizontal: 24,
+          paddingTop: safeTopPadding
+        }}
+      >
         {/* Header */}
         <View style={{ alignItems: 'center', marginBottom: 12 }}>
           <Text style={{ 
