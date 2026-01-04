@@ -1,0 +1,51 @@
+<svg width="360" height="720" viewBox="0 0 360 720" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#050b16" />
+      <stop offset="1" stop-color="#111827" />
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="20" stdDeviation="18" flood-color="#010409" flood-opacity="0.6" />
+    </filter>
+  </defs>
+  <rect width="360" height="720" rx="36" fill="url(#bg)" />
+  <g filter="url(#shadow)">
+    <rect x="28" y="44" width="304" height="632" rx="30" fill="rgba(15,23,42,0.88)" stroke="rgba(148,163,184,0.2)" />
+  </g>
+  <text x="60" y="110" fill="#f8fafc" font-family="'DM Sans', 'Inter', sans-serif" font-size="18" font-weight="600">Contacts</text>
+  <text x="60" y="134" fill="#94a3b8" font-family="'DM Sans', 'Inter', sans-serif" font-size="12">Pick who receives Rundown receipts</text>
+  <g transform="translate(56 170)">
+    <rect width="248" height="84" rx="18" fill="rgba(20,184,166,0.12)" stroke="rgba(20,184,166,0.5)" />
+    <circle cx="46" cy="42" r="22" fill="#14b8a6" />
+    <text x="80" y="40" fill="#f8fafc" font-size="16" font-family="'DM Sans', 'Inter', sans-serif" font-weight="600">Jess Carter</text>
+    <text x="80" y="62" fill="#cbd5f5" font-size="12" font-family="'DM Sans', 'Inter', sans-serif">Primary • savage tone</text>
+    <rect x="184" y="28" width="44" height="28" rx="14" fill="rgba(15,23,42,0.8)" />
+    <text x="206" y="47" text-anchor="middle" fill="#94a3b8" font-size="10" font-family="'DM Sans', 'Inter', sans-serif">EDIT</text>
+  </g>
+  <g transform="translate(56 268)">
+    <rect width="248" height="84" rx="18" fill="rgba(249,115,22,0.12)" stroke="rgba(249,115,22,0.45)" />
+    <circle cx="46" cy="42" r="22" fill="#f97316" />
+    <text x="80" y="40" fill="#f8fafc" font-size="16" font-family="'DM Sans', 'Inter', sans-serif" font-weight="600">Coach Miller</text>
+    <text x="80" y="62" fill="#cbd5f5" font-size="12" font-family="'DM Sans', 'Inter', sans-serif">Sunday summary</text>
+    <rect x="184" y="28" width="48" height="28" rx="14" fill="rgba(15,23,42,0.85)" />
+    <text x="208" y="47" text-anchor="middle" fill="#f97316" font-size="11" font-family="'DM Sans', 'Inter', sans-serif">CC</text>
+  </g>
+  <g transform="translate(56 366)">
+    <rect width="248" height="84" rx="18" fill="rgba(15,23,42,0.9)" stroke="rgba(148,163,184,0.25)" />
+    <circle cx="46" cy="42" r="22" fill="#fbbf24" />
+    <text x="80" y="40" fill="#f8fafc" font-size="16" font-family="'DM Sans', 'Inter', sans-serif" font-weight="600">Mom</text>
+    <text x="80" y="62" fill="#cbd5f5" font-size="12" font-family="'DM Sans', 'Inter', sans-serif">Kind but relentless</text>
+    <rect x="178" y="28" width="60" height="28" rx="14" fill="rgba(15,23,42,0.8)" />
+    <text x="208" y="47" text-anchor="middle" fill="#94a3b8" font-size="11" font-family="'DM Sans', 'Inter', sans-serif">PAUSED</text>
+  </g>
+  <g transform="translate(56 464)">
+    <rect width="248" height="96" rx="22" fill="rgba(15,23,42,0.9)" stroke="rgba(148,163,184,0.25)" />
+    <text x="24" y="38" fill="#f8fafc" font-size="16" font-family="'DM Sans', 'Inter', sans-serif" font-weight="600">Backup plan</text>
+    <text x="24" y="60" fill="#94a3b8" font-size="12" font-family="'DM Sans', 'Inter', sans-serif">Add one more email just in case.</text>
+    <rect x="24" y="68" width="200" height="16" rx="8" fill="rgba(148,163,184,0.2)" stroke="rgba(148,163,184,0.35)" stroke-dasharray="4 6" />
+  </g>
+  <g transform="translate(56 580)">
+    <rect width="248" height="68" rx="16" fill="rgba(132,204,22,0.15)" stroke="rgba(132,204,22,0.5)" />
+    <text x="32" y="44" fill="#84cc16" font-size="14" font-family="'DM Sans', 'Inter', sans-serif" font-weight="600">+ Add accountability buddy</text>
+  </g>
+</svg>

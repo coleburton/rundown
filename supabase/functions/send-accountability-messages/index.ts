@@ -6,11 +6,7 @@ type MessageStyle = 'supportive' | 'snarky' | 'chaotic' | 'competitive' | 'achie
 type MessageType = 'missed-goal' | 'weekly-summary';
 type GoalType = 'runs' | 'miles' | 'activities' | 'bike_activities' | 'bike_miles';
 
-interface MessageBank {
-  [key in MessageStyle]: {
-    [key in MessageType]: string[];
-  };
-}
+type MessageBank = Record<MessageStyle, Record<MessageType, string[]>>;
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
