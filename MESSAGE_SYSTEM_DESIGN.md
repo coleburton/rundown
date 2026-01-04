@@ -198,4 +198,39 @@ GROUP BY u.message_style;
 2. **A/B Testing**: Test different message templates
 3. **User Feedback**: Allow users to rate message effectiveness
 4. **Multi-Channel**: Add email/push notification options
-5. **Advanced Analytics**: Delivery tracking and user engagement metrics
+
+## Manual Email Testing
+
+While the cron-based functions are being wired up, you can trigger the full HTML accountability email on demand with:
+
+```bash
+# Accountability check-in (default template)
+npm run send:buddy-update -- \
+  --to=buddy@example.com \
+  --user-name="Runner Name" \
+  --contact-name="Buddy Name" \
+  --weekly-goal=4 \
+  --actual-activities=2 \
+  --preferred-day=Sunday \
+  --send-time=18:00 \
+  --cta-url="https://app.rundownapp.com/accountability" \
+  --unsubscribe-url="https://app.rundownapp.com/accountability/opt-out"
+
+# Buddy invite / welcome template
+npm run send:buddy-update -- \
+  --template=buddy-invite \
+  --to=buddy@example.com \
+  --user-name="Runner Name" \
+  --contact-name="Buddy Name" \
+  --learn-more-url="https://app.rundownapp.com/accountability" \
+  --opt-out-url="https://app.rundownapp.com/accountability/opt-out"
+
+# Buddy opt-out notice (sent to the user when a contact unsubscribes)
+npm run send:buddy-update -- \
+  --template=buddy-opt-out-user \
+  --to=user@example.com \
+  --contact-name="Buddy Name" \
+  --manage-contacts-url="https://app.rundownapp.com/settings/accountability"
+```
+
+The script loads the requested HTML template, fills in the placeholders, and hits the Resend API using the credentials in `.env`. Flags support comma-separated recipients with `--to`, and adding `--dry-run=true` prints the preview without sending. Include `--opt-out-token=<uuid>` if you want the message tagged with the existing opt-out token header (`X-Entity-Ref-ID`).

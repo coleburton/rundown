@@ -1,0 +1,46 @@
+<svg width="360" height="720" viewBox="0 0 360 720" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#020617" />
+      <stop offset="1" stop-color="#0b1120" />
+    </linearGradient>
+    <linearGradient id="ring" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#84cc16" />
+      <stop offset="1" stop-color="#14b8a6" />
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="20" stdDeviation="20" flood-color="#020617" flood-opacity="0.6" />
+    </filter>
+  </defs>
+  <rect width="360" height="720" rx="36" fill="url(#bg)" />
+  <g filter="url(#shadow)">
+    <rect x="24" y="36" width="312" height="648" rx="32" fill="rgba(2,6,23,0.8)" stroke="rgba(148,163,184,0.2)" />
+  </g>
+  <text x="60" y="96" fill="#f8fafc" font-family="'DM Sans', 'Inter', sans-serif" font-size="16" font-weight="600">Weekly goal</text>
+  <text x="60" y="128" fill="#94a3b8" font-family="'DM Sans', 'Inter', sans-serif" font-size="13">Target · 15 miles</text>
+  <g transform="translate(48 160)">
+    <circle cx="132" cy="132" r="110" fill="none" stroke="rgba(148,163,184,0.25)" stroke-width="18" stroke-linecap="round" />
+    <circle cx="132" cy="132" r="110" fill="none" stroke="url(#ring)" stroke-width="18" stroke-linecap="round" stroke-dasharray="690" stroke-dashoffset="140" transform="rotate(-90 132 132)" />
+    <text x="132" y="130" text-anchor="middle" fill="#f8fafc" font-size="64" font-family="'DM Sans', 'Inter', sans-serif" font-weight="600">12.3</text>
+    <text x="132" y="160" text-anchor="middle" fill="#cbd5f5" font-size="14" font-family="'DM Sans', 'Inter', sans-serif">of 15 mi</text>
+    <rect x="98" y="182" width="68" height="24" rx="12" fill="rgba(249,115,22,0.2)" stroke="rgba(249,115,22,0.4)" />
+    <text x="132" y="199" text-anchor="middle" fill="#f97316" font-size="12" font-weight="600" font-family="'DM Sans', 'Inter', sans-serif">3 days left</text>
+  </g>
+  <g transform="translate(48 420)">
+    <rect width="264" height="76" rx="20" fill="rgba(15,23,42,0.85)" stroke="rgba(148,163,184,0.2)" />
+    <text x="24" y="34" fill="#f8fafc" font-size="16" font-family="'DM Sans', 'Inter', sans-serif" font-weight="600">This week</text>
+    <text x="24" y="56" fill="#94a3b8" font-size="12" font-family="'DM Sans', 'Inter', sans-serif">Distance · Pace · Time</text>
+    <text x="200" y="34" fill="#84cc16" font-size="20" font-family="'DM Sans', 'Inter', sans-serif" font-weight="600">82%</text>
+  </g>
+  <g transform="translate(48 516)">
+    <rect width="264" height="132" rx="24" fill="rgba(20,184,166,0.1)" stroke="rgba(20,184,166,0.4)" />
+    <text x="24" y="50" fill="#14b8a6" font-size="20" font-family="'DM Sans', 'Inter', sans-serif" font-weight="600">On track</text>
+    <text x="24" y="76" fill="#f8fafc" font-size="14" font-family="'DM Sans', 'Inter', sans-serif">Keep 2 short runs and you’ll hit goal.</text>
+    <rect x="24" y="92" width="60" height="20" rx="10" fill="rgba(15,23,42,0.8)" />
+    <text x="54" y="107" text-anchor="middle" fill="#94a3b8" font-size="10" font-family="'DM Sans', 'Inter', sans-serif">MON</text>
+    <rect x="92" y="92" width="60" height="20" rx="10" fill="rgba(249,115,22,0.2)" />
+    <text x="122" y="107" text-anchor="middle" fill="#f97316" font-size="10" font-family="'DM Sans', 'Inter', sans-serif">WED</text>
+    <rect x="160" y="92" width="60" height="20" rx="10" fill="rgba(15,23,42,0.8)" />
+    <text x="190" y="107" text-anchor="middle" fill="#94a3b8" font-size="10" font-family="'DM Sans', 'Inter', sans-serif">SAT</text>
+  </g>
+</svg>
