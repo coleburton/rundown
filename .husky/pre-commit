@@ -1,5 +1,9 @@
 #!/bin/sh
 
+# Security scan (must pass before other checks)
+echo "Running security scan..."
+node scripts/security-scan.js || exit 1
+
 # Frontend checks (linting on staged files)
 echo "Running lint-staged..."
 npx lint-staged
