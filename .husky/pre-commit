@@ -1,0 +1,47 @@
+#!/bin/sh
+
+# Frontend checks (linting on staged files)
+echo "Running lint-staged..."
+npx lint-staged
+
+# Run Jest on changed frontend files only
+echo "Detecting changed frontend files..."
+CHANGED_FILES=$(git diff --cached --name-only --diff-filter=ACM)
+CHANGED_SRC=$(echo "$CHANGED_FILES" | grep -E '^(src/|App\.tsx)' | grep -E '\.(ts|tsx)$' || true)
+
+if [ -n "$CHANGED_SRC" ]; then
+  echo "Running targeted Jest tests..."
+  npm run test:changed -- --bail --passWithNoTests --findRelatedTests $CHANGED_SRC
+else
+  echo "No frontend files changed; skipping targeted Jest run."
+fi
+
+# Full TypeScript type check (frontend)
+echo "Running TypeScript type check..."
+npm run typecheck
+
+# Backend checks (Supabase Edge Functions)
+if command -v deno >/dev/null 2>&1; then
+  echo "Checking Supabase Edge Functions..."
+  if [ -d "supabase/functions" ]; then
+    cd supabase/functions
+    for dir in */; do
+      if [ -f "$dir/index.ts" ]; then
+        echo "Type checking $dir..."
+        deno check "$dir/index.ts" || exit 1
+
+        if [ -d "$dir/__tests__" ]; then
+          echo "Running Deno tests for $dir..."
+          deno test --allow-all "$dir/__tests__" || exit 1
+        fi
+      fi
+    done
+    cd ../..
+  else
+    echo "No supabase/functions directory found."
+  fi
+else
+  echo "Deno not found; skipping Supabase checks."
+fi
+
+echo "✅ Pre-commit checks passed!"

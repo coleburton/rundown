@@ -66,7 +66,9 @@ function AppContent() {
       user: auth.user,
       loading: auth.loading,
       signInWithStrava: auth.signInWithStrava,
-      signOut: auth.signOut
+      signOut: auth.signOut,
+      refreshUser: auth.refreshUser,
+      updateUser: auth.updateUser
     }}>
       <Stack.Navigator 
         initialRouteName={initialRoute}
