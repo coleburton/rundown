@@ -1,0 +1,16 @@
+name: Send Accountability Messages
+
+on:
+  schedule:
+    # Run every hour
+    - cron: '0 * * * *'
+
+jobs:
+  send-messages:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Supabase Function
+        run: |
+          curl -X POST \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            "${{ secrets.SUPABASE_URL }}/functions/v1/send-accountability-messages" 

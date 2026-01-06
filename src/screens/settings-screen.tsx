@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '../components/ui/button';
 import { IconComponent } from '../components/ui/IconComponent';
 import { ServiceLogo } from '../components/ServiceLogo';
+import { Toast } from '../components/ui/Toast';
 import { useAuthContext } from '../lib/auth-context';
 import { useUserGoals } from '../hooks/useUserGoals';
 import { ThemedView } from '../components/ThemedView';
@@ -15,6 +16,7 @@ import { Database } from '../types/supabase';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { TYPOGRAPHY_STYLES } from '../constants/Typography';
 import { AddContactModal } from '../components/AddContactModal';
+import { GoalUpdateModal } from '../components/GoalUpdateModal';
 import type { RootStackParamList } from '@/types/navigation';
 
 type Contact = Database['public']['Tables']['contacts']['Row'];
@@ -76,6 +78,10 @@ export function SettingsScreen({ navigation }: Props) {
     value: string;
   } | null>(null);
   const [showAddContactModal, setShowAddContactModal] = useState(false);
+  const [showGoalUpdateModal, setShowGoalUpdateModal] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<'success' | 'error'>('success');
 
   const DAYS_OF_WEEK = [
     'Monday', 'Tuesday', 'Wednesday', 'Thursday', 
@@ -87,43 +93,6 @@ export function SettingsScreen({ navigation }: Props) {
     { value: 'afternoon', label: 'Afternoon' },
     { value: 'evening', label: 'Evening' }
   ];
-
-  useEffect(() => {
-    if (user) {
-      fetchContacts();
-      setMessageTiming({
-        day: user.message_day || 'Sunday',
-        timePeriod: user.message_time_period || 'evening'
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id]); // Only re-run when user ID changes, not the entire user object
-
-  // Update userGoal when activeGoal changes
-  useEffect(() => {
-    if (activeGoal) {
-      setUserGoal({
-        type: isValidGoalType(activeGoal.goal_type) ? activeGoal.goal_type : 'total_activities',
-        value: Number(activeGoal.target_value)
-      });
-    } else if (user) {
-      // Fallback to users table if no active goal found
-      setUserGoal({
-        type: isValidGoalType(user.goal_type) ? user.goal_type : 'total_activities',
-        value: user.goal_value || user.goal_per_week || 3
-      });
-    }
-  }, [activeGoal, user]);
-
-  // Listen for navigation focus to refresh goals when returning from GoalSetup
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
-      // Only refresh goals, not user profile (profile is already up to date from auth context)
-      refreshGoals();
-    });
-
-    return unsubscribe;
-  }, [navigation, refreshGoals]);
 
   const fetchContacts = useCallback(async () => {
     if (!user) return;
@@ -143,6 +112,51 @@ export function SettingsScreen({ navigation }: Props) {
       setLoadingContacts(false);
     }
   }, [user?.id]); // Only recreate when user ID changes, not the entire user object
+
+  useEffect(() => {
+    if (user) {
+      console.log('[Settings] Loading message timing from user:', {
+        message_day: user.message_day,
+        message_time_period: user.message_time_period
+      });
+      fetchContacts();
+      setMessageTiming({
+        day: user.message_day || 'Sunday',
+        timePeriod: user.message_time_period || 'evening'
+      });
+    }
+  }, [user?.id, user?.message_day, user?.message_time_period, fetchContacts]);
+
+  // Update userGoal when activeGoal changes
+  useEffect(() => {
+    if (activeGoal) {
+      setUserGoal({
+        type: isValidGoalType(activeGoal.goal_type) ? activeGoal.goal_type : 'total_activities',
+        value: Number(activeGoal.target_value)
+      });
+    } else if (user) {
+      // Fallback to users table if no active goal found
+      setUserGoal({
+        type: isValidGoalType(user.goal_type) ? user.goal_type : 'total_activities',
+        value: user.goal_value || user.goal_per_week || 3
+      });
+    }
+  }, [activeGoal, user]);
+
+  // Listen for navigation focus to refresh data when returning to settings
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', async () => {
+      console.log('[Settings] Screen focused, refreshing data...');
+      // Refresh both goals and user profile to ensure we have the latest data
+      refreshGoals();
+      if (refreshUser) {
+        await refreshUser();
+        console.log('[Settings] User data refreshed on focus');
+      }
+    });
+
+    return unsubscribe;
+  }, [navigation, refreshGoals, refreshUser]);
 
   const handleSignOut = () => {
     Alert.alert(
@@ -263,52 +277,58 @@ export function SettingsScreen({ navigation }: Props) {
   };
 
 
-  const handleTimingChange = (field: 'day' | 'timePeriod', value: string) => {
-    setPendingTiming({ field, value });
-    
-    const fieldName = field === 'day' ? 'day of week' : 'time of day';
-    const confirmMessage = `Change message ${fieldName} to ${value}?`;
-    
-    Alert.alert(
-      'Update Message Timing',
-      confirmMessage,
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-          onPress: () => setPendingTiming(null)
-        },
-        {
-          text: 'Update',
-          onPress: () => confirmTimingChange(field, value)
-        }
-      ]
-    );
-  };
-
-  const confirmTimingChange = async (field: 'day' | 'timePeriod', value: string) => {
+  const handleTimingChange = async (field: 'day' | 'timePeriod', value: string) => {
     if (!user) return;
-    
+
+    const previousTiming = { ...messageTiming };
     const newTiming = { ...messageTiming, [field]: value };
-    
+
+    // Optimistic update - update UI immediately
+    setMessageTiming(newTiming);
+
+    console.log('[Settings] Updating message timing:', {
+      field,
+      value,
+      newTiming,
+      userId: user.id
+    });
+
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('users')
-        .update({ 
+        .update({
           message_day: newTiming.day,
           message_time_period: newTiming.timePeriod
         })
-        .eq('id', user.id);
+        .eq('id', user.id)
+        .select('message_day, message_time_period')
+        .single();
 
       if (error) throw error;
-      
-      setMessageTiming(newTiming);
-      setPendingTiming(null);
-      Alert.alert('Success', 'Message timing updated successfully!');
+
+      console.log('[Settings] Database updated successfully:', data);
+
+      // Refresh user data to ensure the auth context has the latest values
+      if (refreshUser) {
+        console.log('[Settings] Calling refreshUser...');
+        await refreshUser();
+        console.log('[Settings] refreshUser completed');
+      }
+
+      // Show success toast
+      setToastMessage('Message timing updated');
+      setToastType('success');
+      setShowToast(true);
     } catch (error) {
-      console.error('Error updating message timing:', error);
-      Alert.alert('Error', 'Failed to update message timing. Please try again.');
-      setPendingTiming(null);
+      console.error('[Settings] Error updating message timing:', error);
+
+      // Rollback on error
+      setMessageTiming(previousTiming);
+
+      // Show error toast
+      setToastMessage('Failed to update timing');
+      setToastType('error');
+      setShowToast(true);
     }
   };
 
@@ -354,6 +374,12 @@ export function SettingsScreen({ navigation }: Props) {
 
   return (
     <ThemedView style={{ flex: 1, paddingTop: insets.top }}>
+      <Toast
+        visible={showToast}
+        message={toastMessage}
+        type={toastType}
+        onHide={() => setShowToast(false)}
+      />
       <ScrollView contentContainerStyle={{ padding: 20 }}>
         {/* Header with back button */}
         <View style={{
@@ -574,7 +600,7 @@ export function SettingsScreen({ navigation }: Props) {
               <Button
                 variant="outline"
                 title="Update Goal"
-                onPress={() => navigation.navigate('GoalSetup', { fromSettings: true })}
+                onPress={() => setShowGoalUpdateModal(true)}
                 style={{ borderColor: '#f97316', borderWidth: 1 }}
               />
             </View>
@@ -670,30 +696,49 @@ export function SettingsScreen({ navigation }: Props) {
                 </View>
               </View>
               
-              {/* Preview Message */}
+              {/* Preview Message - Redesigned */}
               <View style={{
-                marginTop: 12,
-                padding: 12,
-                backgroundColor: '#f0fdf4',
-                borderRadius: 8,
-                borderLeftWidth: 3,
-                borderLeftColor: '#22c55e'
+                marginTop: 16,
+                backgroundColor: '#fff7ed',
+                borderRadius: 12,
+                padding: 16,
+                borderWidth: 1,
+                borderColor: '#fed7aa',
               }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-                  <IconComponent
-                    library="Lucide"
-                    name="Calendar"
-                    size={12}
-                    color="#15803d"
-                  />
-                  <Text style={{
-                    fontSize: 12,
-                    color: '#15803d',
-                    marginLeft: 4,
-                    fontFamily: 'DMSans-Medium'
+                <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 12 }}>
+                  <View style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 8,
+                    backgroundColor: '#ffedd5',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                   }}>
-                    Messages will be sent {messageTiming.day} {messageTiming.timePeriod} if you miss your goal
-                  </Text>
+                    <IconComponent
+                      library="Lucide"
+                      name="Bell"
+                      size={18}
+                      color="#f97316"
+                    />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{
+                      fontSize: 13,
+                      fontFamily: 'DMSans-Medium',
+                      color: '#9a3412',
+                      marginBottom: 4,
+                    }}>
+                      Accountability Message
+                    </Text>
+                    <Text style={{
+                      fontSize: 13,
+                      fontFamily: 'DMSans-Regular',
+                      color: '#7c2d12',
+                      lineHeight: 18,
+                    }}>
+                      Your contacts will be notified {messageTiming.day} {messageTiming.timePeriod} if you don't hit your goal
+                    </Text>
+                  </View>
                 </View>
               </View>
             </View>
@@ -809,6 +854,13 @@ export function SettingsScreen({ navigation }: Props) {
           visible={showAddContactModal}
           onClose={() => setShowAddContactModal(false)}
           onContactAdded={fetchContacts}
+        />
+
+        {/* Goal Update Modal */}
+        <GoalUpdateModal
+          visible={showGoalUpdateModal}
+          onClose={() => setShowGoalUpdateModal(false)}
+          onGoalUpdated={refreshGoals}
         />
 
         {/* Message History Section */}
