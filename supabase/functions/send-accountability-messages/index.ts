@@ -1,6 +1,5 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
-import { Resend } from 'https://esm.sh/resend@2.0.0';
 
 type MessageStyle = 'supportive' | 'snarky' | 'chaotic' | 'competitive' | 'achievement';
 type MessageType = 'missed-goal' | 'weekly-summary';
@@ -10,10 +9,6 @@ type MessageBank = Record<MessageStyle, Record<MessageType, string[]>>;
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
-const FROM_EMAIL = Deno.env.get('FROM_EMAIL') || 'notifications@rundownapp.com';
-
-const resend = new Resend(RESEND_API_KEY!);
 
 /**
  * Extract or generate email subject from message text
@@ -543,23 +538,38 @@ serve(async (req) => {
         });
 
         try {
-          // Send email via Resend
-          await resend.emails.send({
-            from: FROM_EMAIL,
-            to: contact.email,
-            subject: getEmailSubject(message),
-            html: formatEmailHtml(message),
+          // DEBUG MODE: Store email content in debug_messages table instead of sending
+          const subject = getEmailSubject(message);
+          const htmlBody = formatEmailHtml(message);
+
+          await supabase.from('debug_messages').insert({
+            user_id: user.id,
+            contact_id: contact.id,
+            contact_email: contact.email,
+            contact_name: contact.name,
+            subject: subject,
+            body_text: message,
+            body_html: htmlBody,
+            message_type: messageType,
+            message_style: user.message_style,
+            metadata: {
+              completed,
+              goal: user.goal_per_week,
+              remaining,
+              progressPercent,
+              goalType
+            }
           });
 
-          // Log message in database
+          // Also log in messages table for compatibility
           await supabase.from('messages').insert({
             user_id: user.id,
             contact_id: contact.id,
             message_text: message,
-            status: 'sent',
+            status: 'debug',
           });
         } catch (error) {
-          console.error('Failed to send message:', error);
+          console.error('Failed to store debug message:', error);
 
           // Log failed message
           await supabase.from('messages').insert({
