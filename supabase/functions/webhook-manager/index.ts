@@ -27,8 +27,8 @@ serve(async (req) => {
     }
     
     if (action === 'create') {
-      // Create new webhook subscription
-      const callbackUrl = `${SUPABASE_URL}/functions/v1/smooth-responder`;
+      // Create new webhook subscription targeting the deployed webhook function
+      const callbackUrl = `${SUPABASE_URL}/functions/v1/strava-webhook`;
       
       const formData = new FormData();
       formData.append('client_id', STRAVA_CLIENT_ID!);
