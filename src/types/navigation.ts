@@ -6,7 +6,7 @@ export type RootStackParamList = {
   WhyAccountability: undefined;
   SocialProof: undefined;
   MotivationQuiz: undefined;
-  GoalSetup: { fromSettings?: boolean } | undefined;
+  GoalSetup: undefined;
   ValuePreview: undefined;
   FitnessAppConnect: undefined;
   ContactSetup: undefined;

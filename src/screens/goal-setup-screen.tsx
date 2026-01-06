@@ -28,18 +28,13 @@ export function GoalSetupScreen({ navigation, route }: Props) {
   const { activeGoal, createOrUpdateGoal, toSimpleGoal, loading: goalsLoading } = useUserGoals(user?.id);
   const insets = useSafeAreaInsets();
   const safeTopPadding = Math.max(insets.top, 16);
-  const fromSettings = route.params?.fromSettings;
-  const showBackButton = Boolean(fromSettings);
   const [selectedGoal, setSelectedGoal] = useState<Goal>({
-    type: 'total_activities',
-    value: 3
-  });
-  const [originalGoal, setOriginalGoal] = useState<Goal>({
     type: 'total_activities',
     value: 3
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [screenStartTime] = useState(Date.now());
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const GOAL_TYPE_VALUES: Goal['type'][] = [
     'total_activities',
@@ -55,6 +50,7 @@ export function GoalSetupScreen({ navigation, route }: Props) {
   // Track screen view on mount
   useEffect(() => {
     try {
+      // Track onboarding screen view
       trackOnboardingScreenView(ONBOARDING_SCREENS.GOAL_SETUP, {
         step_number: 4,
         total_steps: 9
@@ -77,7 +73,7 @@ export function GoalSetupScreen({ navigation, route }: Props) {
         value: Number(activeGoal.target_value)
       };
       setSelectedGoal(initialGoal);
-      setOriginalGoal(initialGoal);
+      setIsInitialized(true);
     } else if (!goalsLoading && user) {
       // Fallback to users table if no goal in user_goals yet
       const initialGoal: Goal = {
@@ -85,16 +81,16 @@ export function GoalSetupScreen({ navigation, route }: Props) {
         value: user.goal_value || user.goal_per_week || 3
       };
       setSelectedGoal(initialGoal);
-      setOriginalGoal(initialGoal);
+      setIsInitialized(true);
     }
   }, [activeGoal, goalsLoading, user]);
 
   const handleGoalChange = (goal: Goal) => {
     try {
       setSelectedGoal(goal);
-      
-      // Track goal selection in analytics (not creation - that happens on continue)
-      analytics.trackEvent(ANALYTICS_EVENTS.ONBOARDING_GOAL_SELECTED, { 
+
+      // Track onboarding goal selection
+      analytics.trackEvent(ANALYTICS_EVENTS.ONBOARDING_GOAL_SELECTED, {
         goal_type: goal.type,
         goal_value: goal.value,
         screen: ONBOARDING_SCREENS.GOAL_SETUP,
@@ -113,21 +109,6 @@ export function GoalSetupScreen({ navigation, route }: Props) {
 
   const handleNext = async () => {
     if (isSubmitting) return;
-    
-    // If coming from settings and goal has changed, show confirmation
-    if (fromSettings && (selectedGoal.type !== originalGoal.type || selectedGoal.value !== originalGoal.value)) {
-      Alert.alert(
-        'Update Goal',
-        'Are you sure you want to update your weekly goal? This will affect your accountability tracking.',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Update Goal', onPress: () => saveGoal() }
-        ]
-      );
-      return;
-    }
-    
-    // If not from settings or no change, proceed directly
     await saveGoal();
   };
 
@@ -135,57 +116,51 @@ export function GoalSetupScreen({ navigation, route }: Props) {
     try {
       setIsSubmitting(true);
       const timeSpent = Date.now() - screenStartTime;
-      
-      if (!fromSettings) {
-        // Track screen completion for onboarding
-        trackOnboardingScreenCompleted(ONBOARDING_SCREENS.GOAL_SETUP, {
-          time_spent_ms: timeSpent,
-          time_spent_seconds: Math.round(timeSpent / 1000),
-          step_number: 4,
-          total_steps: 9,
-          goal_type: selectedGoal.type,
-          goal_value: selectedGoal.value
-        });
-        
-        // Track funnel progression
-        trackFunnelStep(ONBOARDING_SCREENS.GOAL_SETUP, 4, 9, {
-          time_spent_ms: timeSpent,
-          goal_type: selectedGoal.type,
-          goal_value: selectedGoal.value
-        });
-        
-        // Set user properties for segmentation
-        setUserProperties({
-          [USER_PROPERTIES.GOAL_TYPE]: selectedGoal.type,
-          [USER_PROPERTIES.GOAL_VALUE]: selectedGoal.value,
-          [USER_PROPERTIES.ONBOARDING_STEP]: 'value_preview'
-        });
-      }
-      
-      // Track goal confirmation
+
+      // Track onboarding goal creation
+      trackOnboardingScreenCompleted(ONBOARDING_SCREENS.GOAL_SETUP, {
+        time_spent_ms: timeSpent,
+        time_spent_seconds: Math.round(timeSpent / 1000),
+        step_number: 4,
+        total_steps: 9,
+        goal_type: selectedGoal.type,
+        goal_value: selectedGoal.value
+      });
+
+      // Track funnel progression
+      trackFunnelStep(ONBOARDING_SCREENS.GOAL_SETUP, 4, 9, {
+        time_spent_ms: timeSpent,
+        goal_type: selectedGoal.type,
+        goal_value: selectedGoal.value
+      });
+
+      // Set user properties for segmentation
+      setUserProperties({
+        [USER_PROPERTIES.GOAL_TYPE]: selectedGoal.type,
+        [USER_PROPERTIES.GOAL_VALUE]: selectedGoal.value,
+        [USER_PROPERTIES.ONBOARDING_STEP]: 'value_preview'
+      });
+
+      // Track initial goal creation
       analytics.trackEvent(ANALYTICS_EVENTS.GOAL_CREATED, {
         goal_type: selectedGoal.type,
         goal_value: selectedGoal.value,
-        screen: fromSettings ? 'Settings' : ONBOARDING_SCREENS.GOAL_SETUP,
+        screen: ONBOARDING_SCREENS.GOAL_SETUP,
         time_spent_ms: timeSpent,
-        from_settings: fromSettings
+        context: 'onboarding'
       });
 
       // Save goal to user_goals table (this also updates users table for backward compatibility)
       await createOrUpdateGoal(selectedGoal);
 
-      if (fromSettings) {
-        navigation.goBack(); // Go back to settings
-      } else {
-        navigation.navigate('ValuePreview'); // Continue onboarding
-      }
+      // Continue onboarding
+      navigation.navigate('ValuePreview');
     } catch (error) {
       trackOnboardingError(error as Error, {
-        screen: fromSettings ? 'Settings' : ONBOARDING_SCREENS.GOAL_SETUP,
+        screen: ONBOARDING_SCREENS.GOAL_SETUP,
         action: 'save_goal',
         goal_type: selectedGoal.type,
-        goal_value: selectedGoal.value,
-        from_settings: fromSettings
+        goal_value: selectedGoal.value
       });
       console.error('Failed to save goal:', error);
     } finally {
@@ -193,101 +168,57 @@ export function GoalSetupScreen({ navigation, route }: Props) {
     }
   };
 
-  const handleBack = () => {
-    if (!showBackButton) {
-      return;
-    }
-
-    try {
-      const timeSpent = Date.now() - screenStartTime;
-      
-      analytics.trackEvent(ANALYTICS_EVENTS.BUTTON_CLICK, {
-        button_name: 'back_goal_setup',
-        screen: ONBOARDING_SCREENS.GOAL_SETUP,
-        time_spent_ms: timeSpent,
-        current_goal_type: selectedGoal.type,
-        current_goal_value: selectedGoal.value
-      });
-      
-      navigation.goBack();
-    } catch (error) {
-      trackOnboardingError(error as Error, {
-        screen: ONBOARDING_SCREENS.GOAL_SETUP,
-        action: 'back_button_click'
-      });
-      navigation.goBack();
-    }
-  };
-
   return (
     <View style={{ flex: 1, backgroundColor: '#ffffff' }}>
-      {showBackButton && (
-        <View
-          style={{
-            paddingHorizontal: 16,
-            paddingTop: safeTopPadding,
-            paddingBottom: 4
-          }}
-        >
-          <TouchableOpacity 
-            onPress={handleBack}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              paddingVertical: 8,
-              paddingHorizontal: 4
-            }}
-          >
-            <Text style={{ fontSize: 16, color: '#6b7280', marginRight: 8 }}>←</Text>
-            <Text style={{ fontSize: 14, color: '#6b7280', fontWeight: '500' }}>Back</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-      
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{
           paddingHorizontal: 16,
-          paddingTop: showBackButton ? 0 : safeTopPadding
+          paddingTop: safeTopPadding
         }}
       >
         {/* Header */}
-        <View style={{ alignItems: 'center', marginBottom: 16, marginTop: fromSettings ? 0 : 12 }}>
+        <View style={{ alignItems: 'center', marginBottom: 16, marginTop: 12 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
-            <Text style={{ 
-              fontSize: 24, 
-              fontWeight: 'bold', 
-              color: '#111827', 
+            <Text style={{
+              fontSize: 24,
+              fontWeight: 'bold',
+              color: '#111827',
               textAlign: 'center'
             }}>
-              {fromSettings ? 'Update Your Goal' : 'How do you want to build '}
-              {!fromSettings && <Text style={{ color: '#f97316' }}>consistency?</Text>}
+              How do you want to build <Text style={{ color: '#f97316' }}>consistency?</Text>
             </Text>
-            {!fromSettings && (
-              <Tooltip 
-                text="Start with a goal you can achieve consistently. You can always adjust it later in settings."
-                style={{ marginLeft: 8 }}
-              />
-            )}
+            <Tooltip
+              text="Start with a goal you can achieve consistently. You can always adjust it later in settings."
+              style={{ marginLeft: 8 }}
+            />
           </View>
-          <Text style={{ 
-            fontSize: 14, 
+          <Text style={{
+            fontSize: 14,
             color: '#6b7280',
             textAlign: 'center'
           }}>
-            {fromSettings 
-              ? 'Adjust your weekly fitness goal to better match your current routine.'
-              : 'Choose your accountability approach. We\'ll provide the support and positive reinforcement.'
-            }
+            Choose your accountability approach. We'll provide the support and positive reinforcement.
           </Text>
         </View>
 
         {/* Enhanced Goal Picker */}
-        <EnhancedGoalPicker 
-          value={selectedGoal}
-          onChange={handleGoalChange}
-          style={{ marginBottom: 20 }}
-        />
+        {!isInitialized ? (
+          <View style={{
+            alignItems: 'center',
+            justifyContent: 'center',
+            paddingVertical: 40,
+            marginBottom: 20
+          }}>
+            <Text style={{ fontSize: 14, color: '#6b7280' }}>Loading your goal...</Text>
+          </View>
+        ) : (
+          <EnhancedGoalPicker
+            value={selectedGoal}
+            onChange={handleGoalChange}
+            style={{ marginBottom: 20 }}
+          />
+        )}
       </ScrollView>
 
       {/* Fixed Button at bottom */}
@@ -295,11 +226,11 @@ export function GoalSetupScreen({ navigation, route }: Props) {
         <Button
           onPress={handleNext}
           size="lg"
-          title={fromSettings ? 'Save Changes' : 'Continue →'}
+          title="Continue →"
           disabled={isSubmitting}
           style={ONBOARDING_BUTTON_STYLE}
         />
-        <DebugSkipButton 
+        <DebugSkipButton
           onSkip={() => navigation.navigate('ValuePreview')}
           title="Debug Skip Goal Setup"
         />

@@ -157,9 +157,9 @@ export function AddContactModal({ visible, onClose, onContactAdded }: AddContact
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         {/* Header */}
-        <View style={{ 
-          flexDirection: 'row', 
-          alignItems: 'center', 
+        <View style={{
+          flexDirection: 'row',
+          alignItems: 'center',
           justifyContent: 'space-between',
           paddingHorizontal: 20,
           paddingVertical: 16,
@@ -167,11 +167,11 @@ export function AddContactModal({ visible, onClose, onContactAdded }: AddContact
           borderBottomColor: '#e5e7eb'
         }}>
           <TouchableOpacity onPress={onClose}>
-            <Text style={{ fontSize: 16, color: '#6b7280', fontWeight: '500' }}>
+            <Text style={{ fontSize: 16, color: '#6b7280', fontFamily: 'DMSans-Medium' }}>
               Cancel
             </Text>
           </TouchableOpacity>
-          <Text style={{ fontSize: 18, fontWeight: '600', color: '#111827' }}>
+          <Text style={{ fontSize: 18, fontFamily: 'DMSans-Bold', color: '#111827' }}>
             Add Contact
           </Text>
           <View style={{ width: 60 }} />
@@ -181,30 +181,42 @@ export function AddContactModal({ visible, onClose, onContactAdded }: AddContact
           style={{ flex: 1 }}
           contentContainerStyle={{ padding: 20 }}
         >
-          <Text style={{ 
-            fontSize: 24, 
-            fontWeight: 'bold', 
-            color: '#111827', 
-            marginBottom: 8 
+          <Text style={{
+            fontSize: 26,
+            fontFamily: 'DMSans-Bold',
+            color: '#111827',
+            marginBottom: 8,
+            letterSpacing: -0.5
           }}>
             Add Accountability Contact
           </Text>
-          <Text style={{ 
-            fontSize: 16, 
-            color: '#6b7280', 
-            marginBottom: 24 
+          <Text style={{
+            fontSize: 16,
+            fontFamily: 'DMSans-Regular',
+            color: '#6b7280',
+            marginBottom: 24,
+            lineHeight: 24
           }}>
             Who should we notify when you're off track?
           </Text>
 
           {error && (
-            <View style={{ 
-              marginBottom: 16, 
-              padding: 12, 
-              backgroundColor: '#fef2f2', 
-              borderRadius: 8 
+            <View style={{
+              marginBottom: 16,
+              padding: 14,
+              backgroundColor: '#fef2f2',
+              borderRadius: 12,
+              borderWidth: 1,
+              borderColor: '#fecaca'
             }}>
-              <Text style={{ color: '#dc2626', fontSize: 14 }}>{error}</Text>
+              <Text style={{
+                color: '#dc2626',
+                fontSize: 14,
+                fontFamily: 'DMSans-Medium',
+                lineHeight: 20
+              }}>
+                {error}
+              </Text>
             </View>
           )}
 
@@ -253,37 +265,58 @@ export function AddContactModal({ visible, onClose, onContactAdded }: AddContact
             style={{ marginBottom: 24 }}
           />
 
-          {/* Message Preview */}
+          {/* Message Preview - Redesigned */}
           <View style={{
-            backgroundColor: '#fef3e2',
-            borderRadius: 12,
-            padding: 16,
-            borderLeftWidth: 4,
-            borderLeftColor: '#f97316'
+            backgroundColor: '#fff7ed',
+            borderRadius: 16,
+            padding: 18,
+            borderWidth: 1,
+            borderColor: '#fed7aa',
+            marginTop: 4
           }}>
-            <Text style={{
-              fontSize: 13,
-              color: '#ea580c',
-              fontWeight: '600',
-              marginBottom: 4
-            }}>
-              💬 Example Message:
-            </Text>
-            <Text style={{
-              fontSize: 14,
-              color: '#ea580c'
-            }}>
-              "Hey! {user?.first_name || user?.name || user?.email?.split('@')[0] || 'Your friend'} missed their weekly fitness goal. Time for some motivation! 💪"
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 12 }}>
+              <View style={{
+                width: 40,
+                height: 40,
+                borderRadius: 10,
+                backgroundColor: '#ffedd5',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginTop: 2
+              }}>
+                <Text style={{ fontSize: 20 }}>💬</Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{
+                  fontSize: 13,
+                  color: '#9a3412',
+                  fontFamily: 'DMSans-Bold',
+                  marginBottom: 6,
+                  letterSpacing: 0.3,
+                  textTransform: 'uppercase'
+                }}>
+                  Example Message
+                </Text>
+                <Text style={{
+                  fontSize: 15,
+                  color: '#7c2d12',
+                  fontFamily: 'DMSans-Regular',
+                  lineHeight: 22
+                }}>
+                  "Hey! {user?.first_name || user?.name || user?.email?.split('@')[0] || 'Your friend'} missed their weekly fitness goal. Time for some motivation! 💪"
+                </Text>
+              </View>
+            </View>
           </View>
         </ScrollView>
 
         {/* Add Button */}
-        <View style={{ 
-          padding: 20, 
+        <View style={{
+          padding: 20,
           paddingBottom: 34,
           borderTopWidth: 1,
-          borderTopColor: '#e5e7eb' 
+          borderTopColor: '#e5e7eb',
+          backgroundColor: '#ffffff'
         }}>
           <Button
             onPress={handleAddContact}
@@ -292,8 +325,13 @@ export function AddContactModal({ visible, onClose, onContactAdded }: AddContact
             disabled={!isValid || isSubmitting}
             style={{
               backgroundColor: isValid && !isSubmitting ? '#f97316' : '#e5e7eb',
-              borderRadius: 12,
-              paddingVertical: 16,
+              borderRadius: 14,
+              paddingVertical: 18,
+            }}
+            textStyle={{
+              fontFamily: 'DMSans-Bold',
+              fontSize: 16,
+              letterSpacing: 0.3
             }}
           />
         </View>
