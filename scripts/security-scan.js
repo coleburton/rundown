@@ -16,20 +16,56 @@ const BLUE = '\x1b[34m';
 const RESET = '\x1b[0m';
 const BOLD = '\x1b[1m';
 
+// Files to exclude from scanning (documentation, tests, etc.)
+const EXCLUDED_FILES = [
+  /\.claude\/.*\.md$/,  // Claude documentation
+  /\.md$/,              // All markdown files (contain examples)
+  /test.*\.js$/,        // Test files
+  /__tests__\//,        // Test directories
+  /\.test\./,           // Test files
+  /\.spec\./,           // Spec files
+  /security-scan\.js$/, // This scanner itself
+];
+
 // Get staged files
 function getStagedFiles() {
   try {
     const output = execSync('git diff --cached --name-only --diff-filter=ACM', { encoding: 'utf8' });
-    return output.trim().split('\n').filter(Boolean);
+    const files = output.trim().split('\n').filter(Boolean);
+    // Filter out excluded files
+    return files.filter(file => !EXCLUDED_FILES.some(pattern => pattern.test(file)));
   } catch (error) {
     return [];
   }
 }
 
-// Get diff for staged changes
+// Get diff for staged changes (excluding documentation files)
 function getStagedDiff() {
   try {
-    return execSync('git diff --cached', { encoding: 'utf8' });
+    const stagedFiles = getStagedFiles();
+    if (stagedFiles.length === 0) return '';
+
+    // Get diff only for non-excluded files
+    const diff = execSync('git diff --cached', { encoding: 'utf8' });
+
+    // Filter out excluded files from diff
+    const diffLines = diff.split('\n');
+    const filteredDiff = [];
+    let currentFile = '';
+    let skipCurrentFile = false;
+
+    diffLines.forEach(line => {
+      if (line.startsWith('+++')) {
+        currentFile = line.substring(6); // Remove '+++ b/'
+        skipCurrentFile = EXCLUDED_FILES.some(pattern => pattern.test(currentFile));
+      }
+
+      if (!skipCurrentFile) {
+        filteredDiff.push(line);
+      }
+    });
+
+    return filteredDiff.join('\n');
   } catch (error) {
     return '';
   }
