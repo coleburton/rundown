@@ -8,3 +8,7 @@ verify_jwt = false
 # Allow webhook management for debugging (protected in UI)
 [functions.webhook-manager]
 verify_jwt = false
+
+# Enable JWT verification for strava-sync to allow authenticated user requests
+[functions.strava-sync]
+verify_jwt = true

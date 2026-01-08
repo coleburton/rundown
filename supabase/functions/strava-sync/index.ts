@@ -3,6 +3,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
 
 const STRAVA_API_URL = 'https://www.strava.com/api/v3';
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
+const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY');
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
 interface StravaActivity {
@@ -30,7 +31,7 @@ interface StravaActivity {
 serve(async (req) => {
   try {
     console.log('Strava sync function called');
-    
+
     const { after } = await req.json();
     const authHeader = req.headers.get('Authorization');
 
@@ -44,31 +45,50 @@ serve(async (req) => {
       );
     }
 
-    // Initialize Supabase client
+    // Extract the JWT token from the Authorization header
+    const token = authHeader.replace('Bearer ', '');
+
+    // Create client with ANON_KEY to validate user JWT
+    const userClient = createClient(
+      SUPABASE_URL!,
+      SUPABASE_ANON_KEY!
+    );
+
+    console.log('Attempting to get user from JWT token');
+
+    // Pass the token explicitly to getUser()
+    const { data: { user }, error: authError } = await userClient.auth.getUser(token);
+    console.log('Auth result:', { hasUser: !!user, authError: authError?.message });
+
+    if (authError || !user) {
+      console.error('Invalid token:', authError?.message, authError);
+      return new Response(
+        JSON.stringify({
+          error: 'Invalid token',
+          details: authError?.message,
+          code: authError?.code,
+          status: authError?.status,
+          authHeader: authHeader ? `${authHeader.substring(0, 20)}...` : 'missing',
+          anonKeyPresent: !!SUPABASE_ANON_KEY,
+          urlPresent: !!SUPABASE_URL
+        }),
+        {
+          status: 401,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+    }
+
+    // Initialize service role client for database operations
     const supabase = createClient(
       SUPABASE_URL!,
       SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    // Get user from auth header
-    const token = authHeader.replace('Bearer ', '');
-    console.log('Attempting to get user with token');
-    
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    console.log('Auth result:', { hasUser: !!user, authError: authError?.message });
-
-    if (authError || !user) {
-      console.error('Invalid token:', authError?.message);
-      return new Response(
-        JSON.stringify({ error: 'Invalid token', details: authError?.message }),
-        { status: 401 }
-      );
-    }
-
     console.log('Looking up user in users table:', user.id);
 
-    // Get user's Strava credentials - check both public.users and auth.users  
-    const { data: userData, error: userError } = await supabase
+    // Get user's Strava credentials - check both public.users and auth.users
+    let { data: userData, error: userError } = await supabase
       .from('users')
       .select('strava_id, access_token, refresh_token, token_expires_at')
       .eq('id', user.id)
@@ -124,7 +144,27 @@ serve(async (req) => {
 
     if (expiresAt <= now) {
       console.log('Token expired, attempting refresh');
-      
+
+      const stravaClientId = Deno.env.get('STRAVA_CLIENT_ID');
+      const stravaClientSecret = Deno.env.get('STRAVA_CLIENT_SECRET');
+
+      console.log('Strava credentials check:', {
+        hasClientId: !!stravaClientId,
+        hasClientSecret: !!stravaClientSecret,
+        hasRefreshToken: !!userData.refresh_token,
+        refreshTokenPrefix: userData.refresh_token?.substring(0, 10) + '...'
+      });
+
+      if (!stravaClientId || !stravaClientSecret) {
+        return new Response(
+          JSON.stringify({
+            error: 'Strava credentials not configured',
+            details: 'STRAVA_CLIENT_ID or STRAVA_CLIENT_SECRET environment variable is missing'
+          }),
+          { status: 500, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+
       // Refresh token
       const response = await fetch('https://www.strava.com/oauth/token', {
         method: 'POST',
@@ -132,8 +172,8 @@ serve(async (req) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          client_id: Deno.env.get('STRAVA_CLIENT_ID'),
-          client_secret: Deno.env.get('STRAVA_CLIENT_SECRET'),
+          client_id: stravaClientId,
+          client_secret: stravaClientSecret,
           refresh_token: userData.refresh_token,
           grant_type: 'refresh_token',
         }),
@@ -145,7 +185,15 @@ serve(async (req) => {
 
       if (!response.ok) {
         console.error('Token refresh failed:', data);
-        throw new Error(`Failed to refresh token: ${data.message || response.statusText}`);
+        return new Response(
+          JSON.stringify({
+            error: 'Failed to refresh Strava token',
+            stravaError: data,
+            stravaStatus: response.status,
+            hint: 'You may need to reconnect your Strava account'
+          }),
+          { status: 401, headers: { 'Content-Type': 'application/json' } }
+        );
       }
 
       console.log('Token refreshed successfully');

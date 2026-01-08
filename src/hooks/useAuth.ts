@@ -140,7 +140,10 @@ export function useAuth() {
           // Trigger initial activity sync
           console.log('Triggering initial Strava activity sync...');
           const { error: syncError } = await supabase.functions.invoke('strava-sync', {
-            body: {} // Function uses JWT token to identify user
+            body: {}, // Function uses JWT token to identify user
+            headers: {
+              Authorization: `Bearer ${session.access_token}`,
+            },
           });
 
           if (syncError) {
