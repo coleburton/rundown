@@ -1,10 +1,14 @@
+import { HeaderBlurOverlay } from '@/components/HeaderBlurOverlay';
 import { RouteVisualization } from '@/components/RouteVisualization';
 import { VectorIcon } from '@/components/ui/IconComponent';
 import { Activity, useStravaActivities } from '@/hooks/useStravaActivities';
 import StravaAuthService from '@/services/strava-auth';
+import { decodePolyline } from '@/utils/polyline';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Linking, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+
+type ScrollEvent = { nativeEvent: { contentOffset: { y: number } } };
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type RootStackParamList = {
@@ -19,9 +23,9 @@ export function ActivityDetailScreen({ navigation, route }: Props) {
   const insets = useSafeAreaInsets();
   const [activity, setActivity] = useState<Activity | null>(null);
   const [detailedActivity, setDetailedActivity] = useState<any>(null);
-  const [routeStreams, setRouteStreams] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isScrolled, setIsScrolled] = useState(false);
   
   const { activities } = useStravaActivities();
   const stravaAuth = StravaAuthService.getInstance();
@@ -132,6 +136,74 @@ export function ActivityDetailScreen({ navigation, route }: Props) {
     Linking.openURL(url);
   };
 
+  const currentActivity = detailedActivity || activity;
+
+  const routeLatLng = useMemo(() => {
+    if (!currentActivity) {
+      return null;
+    }
+
+    interface StravaMapData {
+      summary_polyline?: string | null;
+      polyline?: string | null;
+    }
+
+    const getPolylineFromActivity = (): string | null => {
+      const mapData = (currentActivity as any)?.map as StravaMapData | undefined;
+      if (mapData?.summary_polyline) {
+        return mapData.summary_polyline;
+      }
+
+      const rawData = currentActivity.raw_data as { map?: StravaMapData } | null;
+      if (rawData?.map?.summary_polyline) {
+        return rawData.map.summary_polyline;
+      }
+
+      if (rawData?.map?.polyline) {
+        return rawData.map.polyline;
+      }
+
+      return null;
+    };
+
+    const summaryPolyline = getPolylineFromActivity();
+
+    if (summaryPolyline) {
+      try {
+        const decoded = decodePolyline(summaryPolyline);
+        if (decoded.length >= 2) {
+          return decoded;
+        }
+      } catch (polylineError) {
+        console.error('Failed to decode activity polyline', polylineError);
+      }
+    }
+
+    const isLatLngTuple = (value: any): value is [number, number] =>
+      Array.isArray(value) &&
+      value.length === 2 &&
+      typeof value[0] === 'number' &&
+      typeof value[1] === 'number';
+
+    const fallbackPoints: [number, number][] = [];
+
+    const startLatLng = (currentActivity as any)?.start_latlng;
+    if (isLatLngTuple(startLatLng)) {
+      fallbackPoints.push(startLatLng);
+    }
+
+    const endLatLng = (currentActivity as any)?.end_latlng;
+    if (isLatLngTuple(endLatLng)) {
+      fallbackPoints.push(endLatLng);
+    }
+
+    if (fallbackPoints.length >= 2) {
+      return fallbackPoints;
+    }
+
+    return null;
+  }, [currentActivity]);
+
   if (loading) {
     return (
       <View style={{ flex: 1, backgroundColor: '#ffffff', paddingTop: 24 + insets.top }}>
@@ -194,8 +266,6 @@ export function ActivityDetailScreen({ navigation, route }: Props) {
     );
   }
 
-  const currentActivity = detailedActivity || activity;
-  
   if (!currentActivity) {
     return (
       <View style={{ flex: 1, backgroundColor: '#ffffff', paddingTop: 24 + insets.top }}>
@@ -228,7 +298,19 @@ export function ActivityDetailScreen({ navigation, route }: Props) {
   }
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: '#ffffff' }}>
+    <View style={{ flex: 1, backgroundColor: '#ffffff' }}>
+      <HeaderBlurOverlay
+        visible={isScrolled}
+        height={insets.top + 80}
+      />
+      <ScrollView
+        style={{ flex: 1 }}
+        onScroll={(event: ScrollEvent) => {
+          const scrollY = event.nativeEvent.contentOffset.y;
+          setIsScrolled(scrollY > 10);
+        }}
+        scrollEventThrottle={16}
+      >
       <View style={{ padding: 24, paddingTop: 24 + insets.top }}>
         {/* Header */}
         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 32 }}>
@@ -708,7 +790,7 @@ export function ActivityDetailScreen({ navigation, route }: Props) {
           </Text>
           
           <RouteVisualization 
-            latlng={routeStreams?.latlng?.data} 
+            latlng={routeLatLng || undefined} 
             width={300} 
             height={200} 
           />
@@ -732,5 +814,6 @@ export function ActivityDetailScreen({ navigation, route }: Props) {
         </View>
       </View>
     </ScrollView>
+  </View>
   );
 }

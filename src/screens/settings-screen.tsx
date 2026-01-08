@@ -19,11 +19,13 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { TYPOGRAPHY_STYLES } from '../constants/Typography';
 import { AddContactModal } from '../components/AddContactModal';
 import { GoalUpdateModal } from '../components/GoalUpdateModal';
+import { HeaderBlurOverlay } from '../components/HeaderBlurOverlay';
 import type { RootStackParamList } from '@/types/navigation';
 
 type Contact = Database['public']['Tables']['contacts']['Row'];
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Settings'>;
+type ScrollEvent = { nativeEvent: { contentOffset: { y: number } } };
 
 export function SettingsScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
@@ -84,6 +86,7 @@ export function SettingsScreen({ navigation }: Props) {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState<'success' | 'error'>('success');
+  const [isScrolled, setIsScrolled] = useState(false);
 
   const DAYS_OF_WEEK = [
     'Monday', 'Tuesday', 'Wednesday', 'Thursday', 
@@ -418,7 +421,18 @@ export function SettingsScreen({ navigation }: Props) {
         type={toastType}
         onHide={() => setShowToast(false)}
       />
-      <ScrollView contentContainerStyle={{ padding: 20 }}>
+      <HeaderBlurOverlay
+        visible={isScrolled}
+        height={insets.top + 80}
+      />
+      <ScrollView
+        contentContainerStyle={{ padding: 20 }}
+        onScroll={(event: ScrollEvent) => {
+          const scrollY = event.nativeEvent.contentOffset.y;
+          setIsScrolled(scrollY > 10);
+        }}
+        scrollEventThrottle={16}
+      >
         {/* Header with back button */}
         <View style={{
           flexDirection: 'row',
