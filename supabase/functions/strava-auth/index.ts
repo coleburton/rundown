@@ -22,9 +22,12 @@ interface StravaTokenResponse {
 
 serve(async (req) => {
   try {
-    console.log('Strava auth function called');
+    console.log('=== STRAVA AUTH FUNCTION CALLED ===');
+    console.log('Request method:', req.method);
+    console.log('Request headers:', Object.fromEntries(req.headers.entries()));
+
     const { code, user_id } = await req.json();
-    console.log('Request data:', { hasCode: !!code, user_id });
+    console.log('Request data:', { hasCode: !!code, user_id, codeLength: code?.length });
 
     if (!code) {
       console.error('No authorization code provided');
@@ -113,7 +116,7 @@ serve(async (req) => {
       // Check if user exists by user_id (from current session)
       const { data: existingUser, error: userError } = await supabase
         .from('users')
-        .select('id, email, strava_id, name')
+        .select('id, email, strava_id, name, strava_connection_status')
         .eq('id', user_id)
         .single();
 
@@ -137,6 +140,10 @@ serve(async (req) => {
 
       console.log('User found, updating Strava connection');
 
+      // Check if this is a reconnection (user already has this strava_id)
+      const isReconnecting = existingUser.strava_id === stravaData.athlete.id.toString();
+      console.log('Connection type:', isReconnecting ? 'reconnection' : 'initial connection');
+
       // Update the existing user's Strava connection (NO ENCRYPTION)
       const { error: updateError } = await supabase
         .from('users')
@@ -146,10 +153,33 @@ serve(async (req) => {
           refresh_token: stravaData.refresh_token,
           token_expires_at: new Date(stravaData.expires_at * 1000).toISOString(),
           name: existingUser.name || `${stravaData.athlete.firstname} ${stravaData.athlete.lastname}`,
+          strava_connection_status: 'connected',
+          strava_last_validated_at: new Date().toISOString(),
+          strava_disconnected_at: null,
+          strava_disconnection_reason: null,
         })
         .eq('id', user_id);
 
       console.log('User update completed');
+
+      // Insert audit event
+      if (!updateError) {
+        try {
+          await supabase
+            .from('strava_connection_events')
+            .insert({
+              user_id: user_id,
+              event_type: isReconnecting ? 'reconnected' : 'connected',
+              metadata: {
+                strava_id: stravaData.athlete.id.toString(),
+                athlete_name: `${stravaData.athlete.firstname} ${stravaData.athlete.lastname}`
+              }
+            });
+        } catch (eventError) {
+          console.error('Failed to insert audit event:', eventError);
+          // Don't fail the connection if audit insertion fails
+        }
+      }
 
       if (updateError) {
         console.error('Error updating user:', updateError);
@@ -178,13 +208,26 @@ serve(async (req) => {
       );
     }
 
+    // Need to check isReconnecting again for the response
+    // (it was defined inside the try block)
+    const { data: userCheck } = await supabase
+      .from('users')
+      .select('strava_id')
+      .eq('id', user_id)
+      .single();
+
+    const wasReconnection = userCheck?.strava_id === stravaData.athlete.id.toString();
+
     console.log('Strava connection successful');
 
     return new Response(
       JSON.stringify({
         success: true,
         athlete: stravaData.athlete,
-        message: 'Strava account connected successfully'
+        message: wasReconnection
+          ? 'Strava account reconnected successfully'
+          : 'Strava account connected successfully',
+        isReconnection: wasReconnection
       }),
       {
         status: 200,

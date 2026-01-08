@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { DebugOnboardingPanel } from '@/components/DebugOnboardingPanel';
+import { StravaConnectionNotice } from '@/components/StravaConnectionNotice';
 import { SubscriptionCancelledModal } from '@/components/SubscriptionCancelledModal';
 import { IconComponent } from '@/components/ui/IconComponent';
 import { useStravaActivities } from '@/hooks/useStravaActivities';
@@ -12,6 +13,7 @@ import { getGoalDisplayText } from '@/lib/goalUtils';
 import { supabase } from '@/lib/supabase';
 import { formatActivityDate } from '@/lib/utils';
 import { revenueCat } from '@/services/RevenueCat';
+import { StravaConnectionService } from '@/services/strava-connection-status';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -371,7 +373,7 @@ interface WeeklyData {
 }
 
 export function DashboardScreen({ navigation }: Props) {
-  const { user, signOut } = useAuthContext();
+  const { user, signOut, signInWithStrava } = useAuthContext();
   const { activeGoal, allGoals } = useUserGoals(user?.id);
   const insets = useSafeAreaInsets();
   const [goalHistory, setGoalHistory] = useState<GoalHistoryRow[]>([]);
@@ -385,7 +387,11 @@ export function DashboardScreen({ navigation }: Props) {
   const [showCancelledModal, setShowCancelledModal] = useState(false);
   const [debugCancelledState, setDebugCancelledState] = useState(false);
   const [hasCheckedSubscription, setHasCheckedSubscription] = useState(false);
-  
+
+  // Strava connection notice state
+  const [showStravaNotice, setShowStravaNotice] = useState(false);
+  const [stravaDisconnectionReason, setStravaDisconnectionReason] = useState<string | undefined>();
+
   // Trigger for progress ring animation when screen comes into focus
   const [animationTrigger, setAnimationTrigger] = useState(0);
 
@@ -422,6 +428,22 @@ export function DashboardScreen({ navigation }: Props) {
 
       // Check subscription status on focus
       checkSubscriptionStatus();
+
+      // Check Strava connection status
+      const checkStravaConnection = async () => {
+        if (!user?.id) return;
+
+        try {
+          const status = await StravaConnectionService.checkConnectionStatus(user.id);
+          const shouldShow = status.needsReconnection && await StravaConnectionService.shouldShowNotice();
+
+          setShowStravaNotice(shouldShow);
+          setStravaDisconnectionReason(status.reason);
+        } catch (error) {
+          console.error('Error checking Strava connection:', error);
+        }
+      };
+      checkStravaConnection();
 
       // Track dashboard view
       const trackView = async () => {
@@ -1396,6 +1418,25 @@ export function DashboardScreen({ navigation }: Props) {
           animationTrigger={animationTrigger}
           daysLeft={selectedWeekOffset === 0 ? daysLeft : undefined}
         />
+
+        {/* Strava Connection Notice */}
+        {showStravaNotice && (
+          <StravaConnectionNotice
+            onReconnect={async () => {
+              setShowStravaNotice(false);
+              await StravaConnectionService.clearDismissal();
+              // Trigger Strava OAuth
+              if (signInWithStrava) {
+                await signInWithStrava();
+              }
+            }}
+            onDismiss={async () => {
+              setShowStravaNotice(false);
+              await StravaConnectionService.dismissNotice();
+            }}
+            reason={stravaDisconnectionReason}
+          />
+        )}
 
         {/* Status Message */}
         {!effectiveIsSubscribed ? (

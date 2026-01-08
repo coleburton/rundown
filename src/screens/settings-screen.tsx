@@ -12,6 +12,8 @@ import { ThemedText } from '../components/ThemedText';
 import { resetOnboardingState } from '../lib/utils';
 import { Goal } from '../components/EnhancedGoalPicker';
 import { supabase } from '../lib/supabase';
+import { StravaConnectionService } from '../services/strava-connection-status';
+import StravaAuthService from '../services/strava-auth';
 import { Database } from '../types/supabase';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { TYPOGRAPHY_STYLES } from '../constants/Typography';
@@ -199,24 +201,26 @@ export function SettingsScreen({ navigation }: Props) {
           text: 'Disconnect',
           style: 'destructive',
           onPress: async () => {
-      try {
-        const { error } = await supabase
-          .from('users')
-          .update({
-            strava_id: null,
-            access_token: null,
-          })
-          .eq('id', user.id);
+            try {
+              // Use new disconnect service (calls edge function)
+              const result = await StravaConnectionService.disconnect();
 
-        if (error) throw error;
+              if (!result.success) {
+                throw new Error(result.error || 'Disconnect failed');
+              }
 
-        Alert.alert('Success', 'Strava has been disconnected successfully.');
-        // Refresh user data
-        if (refreshUser) await refreshUser();
-      } catch (error) {
-        console.error('Error disconnecting Strava:', error);
-        Alert.alert('Error', 'Failed to disconnect Strava. Please try again.');
-      }
+              // Clear local tokens
+              const stravaAuth = StravaAuthService.getInstance();
+              await stravaAuth.clearTokens();
+
+              Alert.alert('Success', 'Strava has been disconnected successfully.');
+
+              // Refresh user data
+              if (refreshUser) await refreshUser();
+            } catch (error) {
+              console.error('Error disconnecting Strava:', error);
+              Alert.alert('Error', 'Failed to disconnect Strava. Please try again.');
+            }
           }
         }
       ]

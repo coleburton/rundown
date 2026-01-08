@@ -643,6 +643,10 @@ export type Database = {
           send_day: string
           send_time: string
           strava_id: string | null
+          strava_connection_status: "connected" | "disconnected" | "auth_failed" | "token_expired" | null
+          strava_disconnected_at: string | null
+          strava_disconnection_reason: string | null
+          strava_last_validated_at: string | null
           streak_count: number
           timezone: string | null
           token_expires_at: string | null
@@ -677,6 +681,10 @@ export type Database = {
           send_day?: string
           send_time?: string
           strava_id?: string | null
+          strava_connection_status?: "connected" | "disconnected" | "auth_failed" | "token_expired" | null
+          strava_disconnected_at?: string | null
+          strava_disconnection_reason?: string | null
+          strava_last_validated_at?: string | null
           streak_count?: number
           timezone?: string | null
           token_expires_at?: string | null
@@ -711,6 +719,10 @@ export type Database = {
           send_day?: string
           send_time?: string
           strava_id?: string | null
+          strava_connection_status?: "connected" | "disconnected" | "auth_failed" | "token_expired" | null
+          strava_disconnected_at?: string | null
+          strava_disconnection_reason?: string | null
+          strava_last_validated_at?: string | null
           streak_count?: number
           timezone?: string | null
           token_expires_at?: string | null
