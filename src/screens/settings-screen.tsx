@@ -244,8 +244,25 @@ export function SettingsScreen({ navigation }: Props) {
 
     try {
       console.log('Starting manual Strava sync for user:', user.id);
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session?.access_token) {
+        console.error('Manual sync attempted without a valid Supabase session');
+        Alert.alert('Not authenticated', 'Please sign in again to sync your Strava activities.');
+        return;
+      }
+
+      console.log('Manual sync session info:', {
+        hasUser: !!session.user,
+        userId: session.user?.id,
+        hasToken: !!session.access_token,
+      });
+
       const response = await supabase.functions.invoke('strava-sync', {
-        body: {} // Function uses JWT token to identify user
+        body: {}, // Function uses JWT token to identify user
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
       });
 
       console.log('Full response:', JSON.stringify(response, null, 2));
@@ -258,6 +275,23 @@ export function SettingsScreen({ navigation }: Props) {
           statusText: response.error.context?.statusText,
           body: response.error.context?.body
         });
+
+        // Try to read the response body for more details
+        try {
+          if (response.error.context?._bodyBlob) {
+            const blob = response.error.context._bodyBlob;
+            const text = await new Response(blob).text();
+            console.error('Response body text:', text);
+            try {
+              const json = JSON.parse(text);
+              console.error('Response body JSON:', json);
+            } catch {
+              // Not JSON
+            }
+          }
+        } catch (e) {
+          console.error('Failed to read response body:', e);
+        }
 
         // Try to parse error from data
         if (response.data) {
