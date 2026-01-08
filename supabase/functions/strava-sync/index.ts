@@ -90,7 +90,7 @@ serve(async (req) => {
     // Get user's Strava credentials - check both public.users and auth.users
     let { data: userData, error: userError } = await supabase
       .from('users')
-      .select('strava_id, access_token, refresh_token, token_expires_at')
+      .select('strava_id, access_token, refresh_token, token_expires_at, strava_connection_status')
       .eq('id', user.id)
       .single();
 
@@ -102,7 +102,7 @@ serve(async (req) => {
       
       const { data: userByEmail, error: emailError } = await supabase
         .from('users')
-        .select('id, strava_id, access_token, refresh_token, token_expires_at')
+        .select('id, strava_id, access_token, refresh_token, token_expires_at, strava_connection_status')
         .eq('email', user.email!)
         .single();
       
@@ -128,11 +128,13 @@ serve(async (req) => {
     if (!userData.access_token || !userData.strava_id) {
       console.error('User has no Strava credentials');
       return new Response(
-        JSON.stringify({ 
+        JSON.stringify({
           error: 'User not connected to Strava',
-          details: 'Please connect your Strava account first'
+          details: 'Please connect your Strava account first',
+          reconnectionRequired: true,
+          connectionStatus: userData.strava_connection_status || 'disconnected'
         }),
-        { status: 400 }
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
@@ -185,12 +187,40 @@ serve(async (req) => {
 
       if (!response.ok) {
         console.error('Token refresh failed:', data);
+
+        // Update user status to auth_failed
+        await supabase
+          .from('users')
+          .update({
+            strava_connection_status: 'auth_failed',
+            strava_disconnected_at: new Date().toISOString(),
+            strava_disconnection_reason: 'token_refresh_failed'
+          })
+          .eq('id', user.id);
+
+        // Insert audit event
+        try {
+          await supabase
+            .from('strava_connection_events')
+            .insert({
+              user_id: user.id,
+              event_type: 'refresh_failed',
+              metadata: {
+                error: data,
+                status: response.status
+              }
+            });
+        } catch (eventError) {
+          console.error('Failed to insert audit event:', eventError);
+        }
+
         return new Response(
           JSON.stringify({
             error: 'Failed to refresh Strava token',
             stravaError: data,
             stravaStatus: response.status,
-            hint: 'You may need to reconnect your Strava account'
+            reconnectionRequired: true,
+            hint: 'Please reconnect your Strava account'
           }),
           { status: 401, headers: { 'Content-Type': 'application/json' } }
         );
@@ -198,15 +228,32 @@ serve(async (req) => {
 
       console.log('Token refreshed successfully');
 
-      // Update user's tokens
+      // Update user's tokens and status
       await supabase
         .from('users')
         .update({
           access_token: data.access_token,
           refresh_token: data.refresh_token,
           token_expires_at: new Date(data.expires_at * 1000).toISOString(),
+          strava_connection_status: 'connected',
+          strava_last_validated_at: new Date().toISOString()
         })
         .eq('id', user.id);
+
+      // Insert audit event for successful refresh
+      try {
+        await supabase
+          .from('strava_connection_events')
+          .insert({
+            user_id: user.id,
+            event_type: 'token_refreshed',
+            metadata: {
+              expires_at: new Date(data.expires_at * 1000).toISOString()
+            }
+          });
+      } catch (eventError) {
+        console.error('Failed to insert audit event:', eventError);
+      }
 
       userData.access_token = data.access_token;
     }

@@ -9,6 +9,14 @@ verify_jwt = false
 [functions.webhook-manager]
 verify_jwt = false
 
-# Enable JWT verification for strava-sync to allow authenticated user requests
+# Strava-sync handles JWT verification manually in the function code
 [functions.strava-sync]
-verify_jwt = true
+verify_jwt = false
+
+# Strava-disconnect handles auth manually
+[functions.strava-disconnect]
+verify_jwt = false
+
+# Strava-auth doesn't require JWT - it exchanges OAuth code for tokens
+[functions.strava-auth]
+verify_jwt = false

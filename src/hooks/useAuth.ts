@@ -129,8 +129,19 @@ export function useAuth() {
 
           if (error) {
             console.error('Error from strava-auth function:', error);
+            // Try to get more details from the error
+            try {
+              if (error.context && error.context._bodyBlob) {
+                const errorText = await error.context.text();
+                console.error('Strava-auth error details:', errorText);
+              }
+            } catch (e) {
+              console.error('Could not parse error details');
+            }
             throw error;
           }
+
+          console.log('Strava-auth response data:', data);
 
           console.log('Strava auth successful, refreshing user data');
 
