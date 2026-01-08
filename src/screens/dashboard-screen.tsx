@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { DebugOnboardingPanel } from '@/components/DebugOnboardingPanel';
+import { HeaderBlurOverlay } from '@/components/HeaderBlurOverlay';
 import { StravaConnectionNotice } from '@/components/StravaConnectionNotice';
 import { SubscriptionCancelledModal } from '@/components/SubscriptionCancelledModal';
 import { IconComponent } from '@/components/ui/IconComponent';
@@ -17,7 +18,6 @@ import { StravaConnectionService } from '@/services/strava-connection-status';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { LinearGradient } from 'expo-linear-gradient';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import Animated, {
@@ -1252,24 +1252,10 @@ export function DashboardScreen({ navigation }: Props) {
 
   return (
     <View style={{ flex: 1, backgroundColor: '#ffffff' }}>
-      {/* Fixed gradient overlay at top to prevent content overlap with status bar - only show when scrolled */}
-      {isScrolled && (
-        <View style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: insets.top + 80,
-          zIndex: 10,
-          pointerEvents: 'none',
-        }}>
-          <LinearGradient
-            colors={['#ffffff', 'rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0)']}
-            locations={[0, 0.7, 1]}
-            style={{ flex: 1 }}
-          />
-        </View>
-      )}
+      <HeaderBlurOverlay 
+        visible={isScrolled} 
+        height={insets.top + 80} 
+      />
       <ScrollView
         style={{ flex: 1 }}
         onScroll={(event) => {
