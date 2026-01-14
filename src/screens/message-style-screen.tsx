@@ -1,13 +1,15 @@
 import { DebugSkipButton } from '@/components/DebugSkipButton';
 import { Button } from '@/components/ui/button';
 import { ONBOARDING_BUTTON_STYLE, ONBOARDING_CONTAINER_STYLE } from '@/constants/OnboardingStyles';
+import { TYPOGRAPHY_STYLES } from '@/constants/Typography';
 import { useAuth } from '@/hooks/useAuth';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React, { useEffect, useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
-import { VectorIcon, IconComponent } from '@/components/ui/IconComponent';
+import { IconComponent } from '@/components/ui/IconComponent';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MESSAGE_TEMPLATES, formatMessage } from '../lib/message-templates';
+import { OnboardingBackButton } from '@/components/OnboardingBackButton';
 import analytics, { 
   ANALYTICS_EVENTS, 
   ONBOARDING_SCREENS, 
@@ -170,9 +172,9 @@ export function MessageStyleScreen({ navigation }: Props) {
         console.error('User is null');
         return;
       }
-      
+
       const timeSpent = Date.now() - screenStartTime;
-      
+
       // Track screen completion
       trackOnboardingScreenCompleted(ONBOARDING_SCREENS.MESSAGE_STYLE, {
         time_spent_ms: timeSpent,
@@ -183,14 +185,14 @@ export function MessageStyleScreen({ navigation }: Props) {
         recommended_style: recommendedStyle,
         changed_from_recommended: selectedStyle !== recommendedStyle
       });
-      
+
       // Track funnel progression
       trackFunnelStep(ONBOARDING_SCREENS.MESSAGE_STYLE, 8, 9, {
         time_spent_ms: timeSpent,
         selected_style: selectedStyle,
         recommended_style: recommendedStyle
       });
-      
+
       // Track message style selection
       analytics.trackEvent(ANALYTICS_EVENTS.ONBOARDING_MESSAGE_STYLE_SELECTED, {
         selected_style: selectedStyle,
@@ -199,14 +201,14 @@ export function MessageStyleScreen({ navigation }: Props) {
         screen: ONBOARDING_SCREENS.MESSAGE_STYLE,
         time_spent_ms: timeSpent
       });
-      
+
       // Set user properties for segmentation
       setUserProperties({
         [USER_PROPERTIES.MESSAGE_STYLE]: selectedStyle,
         [USER_PROPERTIES.ONBOARDING_STEP]: 'paywall'
       });
 
-      await updateUser({ 
+      await updateUser({
         message_style: selectedStyle
       });
       navigation.navigate('Paywall');
@@ -220,175 +222,133 @@ export function MessageStyleScreen({ navigation }: Props) {
     }
   };
 
-  const selectedOption = STYLE_OPTIONS.find(style => style.id === selectedStyle);
-
   return (
     <View style={{ flex: 1, backgroundColor: '#ffffff' }}>
+      {/* Back Button */}
+      <View style={{ position: 'absolute', top: safeTopPadding, left: 0, right: 0, zIndex: 10 }}>
+        <OnboardingBackButton />
+      </View>
+
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{
-          paddingHorizontal: 24,
+          paddingHorizontal: 16,
           paddingTop: safeTopPadding
         }}
       >
         {/* Header */}
-        <View style={{ alignItems: 'center', marginBottom: 12 }}>
-          <Text style={{ 
-            fontSize: 26, 
-            fontWeight: 'bold', 
-            color: '#111827', 
+        <View style={{ alignItems: 'center', marginBottom: 16, marginTop: 48 }}>
+          <Text style={[TYPOGRAPHY_STYLES.h2, {
+            color: '#111827',
             textAlign: 'center',
-            marginBottom: 6
-          }}>
-            Choose your motivation style
+            marginBottom: 8
+          }]}>
+            Choose your <Text style={{ color: '#f97316' }}>motivation</Text> style
           </Text>
-          <Text style={{ 
-            fontSize: 15, 
+          <Text style={[TYPOGRAPHY_STYLES.body1, {
             color: '#6b7280',
-            textAlign: 'center',
-            lineHeight: 20
-          }}>
+            textAlign: 'center'
+          }]}>
             How should your buddy motivate you when you skip a run?
           </Text>
         </View>
 
-        {/* Message Preview */}
-        <View style={{ 
-          backgroundColor: '#f9fafb', 
-          borderRadius: 12, 
-          padding: 10, 
-          marginBottom: 12,
-          borderWidth: 1,
-          borderColor: '#e5e7eb'
-        }}>
-          <Text style={{
-            fontSize: 11,
-            color: '#6b7280',
-            fontWeight: '600',
-            marginBottom: 6,
-            textAlign: 'center'
-          }}>
-            Your buddy will receive this text:
-          </Text>
-          
-          <View style={{
-            backgroundColor: '#ffffff',
-            borderRadius: 8,
-            padding: 8,
-            borderWidth: 1,
-            borderColor: '#d1d5db'
-          }}>
-            <Text style={{ 
-              fontSize: 13, 
-              color: '#111827',
-              lineHeight: 17
-            }}>
-              {selectedOption?.example}
-            </Text>
-          </View>
-        </View>
-
-
-        {/* Recommendation Note */}
-        {recommendedStyle && (
-          <View style={{
-            backgroundColor: '#f0fdf4',
-            borderRadius: 8,
-            padding: 8,
-            borderLeftWidth: 3,
-            borderLeftColor: '#22c55e',
-            marginBottom: 10
-          }}>
-            <Text style={{
-              fontSize: 11,
-              color: '#15803d',
-              textAlign: 'center',
-              fontWeight: '500'
-            }}>
-              Based on your motivation style, we suggest {STYLE_OPTIONS.find(s => s.id === recommendedStyle)?.title}
-            </Text>
-          </View>
-        )}
-
         {/* Style Options */}
-        <View style={{ marginBottom: 8 }}>
-          <Text style={{
-            fontSize: 13,
-            fontWeight: '600',
-            color: '#6b7280',
-            marginBottom: 5
-          }}>
-            Choose your preferred style:
-          </Text>
-          {STYLE_OPTIONS.map((style) => (
-            <TouchableOpacity
-              key={style.id}
-              onPress={() => setSelectedStyle(style.id)}
-              style={{
-                backgroundColor: selectedStyle === style.id ? '#fef3e2' : '#f9fafb',
-                borderWidth: 2,
-                borderColor: selectedStyle === style.id ? '#f97316' : '#e5e7eb',
-                borderRadius: 12,
-                padding: 10,
-                marginBottom: 4,
-                flexDirection: 'row',
-                alignItems: 'center'
-              }}
-            >
-              <View style={{
-                width: 32,
-                height: 32,
-                borderRadius: 16,
-                backgroundColor: selectedStyle === style.id ? style.color : '#f1f5f9',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginRight: 8
-              }}>
-                <IconComponent
-                  library="Lucide"
-                  name={style.icon}
-                  size={16}
-                  color={selectedStyle === style.id ? '#ffffff' : style.color}
-                />
-              </View>
-              
-              <View style={{ flex: 1 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 2 }}>
-                  <Text style={{
-                    fontSize: 14,
-                    fontWeight: '600',
-                    color: '#111827'
-                  }}>
-                    {style.title}
-                  </Text>
-                  {style.id === recommendedStyle && (
-                    <View style={{
-                      backgroundColor: '#22c55e',
-                      borderRadius: 8,
-                      paddingHorizontal: 6,
-                      paddingVertical: 2,
-                      marginLeft: 8
-                    }}>
-                      <Text style={{
-                        fontSize: 8,
-                        color: '#ffffff',
-                        fontWeight: '600'
+        <View style={{ gap: 12, marginBottom: 8 }}>
+          {STYLE_OPTIONS.map((style) => {
+            const isSelected = selectedStyle === style.id;
+            return (
+              <TouchableOpacity
+                key={style.id}
+                onPress={() => setSelectedStyle(style.id)}
+                activeOpacity={0.7}
+                style={{
+                  backgroundColor: isSelected ? '#fef3e2' : '#ffffff',
+                  borderWidth: isSelected ? 2 : 1,
+                  borderColor: isSelected ? '#f97316' : '#e5e7eb',
+                  borderRadius: 16,
+                  padding: 16,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 1 },
+                  shadowOpacity: 0.05,
+                  shadowRadius: 3,
+                  elevation: 2
+                }}
+              >
+                <View style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: 24,
+                  backgroundColor: isSelected ? style.color : '#f1f5f9',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginRight: 16,
+                  flexShrink: 0
+                }}>
+                  <IconComponent
+                    library="Lucide"
+                    name={style.icon}
+                    size={20}
+                    color={isSelected ? '#ffffff' : style.color}
+                  />
+                </View>
+
+                <View style={{ flex: 1 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
+                    <Text style={[TYPOGRAPHY_STYLES.h5, { color: '#111827' }]}>
+                      {style.title}
+                    </Text>
+                    {style.id === recommendedStyle && (
+                      <View style={{
+                        backgroundColor: '#22c55e',
+                        borderRadius: 6,
+                        paddingHorizontal: 8,
+                        paddingVertical: 3,
+                        marginLeft: 8
                       }}>
-                        SUGGESTED
-                      </Text>
-                    </View>
+                        <Text style={{
+                          fontSize: 10,
+                          color: '#ffffff',
+                          fontWeight: '700',
+                          letterSpacing: 0.5
+                        }}>
+                          SUGGESTED
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                  <Text style={[TYPOGRAPHY_STYLES.body2, { color: '#6b7280' }]}>
+                    {style.description}
+                  </Text>
+                </View>
+
+                {/* Radio Button Indicator */}
+                <View style={{
+                  width: 24,
+                  height: 24,
+                  borderRadius: 12,
+                  borderWidth: 2,
+                  borderColor: isSelected ? '#f97316' : '#d1d5db',
+                  backgroundColor: isSelected ? '#f97316' : '#ffffff',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginLeft: 12,
+                  flexShrink: 0
+                }}>
+                  {isSelected && (
+                    <View style={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: 4,
+                      backgroundColor: '#ffffff'
+                    }} />
                   )}
                 </View>
-                <Text style={{
-                  fontSize: 12,
-                  color: '#6b7280',
-                  lineHeight: 14
-                }}>
-                  {style.description}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          ))}
+              </TouchableOpacity>
+            );
+          })}
         </View>
 
       </ScrollView>

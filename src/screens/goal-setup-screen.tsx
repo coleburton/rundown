@@ -9,6 +9,7 @@ import { DebugSkipButton } from '@/components/DebugSkipButton';
 import { EnhancedGoalPicker, Goal } from '@/components/EnhancedGoalPicker';
 import { ONBOARDING_BUTTON_STYLE, ONBOARDING_CONTAINER_STYLE } from '@/constants/OnboardingStyles';
 import { Tooltip } from '@/components/ui/tooltip';
+import { OnboardingBackButton } from '@/components/OnboardingBackButton';
 import analytics, {
   ANALYTICS_EVENTS,
   ONBOARDING_SCREENS,
@@ -170,6 +171,11 @@ export function GoalSetupScreen({ navigation, route }: Props) {
 
   return (
     <View style={{ flex: 1, backgroundColor: '#ffffff' }}>
+      {/* Back Button */}
+      <View style={{ position: 'absolute', top: safeTopPadding, left: 0, right: 0, zIndex: 10 }}>
+        <OnboardingBackButton />
+      </View>
+
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{
@@ -178,7 +184,7 @@ export function GoalSetupScreen({ navigation, route }: Props) {
         }}
       >
         {/* Header */}
-        <View style={{ alignItems: 'center', marginBottom: 16, marginTop: 12 }}>
+        <View style={{ alignItems: 'center', marginBottom: 16, marginTop: 52 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
             <Text style={{
               fontSize: 24,

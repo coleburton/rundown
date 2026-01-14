@@ -8,8 +8,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DebugSkipButton } from '@/components/DebugSkipButton';
 import { ContactRolePicker } from '@/components/ContactRolePicker';
 import { ONBOARDING_BUTTON_STYLE, ONBOARDING_CONTAINER_STYLE } from '@/constants/OnboardingStyles';
+import { TYPOGRAPHY_STYLES } from '@/constants/Typography';
 import { Tooltip } from '@/components/ui/tooltip';
 import { formatEmail, isValidEmail } from '@/lib/utils';
+import { OnboardingBackButton } from '@/components/OnboardingBackButton';
 import analytics, { 
   ANALYTICS_EVENTS, 
   ONBOARDING_SCREENS, 
@@ -147,68 +149,88 @@ export function ContactSetupScreen({ navigation }: Props) {
   };
 
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: '#ffffff' }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <ScrollView 
+      {/* Back Button */}
+      <View style={{ position: 'absolute', top: safeTopPadding, left: 0, right: 0, zIndex: 10 }}>
+        <OnboardingBackButton />
+      </View>
+
+      <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{
-          paddingHorizontal: 24,
+          paddingHorizontal: 16,
           paddingTop: safeTopPadding,
           paddingBottom: 24
         }}
       >
-        <View style={{ marginBottom: 20 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
-            <Text style={{ fontSize: 28, fontWeight: 'bold', color: '#111827', flex: 1 }}>
-              Add your accountability buddy
+        <View style={{ marginBottom: 20, marginTop: 48 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+            <Text style={[TYPOGRAPHY_STYLES.h2, { color: '#111827', flex: 1 }]}>
+              Add your <Text style={{ color: '#f97316' }}>accountability</Text> buddy
             </Text>
-            <Tooltip 
+            <Tooltip
               text="Choose someone who will motivate you - a coach, friend, or family member who cares about your goals."
               style={{ marginLeft: 8 }}
             />
           </View>
-          <Text style={{ fontSize: 16, color: '#6b7280', marginBottom: 12 }}>
-            Who should we email when you're slacking?
+          <Text style={[TYPOGRAPHY_STYLES.body1, { color: '#6b7280', marginBottom: 16 }]}>
+            Who should we notify when you're slacking?
           </Text>
-          
-          {/* Timing Information - Compact */}
+
+          {/* Timing Information */}
           <View style={{
             backgroundColor: '#f0fdf4',
-            borderRadius: 8,
-            padding: 12,
-            borderLeftWidth: 3,
-            borderLeftColor: '#22c55e'
+            borderRadius: 12,
+            padding: 14,
+            borderWidth: 1,
+            borderColor: '#bbf7d0',
+            flexDirection: 'row',
+            alignItems: 'center'
           }}>
-            <Text style={{
-              fontSize: 13,
+            <Text style={{ fontSize: 18, marginRight: 10 }}>📅</Text>
+            <Text style={[TYPOGRAPHY_STYLES.body2Medium, {
               color: '#15803d',
-              fontWeight: '600',
-              textAlign: 'center'
-            }}>
-              📅 Emails sent Sunday evening if you miss your weekly goal
+              flex: 1
+            }]}>
+              Emails sent Sunday evening if you miss your weekly goal
             </Text>
           </View>
         </View>
         
         {error && (
-          <View style={{ marginBottom: 16, padding: 12, backgroundColor: '#fef2f2', borderRadius: 8 }}>
-            <Text style={{ color: '#dc2626', fontSize: 14 }}>{error}</Text>
+          <View style={{
+            marginBottom: 16,
+            padding: 14,
+            backgroundColor: '#fef2f2',
+            borderRadius: 12,
+            borderWidth: 1,
+            borderColor: '#fecaca',
+            flexDirection: 'row',
+            alignItems: 'center'
+          }}>
+            <Text style={{ fontSize: 16, marginRight: 10 }}>⚠️</Text>
+            <Text style={[TYPOGRAPHY_STYLES.body2Medium, { color: '#dc2626', flex: 1 }]}>{error}</Text>
           </View>
         )}
 
         {/* Input Fields */}
-        <View style={{ marginBottom: 16 }}>
+        <View style={{ marginBottom: 20 }}>
+          <Text style={[TYPOGRAPHY_STYLES.body2Medium, { color: '#374151', marginBottom: 8 }]}>
+            Buddy's Details
+          </Text>
           <Input
             placeholder="Name"
             value={newContact.name}
             onChangeText={(text) => setNewContact({ ...newContact, name: text })}
-            style={{ 
-              marginBottom: 12, 
-              borderRadius: 12, 
-              height: 52, 
+            style={{
+              marginBottom: 12,
+              borderRadius: 12,
+              height: 52,
               fontSize: 16,
+              borderWidth: 1,
               borderColor: '#e5e7eb',
               backgroundColor: '#ffffff',
               paddingHorizontal: 16,
@@ -226,39 +248,56 @@ export function ContactSetupScreen({ navigation }: Props) {
             autoComplete="email"
             autoCorrect={false}
             style={{
-              marginBottom: 12,
               borderRadius: 12,
               height: 52,
               fontSize: 16,
+              borderWidth: 1,
               borderColor: '#e5e7eb',
               backgroundColor: '#ffffff',
               paddingHorizontal: 16,
             }}
           />
         </View>
-        
-        {/* Selected Role Display - Compact */}
+
+        {/* Selected Role Display */}
         <View style={{ marginBottom: 16 }}>
-          <Text style={{ fontSize: 15, fontWeight: '500', color: '#6b7280', marginBottom: 6 }}>
-            Selected role: <Text style={{ color: '#f97316', fontWeight: '600' }}>{newContact.role}</Text>
-          </Text>
-          
-          {/* Message Preview - Compact */}
-          <View style={{
-            backgroundColor: '#fef3e2',
-            borderRadius: 8,
-            padding: 10,
-            borderLeftWidth: 3,
-            borderLeftColor: '#f97316'
-          }}>
-            <Text style={{
-              fontSize: 11,
-              color: '#ea580c',
-              fontWeight: '600',
-              marginBottom: 3
-            }}>
-              💬 Example: "Hey! {user?.first_name || user?.name || user?.email?.split('@')[0] || 'Your friend'} missed their goal. Time for motivation!"
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+            <Text style={[TYPOGRAPHY_STYLES.body2, { color: '#6b7280' }]}>
+              Selected role:{' '}
             </Text>
+            <View style={{
+              backgroundColor: '#fff7ed',
+              paddingHorizontal: 10,
+              paddingVertical: 4,
+              borderRadius: 6,
+              borderWidth: 1,
+              borderColor: '#fed7aa'
+            }}>
+              <Text style={[TYPOGRAPHY_STYLES.body2Medium, { color: '#ea580c' }]}>
+                {newContact.role}
+              </Text>
+            </View>
+          </View>
+
+          {/* Message Preview */}
+          <View style={{
+            backgroundColor: '#fffbeb',
+            borderRadius: 12,
+            padding: 14,
+            borderWidth: 1,
+            borderColor: '#fde68a',
+            flexDirection: 'row',
+            alignItems: 'flex-start'
+          }}>
+            <Text style={{ fontSize: 16, marginRight: 10, marginTop: 1 }}>💬</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={[TYPOGRAPHY_STYLES.caption1Medium, { color: '#92400e', marginBottom: 4 }]}>
+                Sample message they'll receive:
+              </Text>
+              <Text style={[TYPOGRAPHY_STYLES.body2, { color: '#78350f', lineHeight: 20 }]}>
+                "Hey! {user?.first_name || user?.name || user?.email?.split('@')[0] || 'Your friend'} missed their goal. Time for motivation!"
+              </Text>
+            </View>
           </View>
         </View>
         
@@ -272,7 +311,7 @@ export function ContactSetupScreen({ navigation }: Props) {
         {/* Added Contacts List */}
         {contacts.length > 0 && (
           <View style={{ marginTop: 24 }}>
-            <Text style={{ fontSize: 18, fontWeight: '600', color: '#111827', marginBottom: 16 }}>
+            <Text style={[TYPOGRAPHY_STYLES.h5, { color: '#111827', marginBottom: 16 }]}>
               Added Contacts ({contacts.length}/5)
             </Text>
             {contacts.map((contact, index) => (
@@ -281,40 +320,84 @@ export function ContactSetupScreen({ navigation }: Props) {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 padding: 16,
-                backgroundColor: '#f9fafb',
-                borderRadius: 12,
-                marginBottom: 8,
-                borderLeftWidth: 4,
-                borderLeftColor: '#f97316'
+                backgroundColor: '#ffffff',
+                borderRadius: 16,
+                marginBottom: 10,
+                borderWidth: 1,
+                borderColor: '#e5e7eb',
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: 0.05,
+                shadowRadius: 3,
+                elevation: 2
               }}>
+                {/* Contact Avatar */}
+                <View style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 22,
+                  backgroundColor: '#fff7ed',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginRight: 12,
+                  borderWidth: 2,
+                  borderColor: '#fed7aa'
+                }}>
+                  <Text style={{ fontSize: 18 }}>
+                    {contact.name.charAt(0).toUpperCase()}
+                  </Text>
+                </View>
+
                 <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: 16, fontWeight: '600', color: '#111827', marginBottom: 2 }}>
+                  <Text style={[TYPOGRAPHY_STYLES.body1Medium, { color: '#111827', marginBottom: 2 }]}>
                     {contact.name}
                   </Text>
-                  <Text style={{ fontSize: 14, color: '#6b7280', marginBottom: 2 }}>
+                  <Text style={[TYPOGRAPHY_STYLES.body2, { color: '#6b7280', marginBottom: 2 }]}>
                     {contact.email}
                   </Text>
-                  <Text style={{ fontSize: 12, color: '#f97316', fontWeight: '500' }}>
-                    {contact.role}
-                  </Text>
+                  <View style={{
+                    backgroundColor: '#fff7ed',
+                    paddingHorizontal: 8,
+                    paddingVertical: 2,
+                    borderRadius: 4,
+                    alignSelf: 'flex-start'
+                  }}>
+                    <Text style={[TYPOGRAPHY_STYLES.caption1Medium, { color: '#ea580c' }]}>
+                      {contact.role}
+                    </Text>
+                  </View>
                 </View>
                 <Button
                   onPress={() => handleRemoveContact(contact.id!)}
                   size="sm"
                   title="Remove"
                   style={{
-                    backgroundColor: '#ef4444',
+                    backgroundColor: '#fee2e2',
                     paddingHorizontal: 12,
-                    paddingVertical: 6,
-                    borderRadius: 6
+                    paddingVertical: 8,
+                    borderRadius: 8,
+                    borderWidth: 1,
+                    borderColor: '#fecaca'
                   }}
+                  textStyle={{ color: '#dc2626' }}
                 />
               </View>
             ))}
-            
+
             {contacts.length < 5 && (
-              <View style={{ padding: 16, backgroundColor: '#f0f9ff', borderRadius: 12, marginTop: 8 }}>
-                <Text style={{ fontSize: 14, color: '#0369a1', textAlign: 'center' }}>
+              <View style={{
+                padding: 14,
+                backgroundColor: '#f0f9ff',
+                borderRadius: 12,
+                marginTop: 8,
+                borderWidth: 1,
+                borderColor: '#bae6fd',
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <Text style={{ fontSize: 14, marginRight: 8 }}>➕</Text>
+                <Text style={[TYPOGRAPHY_STYLES.body2Medium, { color: '#0369a1' }]}>
                   Add {5 - contacts.length} more contact{5 - contacts.length !== 1 ? 's' : ''} (optional)
                 </Text>
               </View>
