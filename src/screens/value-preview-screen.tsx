@@ -6,6 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ONBOARDING_BUTTON_STYLE, ONBOARDING_CONTAINER_STYLE } from '@/constants/OnboardingStyles';
+import { OnboardingBackButton } from '@/components/OnboardingBackButton';
 import analytics, { 
   ANALYTICS_EVENTS, 
   ONBOARDING_SCREENS, 
@@ -428,6 +429,11 @@ export function ValuePreviewScreen({ navigation }: Props) {
 
   return (
     <View style={{ flex: 1, backgroundColor: '#ffffff' }}>
+      {/* Back Button */}
+      <View style={{ position: 'absolute', top: safeTopPadding, left: 0, right: 0, zIndex: 10 }}>
+        <OnboardingBackButton />
+      </View>
+
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{
@@ -436,11 +442,11 @@ export function ValuePreviewScreen({ navigation }: Props) {
         }}
       >
         {/* Header */}
-        <View style={{ alignItems: 'center', marginBottom: 32 }}>
-          <Text style={{ 
-            fontSize: 28, 
-            fontWeight: 'bold', 
-            color: '#111827', 
+        <View style={{ alignItems: 'center', marginBottom: 32, marginTop: 48 }}>
+          <Text style={{
+            fontSize: 28,
+            fontWeight: 'bold',
+            color: '#111827',
             textAlign: 'center',
             marginBottom: 8
           }}>

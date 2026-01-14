@@ -12,33 +12,39 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { RootStackParamList } from '../../App';
 import { Button } from '../components/ui/button';
+import { IconComponent } from '../components/ui/IconComponent';
 import { useColorScheme } from '../hooks/useColorScheme';
+import { TYPOGRAPHY_STYLES } from '../constants/Typography';
 import { revenueCat, SubscriptionPlan } from '../services/RevenueCat';
 
 const TRIAL_TIMELINE = [
   {
-    icon: '🏃‍♂️',
-    title: 'Start Free',
-    description: 'Begin your accountability journey with full access to all features.',
-    day: 'Day 1'
+    icon: 'Rocket',
+    title: 'Start Free Today',
+    description: 'Full access to all features. No credit card charged.',
+    day: 'Today',
+    color: '#22c55e'
   },
   {
-    icon: '📱',
-    title: 'Week 1',
-    description: 'Get daily check-ins and shame messages. See how accountability works.',
-    day: 'Day 7'
+    icon: 'Bell',
+    title: 'Get Reminders',
+    description: 'Daily check-ins keep you on track. Your buddy gets notified if you skip.',
+    day: 'Days 1-13',
+    color: '#3b82f6'
   },
   {
-    icon: '⏰',
-    title: 'Trial Reminder',
-    description: 'We\'ll remind you with an email that your trial is ending.',
-    day: 'Day 12'
+    icon: 'Mail',
+    title: 'Trial Ending Email',
+    description: 'We\'ll send a reminder 2 days before your trial ends.',
+    day: 'Day 12',
+    color: '#8b5cf6'
   },
   {
-    icon: '💳',
-    title: 'Auto-Subscribe',
-    description: 'Continue your journey for just $1.99/month. Cancel anytime before.',
-    day: 'Day 14'
+    icon: 'CreditCard',
+    title: 'Subscribe or Cancel',
+    description: 'Only $1.99/month if you stay. Cancel anytime with one tap.',
+    day: 'Day 14',
+    color: '#f97316'
   }
 ];
 
@@ -128,28 +134,24 @@ export function PaywallFreeTrialScreen() {
       isDarkMode ? styles.darkContainer : styles.lightContainer
     ]}>
       <LinearGradient
-        colors={isDarkMode ? ['#1f2937', '#111827', '#0f172a'] : ['#f8fafc', '#e2e8f0', '#cbd5e1']}
+        colors={isDarkMode ? ['#1f2937', '#111827'] : ['#ffffff', '#fff7ed']}
         style={styles.gradient}
       />
-      
+
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <Animated.View style={[styles.content, containerStyle]}>
           {/* Header */}
           <View style={styles.header}>
-            <View style={styles.heroIllustration}>
-              <Text style={styles.heroEmoji}>🏃‍♂️</Text>
-              <View style={styles.sparkles}>
-                <Text style={[styles.sparkle, { top: 10, left: 20 }]}>✨</Text>
-                <Text style={[styles.sparkle, { top: 30, right: 15 }]}>⭐</Text>
-                <Text style={[styles.sparkle, { bottom: 20, left: 10 }]}>💪</Text>
-                <Text style={[styles.sparkle, { bottom: 10, right: 25 }]}>🔥</Text>
-              </View>
+            {/* Badge */}
+            <View style={styles.freeBadge}>
+              <Text style={styles.freeBadgeText}>14 DAYS FREE</Text>
             </View>
-            <Text style={[styles.title, isDarkMode && styles.darkText]}>
-              How your free trial works
+
+            <Text style={[TYPOGRAPHY_STYLES.h1, styles.title, isDarkMode && styles.darkText]}>
+              Try it <Text style={{ color: '#f97316' }}>risk-free</Text>
             </Text>
-            <Text style={[styles.subtitle, isDarkMode && styles.darkSubtext]}>
-              Try accountability coaching risk-free for 2 weeks
+            <Text style={[TYPOGRAPHY_STYLES.body1, styles.subtitle, isDarkMode && styles.darkSubtext]}>
+              Full access to accountability coaching. Cancel anytime.
             </Text>
           </View>
 
@@ -160,10 +162,14 @@ export function PaywallFreeTrialScreen() {
                 <View style={styles.timelineLeft}>
                   <View style={[
                     styles.timelineIcon,
-                    isDarkMode && styles.darkTimelineIcon,
-                    index === TRIAL_TIMELINE.length - 1 && styles.lastTimelineIcon
+                    { backgroundColor: `${item.color}15`, borderColor: item.color }
                   ]}>
-                    <Text style={styles.timelineEmoji}>{item.icon}</Text>
+                    <IconComponent
+                      library="Lucide"
+                      name={item.icon}
+                      size={22}
+                      color={item.color}
+                    />
                   </View>
                   {index < TRIAL_TIMELINE.length - 1 && (
                     <View style={[styles.timelineLine, isDarkMode && styles.darkTimelineLine]} />
@@ -171,14 +177,16 @@ export function PaywallFreeTrialScreen() {
                 </View>
                 <View style={styles.timelineContent}>
                   <View style={styles.timelineHeader}>
-                    <Text style={[styles.timelineTitle, isDarkMode && styles.darkText]}>
+                    <Text style={[TYPOGRAPHY_STYLES.h5, styles.timelineTitle, isDarkMode && styles.darkText]}>
                       {item.title}
                     </Text>
-                    <Text style={[styles.timelineDay, isDarkMode && styles.darkSubtext]}>
-                      {item.day}
-                    </Text>
+                    <View style={[styles.dayBadge, { backgroundColor: `${item.color}15` }]}>
+                      <Text style={[styles.dayBadgeText, { color: item.color }]}>
+                        {item.day}
+                      </Text>
+                    </View>
                   </View>
-                  <Text style={[styles.timelineDescription, isDarkMode && styles.darkSubtext]}>
+                  <Text style={[TYPOGRAPHY_STYLES.body2, styles.timelineDescription, isDarkMode && styles.darkSubtext]}>
                     {item.description}
                   </Text>
                 </View>
@@ -186,14 +194,26 @@ export function PaywallFreeTrialScreen() {
             ))}
           </View>
 
-          {/* Pricing Info */}
-          <View style={[styles.pricingInfo, isDarkMode && styles.darkPricingInfo]}>
-            <Text style={[styles.pricingTitle, isDarkMode && styles.darkText]}>
-              Free access for 2 weeks, then $1.99/month
-            </Text>
-            <Text style={[styles.pricingSubtitle, isDarkMode && styles.darkSubtext]}>
-              Cancel anytime before Day 14. No questions asked.
-            </Text>
+          {/* Trust Signals */}
+          <View style={styles.trustSection}>
+            <View style={styles.trustItem}>
+              <IconComponent library="Lucide" name="ShieldCheck" size={20} color="#22c55e" />
+              <Text style={[TYPOGRAPHY_STYLES.caption1Medium, styles.trustText, isDarkMode && styles.darkSubtext]}>
+                No charge today
+              </Text>
+            </View>
+            <View style={styles.trustItem}>
+              <IconComponent library="Lucide" name="X" size={20} color="#22c55e" />
+              <Text style={[TYPOGRAPHY_STYLES.caption1Medium, styles.trustText, isDarkMode && styles.darkSubtext]}>
+                Cancel anytime
+              </Text>
+            </View>
+            <View style={styles.trustItem}>
+              <IconComponent library="Lucide" name="Clock" size={20} color="#22c55e" />
+              <Text style={[TYPOGRAPHY_STYLES.caption1Medium, styles.trustText, isDarkMode && styles.darkSubtext]}>
+                Reminder before billing
+              </Text>
+            </View>
           </View>
         </Animated.View>
       </ScrollView>
@@ -202,26 +222,34 @@ export function PaywallFreeTrialScreen() {
       <View style={[
         styles.bottomSection,
         isDarkMode && styles.darkBottomSection,
-        { paddingBottom: Math.max(16, insets.bottom) }
+        { paddingBottom: Math.max(20, insets.bottom) }
       ]}>
+        {/* Price reminder */}
+        <View style={styles.priceReminder}>
+          <Text style={[TYPOGRAPHY_STYLES.body2, { color: '#6b7280' }]}>
+            Then just{' '}
+            <Text style={{ color: '#f97316', fontWeight: '700' }}>$1.99/month</Text>
+          </Text>
+        </View>
+
         <Button
           onPress={handleStartFreeTrial}
           size="lg"
-          title={isLoading ? 'Starting Trial...' : 'Start My Free Trial'}
-          style={[styles.trialButton, { backgroundColor: isDarkMode ? '#84cc16' : '#84cc16' }]}
+          title={isLoading ? 'Starting...' : 'Start Free Trial'}
+          style={styles.trialButton}
           disabled={isLoading || loadingPlans}
           darkMode={isDarkMode}
         />
 
-        <Button
+        <TouchableOpacity
           onPress={() => navigation.goBack()}
-          size="lg"
-          title="Back to Payment Options"
-          style={[styles.trialButton, { backgroundColor: isDarkMode ? '#6b7280' : '#6b7280' }]}
-          disabled={isLoading}
-          darkMode={isDarkMode}
-        />
-        
+          style={styles.secondaryLink}
+        >
+          <Text style={[TYPOGRAPHY_STYLES.body2Medium, { color: '#6b7280' }]}>
+            View other plans
+          </Text>
+        </TouchableOpacity>
+
         <View style={styles.footerLinks}>
           <TouchableOpacity onPress={handleRestore}>
             <Text style={[styles.restoreText, isDarkMode && styles.darkSubtext]}>
@@ -245,7 +273,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
   },
   darkContainer: {
-    backgroundColor: '#0f172a',
+    backgroundColor: '#111827',
   },
   gradient: {
     position: 'absolute',
@@ -259,91 +287,66 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 20,
-    paddingTop: 60,
+    paddingTop: 70,
   },
   header: {
     alignItems: 'center',
     marginBottom: 32,
   },
-  heroIllustration: {
-    position: 'relative',
+  freeBadge: {
+    backgroundColor: '#f97316',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
     marginBottom: 20,
-    width: 120,
-    height: 120,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
-  heroEmoji: {
-    fontSize: 64,
-  },
-  sparkles: {
-    position: 'absolute',
-    width: '100%',
-    height: '100%',
-  },
-  sparkle: {
-    position: 'absolute',
-    fontSize: 16,
+  freeBadgeText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '800',
+    letterSpacing: 1,
   },
   title: {
-    fontSize: 28,
-    fontWeight: '700',
     textAlign: 'center',
-    color: '#1f2937',
-    marginBottom: 8,
-    lineHeight: 36,
+    color: '#111827',
+    marginBottom: 12,
   },
   subtitle: {
-    fontSize: 16,
     textAlign: 'center',
     color: '#6b7280',
-    maxWidth: 280,
-    lineHeight: 24,
+    maxWidth: 300,
   },
   timeline: {
     marginBottom: 24,
   },
   timelineItem: {
     flexDirection: 'row',
-    marginBottom: 24,
+    marginBottom: 20,
   },
   timelineLeft: {
     alignItems: 'center',
     marginRight: 16,
   },
   timelineIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#f0fdf4',
+    width: 52,
+    height: 52,
+    borderRadius: 26,
     borderWidth: 2,
-    borderColor: '#84cc16',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
-  },
-  darkTimelineIcon: {
-    backgroundColor: '#14532d',
-    borderColor: '#84cc16',
-  },
-  lastTimelineIcon: {
-    backgroundColor: '#fef3e2',
-    borderColor: '#f97316',
-  },
-  timelineEmoji: {
-    fontSize: 20,
   },
   timelineLine: {
     width: 2,
-    flex: 1,
+    height: 20,
     backgroundColor: '#e5e7eb',
-    marginTop: -8,
+    marginTop: 8,
   },
   darkTimelineLine: {
     backgroundColor: '#374151',
   },
   timelineContent: {
     flex: 1,
+    paddingTop: 4,
   },
   timelineHeader: {
     flexDirection: 'row',
@@ -352,70 +355,80 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   timelineTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1f2937',
+    color: '#111827',
+    flex: 1,
   },
-  timelineDay: {
-    fontSize: 12,
-    color: '#6b7280',
-    fontWeight: '500',
+  dayBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  dayBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
   },
   timelineDescription: {
-    fontSize: 14,
     color: '#6b7280',
     lineHeight: 20,
   },
-  pricingInfo: {
-    backgroundColor: '#fef3e2',
+  trustSection: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    backgroundColor: '#f0fdf4',
     borderRadius: 16,
-    padding: 20,
-    alignItems: 'center',
+    padding: 16,
     borderWidth: 1,
-    borderColor: '#fed7aa',
+    borderColor: '#bbf7d0',
   },
-  darkPricingInfo: {
-    backgroundColor: '#292524',
-    borderColor: '#a16207',
+  trustItem: {
+    alignItems: 'center',
+    gap: 6,
   },
-  pricingTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#ea580c',
+  trustText: {
+    color: '#15803d',
     textAlign: 'center',
-    marginBottom: 8,
-  },
-  pricingSubtitle: {
-    fontSize: 14,
-    color: '#9a3412',
-    textAlign: 'center',
-    lineHeight: 20,
   },
   bottomSection: {
     backgroundColor: '#ffffff',
     borderTopWidth: 1,
     borderTopColor: '#e5e7eb',
-    padding: 24,
+    paddingHorizontal: 20,
+    paddingTop: 16,
   },
   darkBottomSection: {
     backgroundColor: '#1f2937',
     borderTopColor: '#374151',
   },
+  priceReminder: {
+    alignItems: 'center',
+    marginBottom: 12,
+  },
   trialButton: {
-    marginBottom: 16,
-    backgroundColor: '#84cc16',
+    marginBottom: 12,
+    backgroundColor: '#f97316',
+    borderRadius: 14,
+    shadowColor: '#f97316',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  secondaryLink: {
+    alignItems: 'center',
+    paddingVertical: 12,
+    marginBottom: 8,
   },
   footerLinks: {
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
   },
   restoreText: {
-    fontSize: 14,
-    color: '#6b7280',
+    fontSize: 13,
+    color: '#9ca3af',
     textDecorationLine: 'underline',
   },
   termsText: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#9ca3af',
     textAlign: 'center',
   },

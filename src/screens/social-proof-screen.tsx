@@ -4,10 +4,12 @@ import { Button } from '@/components/ui/button';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ONBOARDING_BUTTON_STYLE, ONBOARDING_CONTAINER_STYLE } from '@/constants/OnboardingStyles';
-import analytics, { 
-  ANALYTICS_EVENTS, 
-  ONBOARDING_SCREENS, 
-  trackOnboardingScreenView, 
+import { TYPOGRAPHY_STYLES } from '@/constants/Typography';
+import { OnboardingBackButton } from '@/components/OnboardingBackButton';
+import analytics, {
+  ANALYTICS_EVENTS,
+  ONBOARDING_SCREENS,
+  trackOnboardingScreenView,
   trackOnboardingScreenCompleted,
   trackOnboardingError,
   trackFunnelStep
@@ -23,10 +25,11 @@ type RootStackParamList = {
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SocialProof'>;
 
+// Stats from research studies
 const STATS = [
-  { number: '73%', label: 'hit their goals when they have a buddy' },
-  { number: '2.5x', label: 'more likely to stick with it' },
-  { number: '89%', label: 'say accountability changed their game' }
+  { number: '76%', label: 'achieve goals when they report progress to someone' },
+  { number: '65%', label: 'success rate when committed to an accountability partner' },
+  { number: '2x', label: 'more likely to succeed vs going it alone (43% baseline)' }
 ];
 
 const TESTIMONIALS = [
@@ -105,6 +108,11 @@ export function SocialProofScreen({ navigation }: Props) {
 
   return (
     <View style={{ flex: 1, backgroundColor: '#ffffff' }}>
+      {/* Back Button */}
+      <View style={{ position: 'absolute', top: safeTopPadding, left: 0, right: 0, zIndex: 10 }}>
+        <OnboardingBackButton />
+      </View>
+
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{
@@ -113,36 +121,30 @@ export function SocialProofScreen({ navigation }: Props) {
         }}
       >
         {/* Header */}
-        <View style={{ alignItems: 'center', marginBottom: 32 }}>
-          <Text style={{ 
-            fontSize: 28, 
-            fontWeight: 'bold', 
-            color: '#111827', 
+        <View style={{ alignItems: 'center', marginBottom: 32, marginTop: 48 }}>
+          <Text style={[TYPOGRAPHY_STYLES.h2, {
+            color: '#111827',
             textAlign: 'center',
             marginBottom: 8
-          }}>
-            It actually works.
+          }]}>
+            It actually <Text style={{ color: '#f97316' }}>works</Text>.
           </Text>
-          <Text style={{ 
-            fontSize: 16, 
+          <Text style={[TYPOGRAPHY_STYLES.body1, {
             color: '#6b7280',
-            textAlign: 'center',
-            lineHeight: 24
-          }}>
-            Don't just take our word for it — here's what happens when runners get real accountability.
+            textAlign: 'center'
+          }]}>
+            Don't just take our word for it — here's what the research says about accountability.
           </Text>
         </View>
 
         {/* Stats Grid */}
         <View style={{ marginBottom: 32 }}>
-          <Text style={{
-            fontSize: 18,
-            fontWeight: '600',
+          <Text style={[TYPOGRAPHY_STYLES.h5, {
             color: '#111827',
             marginBottom: 16,
             textAlign: 'center'
-          }}>
-            The numbers don't lie
+          }]}>
+            The research is clear
           </Text>
           <View style={{ gap: 12 }}>
             {STATS.map((stat, index) => (
@@ -155,21 +157,16 @@ export function SocialProofScreen({ navigation }: Props) {
                 flexDirection: 'row',
                 alignItems: 'center'
               }}>
-                <Text style={{
-                  fontSize: 32,
-                  fontWeight: 'bold',
+                <Text style={[TYPOGRAPHY_STYLES.h2, {
                   color: '#f97316',
                   marginRight: 16
-                }}>
+                }]}>
                   {stat.number}
                 </Text>
-                <Text style={{
-                  fontSize: 16,
+                <Text style={[TYPOGRAPHY_STYLES.body1Medium, {
                   color: '#374151',
-                  fontWeight: '500',
-                  flex: 1,
-                  lineHeight: 22
-                }}>
+                  flex: 1
+                }]}>
                   {stat.label}
                 </Text>
               </View>
@@ -179,13 +176,11 @@ export function SocialProofScreen({ navigation }: Props) {
 
         {/* Success Stories */}
         <View style={{ marginBottom: 32 }}>
-          <Text style={{
-            fontSize: 18,
-            fontWeight: '600',
+          <Text style={[TYPOGRAPHY_STYLES.h5, {
             color: '#111827',
             marginBottom: 16,
             textAlign: 'center'
-          }}>
+          }]}>
             Real runners, real results
           </Text>
           <View style={{ gap: 16 }}>
@@ -216,34 +211,28 @@ export function SocialProofScreen({ navigation }: Props) {
                     justifyContent: 'center',
                     marginRight: 12
                   }}>
-                    <Text style={{ color: '#ffffff', fontSize: 16, fontWeight: 'bold' }}>
+                    <Text style={[TYPOGRAPHY_STYLES.h6, { color: '#ffffff' }]}>
                       {testimonial.name.charAt(0)}
                     </Text>
                   </View>
                   <View style={{ flex: 1 }}>
-                    <Text style={{
-                      fontSize: 16,
-                      fontWeight: '600',
+                    <Text style={[TYPOGRAPHY_STYLES.h6, {
                       color: '#111827',
                       marginBottom: 2
-                    }}>
+                    }]}>
                       {testimonial.name}
                     </Text>
-                    <Text style={{
-                      fontSize: 14,
-                      color: '#f97316',
-                      fontWeight: '500'
-                    }}>
+                    <Text style={[TYPOGRAPHY_STYLES.body2Medium, {
+                      color: '#f97316'
+                    }]}>
                       {testimonial.result}
                     </Text>
                   </View>
                 </View>
-                <Text style={{
-                  fontSize: 14,
+                <Text style={[TYPOGRAPHY_STYLES.body2, {
                   color: '#4b5563',
-                  fontStyle: 'italic',
-                  lineHeight: 20
-                }}>
+                  fontStyle: 'italic'
+                }]}>
                   {testimonial.quote}
                 </Text>
               </View>
@@ -251,35 +240,18 @@ export function SocialProofScreen({ navigation }: Props) {
           </View>
         </View>
 
-        {/* Trust Signals */}
+        {/* Research Attribution */}
         <View style={{
-          backgroundColor: '#f0fdf4',
-          borderRadius: 16,
-          padding: 20,
-          borderLeftWidth: 4,
-          borderLeftColor: '#22c55e',
+          backgroundColor: '#f8fafc',
+          borderRadius: 12,
+          padding: 16,
           marginBottom: 32
         }}>
-          <View style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            marginBottom: 8
-          }}>
-            <Text style={{ fontSize: 20, marginRight: 8 }}>🔒</Text>
-            <Text style={{
-              fontSize: 16,
-              fontWeight: '600',
-              color: '#15803d'
-            }}>
-              Your privacy matters
-            </Text>
-          </View>
-          <Text style={{
-            fontSize: 14,
-            color: '#166534',
-            lineHeight: 20
-          }}>
-            We only send messages when you miss goals. Your buddy gets a simple text — no personal data shared, no spam, just accountability when you need it.
+          <Text style={[TYPOGRAPHY_STYLES.caption1, {
+            color: '#6b7280',
+            textAlign: 'center'
+          }]}>
+            Based on research from Dominican University of California and the American Society of Training and Development
           </Text>
         </View>
       </ScrollView>

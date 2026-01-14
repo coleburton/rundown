@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { Button } from '@/components/ui/button';
-import { VectorIcon } from '@/components/ui/IconComponent';
-import type { ICON_MAP } from '@/components/ui/IconComponent';
+import { IconComponent } from '@/components/ui/IconComponent';
 import { useMockAuth } from '@/hooks/useMockAuth';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DebugSkipButton } from '@/components/DebugSkipButton';
 import { ONBOARDING_BUTTON_STYLE, ONBOARDING_CONTAINER_STYLE } from '@/constants/OnboardingStyles';
+import { TYPOGRAPHY_STYLES } from '@/constants/Typography';
+import { OnboardingBackButton } from '@/components/OnboardingBackButton';
 import analytics, { 
   ANALYTICS_EVENTS, 
   ONBOARDING_SCREENS, 
@@ -38,7 +39,8 @@ interface MotivationOption {
   id: MotivationType;
   title: string;
   description: string;
-  emoji: keyof typeof ICON_MAP;
+  icon: string;
+  iconColor: string;
 }
 
 const MOTIVATION_OPTIONS: MotivationOption[] = [
@@ -46,31 +48,36 @@ const MOTIVATION_OPTIONS: MotivationOption[] = [
     id: 'avoiding_guilt',
     title: 'Avoiding the guilt',
     description: 'Nothing worse than disappointing yourself',
-    emoji: '😤'
+    icon: 'ShieldAlert',
+    iconColor: '#ef4444'
   },
   {
     id: 'reaching_milestones',
     title: 'Hitting milestones',
     description: 'Love crossing things off the list',
-    emoji: '🎯'
+    icon: 'Target',
+    iconColor: '#10b981'
   },
   {
     id: 'friendly_competition',
     title: 'Friendly competition',
     description: 'A little rivalry keeps you honest',
-    emoji: '⚡'
+    icon: 'Zap',
+    iconColor: '#f59e0b'
   },
   {
     id: 'building_habits',
     title: 'Building consistency',
     description: 'Steady progress beats perfect performance',
-    emoji: '📈'
+    icon: 'TrendingUp',
+    iconColor: '#3b82f6'
   },
   {
     id: 'proving_yourself',
     title: 'Proving you can',
     description: 'Time to show what you\'re made of',
-    emoji: '💪'
+    icon: 'Flame',
+    iconColor: '#8b5cf6'
   }
 ];
 
@@ -212,101 +219,118 @@ export function MotivationQuizScreen({ navigation }: Props) {
 
   return (
     <View style={{ flex: 1, backgroundColor: '#ffffff' }}>
+      {/* Back Button */}
+      <View style={{ position: 'absolute', top: safeTopPadding, left: 0, right: 0, zIndex: 10 }}>
+        <OnboardingBackButton />
+      </View>
+
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{
-          paddingHorizontal: 24,
+          paddingHorizontal: 16,
           paddingTop: safeTopPadding
         }}
       >
         {/* Header */}
-        <View style={{ alignItems: 'center', marginBottom: 20 }}>
-          <Text style={{ 
-            fontSize: 26, 
-            fontWeight: 'bold', 
-            color: '#111827', 
+        <View style={{ alignItems: 'center', marginBottom: 20, marginTop: 48 }}>
+          <Text style={[TYPOGRAPHY_STYLES.h2, {
+            color: '#111827',
             textAlign: 'center',
-            marginBottom: 6
-          }}>
-            What drives you?
+            marginBottom: 8
+          }]}>
+            What <Text style={{ color: '#f97316' }}>drives</Text> you?
           </Text>
-          <Text style={{ 
-            fontSize: 15, 
+          <Text style={[TYPOGRAPHY_STYLES.body1, {
             color: '#6b7280',
-            textAlign: 'center',
-            lineHeight: 20
-          }}>
+            textAlign: 'center'
+          }]}>
             Help us personalize your experience. What keeps you motivated to run?
           </Text>
         </View>
 
         {/* Motivation Options */}
-        <View style={{ marginBottom: 16 }}>
-          {MOTIVATION_OPTIONS.map((option) => (
-            <TouchableOpacity
-              key={option.id}
-              onPress={() => handleMotivationSelect(option.id)}
-              style={{
-                backgroundColor: selectedMotivation === option.id ? '#fef3e2' : '#f9fafb',
-                borderWidth: 2,
-                borderColor: selectedMotivation === option.id ? '#f97316' : '#e5e7eb',
-                borderRadius: 12,
-                padding: 16,
-                marginBottom: 8,
-                flexDirection: 'row',
-                alignItems: 'center'
-              }}
-            >
-              <View style={{
-                width: 40,
-                height: 40,
-                borderRadius: 20,
-                backgroundColor: selectedMotivation === option.id ? '#f97316' : '#e5e7eb',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginRight: 12
-              }}>
-                <VectorIcon emoji={option.emoji} size={16} color="#ffffff" />
-              </View>
-              
-              <View style={{ flex: 1 }}>
-                <Text style={{
-                  fontSize: 15,
-                  fontWeight: '600',
-                  color: '#111827',
-                  marginBottom: 2
+        <View style={{ gap: 12, marginBottom: 20 }}>
+          {MOTIVATION_OPTIONS.map((option) => {
+            const isSelected = selectedMotivation === option.id;
+            return (
+              <TouchableOpacity
+                key={option.id}
+                onPress={() => handleMotivationSelect(option.id)}
+                activeOpacity={0.7}
+                style={{
+                  backgroundColor: isSelected ? '#fef3e2' : '#ffffff',
+                  borderWidth: isSelected ? 2 : 1,
+                  borderColor: isSelected ? '#f97316' : '#e5e7eb',
+                  borderRadius: 16,
+                  padding: 16,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 1 },
+                  shadowOpacity: 0.05,
+                  shadowRadius: 3,
+                  elevation: 2
+                }}
+              >
+                {/* Icon */}
+                <View style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: 24,
+                  backgroundColor: isSelected ? option.iconColor : '#f1f5f9',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginRight: 16,
+                  flexShrink: 0
                 }}>
-                  {option.title}
-                </Text>
-                <Text style={{
-                  fontSize: 13,
-                  color: '#6b7280',
-                  lineHeight: 16
-                }}>
-                  {option.description}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
+                  <IconComponent
+                    library="Lucide"
+                    name={option.icon}
+                    size={20}
+                    color={isSelected ? '#ffffff' : option.iconColor}
+                  />
+                </View>
 
-        {/* Optional Note */}
-        <View style={{
-          backgroundColor: '#f0fdf4',
-          borderRadius: 8,
-          padding: 12,
-          borderLeftWidth: 3,
-          borderLeftColor: '#22c55e',
-          marginBottom: 20
-        }}>
-          <Text style={{
-            fontSize: 12,
-            color: '#15803d',
-            textAlign: 'center',
-            fontWeight: '500'
-          }}>
-            This helps us tailor your reminders and celebration style
-          </Text>
+                {/* Content */}
+                <View style={{ flex: 1 }}>
+                  <Text style={[TYPOGRAPHY_STYLES.h5, {
+                    color: '#111827',
+                    marginBottom: 4
+                  }]}>
+                    {option.title}
+                  </Text>
+                  <Text style={[TYPOGRAPHY_STYLES.body2, {
+                    color: '#6b7280'
+                  }]}>
+                    {option.description}
+                  </Text>
+                </View>
+
+                {/* Radio Button Indicator */}
+                <View style={{
+                  width: 24,
+                  height: 24,
+                  borderRadius: 12,
+                  borderWidth: 2,
+                  borderColor: isSelected ? '#f97316' : '#d1d5db',
+                  backgroundColor: isSelected ? '#f97316' : '#ffffff',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginLeft: 12,
+                  flexShrink: 0
+                }}>
+                  {isSelected && (
+                    <View style={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: 4,
+                      backgroundColor: '#ffffff'
+                    }} />
+                  )}
+                </View>
+              </TouchableOpacity>
+            );
+          })}
         </View>
       </ScrollView>
 

@@ -116,10 +116,15 @@ function RoleCard({ role, isSelected, onSelect, animation }: RoleCardProps) {
           {role.description}
         </Text>
 
-        {/* Selection Indicator */}
-        {isSelected && (
-          <View style={styles.selectedIndicator} />
-        )}
+        {/* Radio Button Indicator */}
+        <View style={[
+          styles.radioIndicator,
+          isSelected && styles.radioIndicatorSelected
+        ]}>
+          {isSelected && (
+            <View style={styles.radioInnerDot} />
+          )}
+        </View>
       </TouchableOpacity>
     </Animated.View>
   );
@@ -262,13 +267,27 @@ const styles = StyleSheet.create({
   roleDescriptionSelected: {
     color: '#9a3412',
   },
-  selectedIndicator: {
+  radioIndicator: {
     position: 'absolute',
     top: 10,
     right: 10,
-    width: 7,
-    height: 7,
-    borderRadius: 3.5,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#d1d5db',
+    backgroundColor: '#ffffff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  radioIndicatorSelected: {
+    borderColor: '#f97316',
     backgroundColor: '#f97316',
+  },
+  radioInnerDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#ffffff',
   },
 });
